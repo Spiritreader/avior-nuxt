@@ -16,13 +16,14 @@ db.once('open', function () {
     console.log("connection established");
 });
 const clientSchema = new mongoose.Schema({
-    Name: { type: String, required: true, unique: true },
+    Name: { type: String, required: true },
     Address: { type: String, required: true }
 });
 const Client = mongoose.model(clientDocument, clientSchema, "registered_client")
 
 function createClient(name, address) {
     const client = new Client({
+        _id: new mongoose.Types.ObjectId(),
         Name: name,
         Address: address
     });
@@ -62,8 +63,8 @@ function deleteClient(req, res) {
 
 function getClients(req, res) {
     Client.find((err, clients) => {
-        console.log("error retrieving client: " + err)
         if (err) {
+            console.log("error retrieving client: " + err)
             res.status(500).json({ error: "no bueno" })
         } else {
             res.json(clients);

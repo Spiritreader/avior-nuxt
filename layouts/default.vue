@@ -86,6 +86,11 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Client Configuration',
           to: '/config'
+        },
+        {
+          icon: 'mdi-chart-bubble',
+          title: 'Settings',
+          to: '/settings'
         }
       ],
       miniVariant: false,

@@ -12,6 +12,20 @@
         "userDataDir": false
       },
       {
+        "type": "chrome",
+        "request": "launch",
+        "name": "client: chrome",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder}",
+        "address": "127.0.0.1",
+        "userDataDir": false,
+        "skipFiles": [
+          "node_modules/**/*.js",
+          "lib/**/*.js",
+          "<node_internals>/**/*.js"
+        ]
+      },
+      {
         "type": "firefox",
         "request": "launch",
         "reAttach": true,
