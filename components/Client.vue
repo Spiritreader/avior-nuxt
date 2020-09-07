@@ -77,7 +77,10 @@
             </v-list-item>
           </v-list>
         </div>
-        <div v-if="isActive()" :class="[activeProcess.process === 'encoder' ? ['progress', 'justify-center', 'align-center'] : 'justify-end', 'd-flex', 'mx-auto', 'mx-sm-0', 'ml-sm-auto']">
+        <div
+          v-if="isActive()"
+          :class="[activeProcess.process === 'encoder' ? ['progress', 'justify-center', 'align-center'] : 'justify-end', 'd-flex', 'mx-auto', 'mx-sm-0', 'ml-sm-auto']"
+        >
           <v-progress-circular
             class="text-h5"
             :rotate="determineIndeterminate() ? 0 : -90"
@@ -86,7 +89,9 @@
             :value="getActiveProcessProgress"
             :color="progressColor"
             :indeterminate="determineIndeterminate()"
-          ><span v-if="!determineIndeterminate()">{{ getActiveProcessProgress }}</span></v-progress-circular>
+          >
+            <span v-if="!determineIndeterminate()">{{ getActiveProcessProgress }}</span>
+          </v-progress-circular>
         </div>
       </v-container>
     </v-card-text>
@@ -192,8 +197,11 @@ export default {
     },
   },
   methods: {
-    determineIndeterminate: function() {
-      return (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) || (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0);
+    determineIndeterminate: function () {
+      return (
+        (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) ||
+        (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0)
+      );
     },
     isActive: function () {
       let curProcess = this.getActiveProcess().process;
@@ -221,7 +229,22 @@ export default {
         const response = await fetch(url, {
           method: "PUT",
         });
-        this.setClientPaused();
+        if (response == "paused") {
+          try {
+            const refreshResponse = await this.$http.$get(url);
+            if (
+              !(
+                refreshResponse.Encoder.Active ||
+                refreshResponse.FileWalker.Active ||
+                refreshResponse.Mover.Active
+              )
+            ) {
+              this.setClientPaused();
+            }
+          } catch (err) {
+            this.setErrorMessage(err, "pause");
+          }
+        }
       } catch (err) {
         this.setErrorMessage(err, "pause");
       }
