@@ -32,7 +32,7 @@
 
         <v-card-text>
           <v-list subheader two-line>
-            <v-list-item v-for="(value, key) in clientsCleaned" :key="key">
+            <v-list-item v-for="(value, key) in prepareClientFields" :key="key">
               <v-list-item-content>
                 <v-list-item-title>{{ key }}</v-list-item-title>
                 <v-list-item-subtitle>{{ value }}</v-list-item-subtitle>
@@ -47,7 +47,6 @@
 <script>
 export default {
   mounted() {
-    this.prepareClientFields();
   },
   computed: {
     totalProgress: function () {
@@ -75,6 +74,20 @@ export default {
         return "Idle";
       }
     },
+    prepareClientFields: function () {
+      const filter = ["Active"];
+      let client = Object.keys(this.client.Encoder)
+        .filter((key) => !filter.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = this.client.Encoder[key];
+          return obj;
+        }, {});
+      let duration = new Date(client.Duration.replace("0001", "2000"));
+      let position = new Date(client.Position.replace("0001", "2000"));
+      client.Duration = `${duration.getUTCHours().toString().padStart(2, "0")}:${duration.getUTCMinutes().toString().padStart(2, "0")}:${duration.getUTCSeconds().toString().padStart(2, "0")}`;
+      client.Position = `${position.getUTCHours().toString().padStart(2, "0")}:${position.getUTCMinutes().toString().padStart(2, "0")}:${position.getUTCSeconds().toString().padStart(2, "0")}`;
+      return client;
+    }
   },
   data() {
     return {
@@ -98,16 +111,6 @@ export default {
         curProcess = "Idle";
       }
       return curProcess !== "Idle" && curProcess !== "Paused";
-    },
-    prepareClientFields: function () {
-      const filter = ["Active"];
-      this.clientsCleaned = Object.keys(this.client.Encoder)
-        .filter((key) => !filter.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = this.client.Encoder[key];
-          return obj;
-        }, {});
-      this.clientsCleaned.Duration = ""
     },
   },
   props: {

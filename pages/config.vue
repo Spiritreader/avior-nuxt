@@ -61,41 +61,7 @@
               </v-row>
               <v-row justify="start" class="px-4">
                 <v-col class="mt-0 pt-0">
-                  <v-list flat>
-                    <v-subheader>Media Paths</v-subheader>
-                    <!-- <v-list-item-group v-model="selectedMediaPath" color="primary">-->
-                    <v-list-item v-for="(item, i) in config.MediaPaths" :key="i">
-                      <v-list-item-icon>
-                        <v-icon>mdi-folder</v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-content>
-                        <v-list-item-title v-text="item"></v-list-item-title>
-                      </v-list-item-content>
-                      <v-btn text small color="red" @click="removeMediaPath(i)" class="pt-1">Remove</v-btn>
-                    </v-list-item>
-                    <v-list-item :key="config.MediaPaths + 1">
-                      <v-list-item-icon @click="addMediaPath" class="mr-5">
-                        <a>
-                          <v-icon>mdi-plus</v-icon>
-                        </a>
-                      </v-list-item-icon>
-                      <v-list-item-content class="ma-0 pa-0">
-                        <v-list-item-title>
-                          <v-text-field
-                            label="Add directory"
-                            v-model="newMediaPath"
-                            v-on:keydown.enter="addMediaPath"
-                            hide-details
-                            dense
-                            flat
-                            solo
-                            class="ma-0 pa-0"
-                          ></v-text-field>
-                        </v-list-item-title>
-                      </v-list-item-content>
-                    </v-list-item>
-                    <!-- </v-list-item-group> -->
-                  </v-list>
+                  <List @newdata="handleData($event)" :icon="'mdi-folder'" :list="config.MediaPaths"></List>
                 </v-col>
               </v-row>
             </v-card>
@@ -156,23 +122,10 @@ export default {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
       }
     },
-    showMediaPathEditButtons() {},
-    addMediaPath(event) {
-      if (this.newMediaPath.length > 0) {
-        console.log(this.newMediaPath);
-        this.config.MediaPaths.push(this.newMediaPath);
-        this.newMediaPath = "";
-      }
-    },
-    removeMediaPath(index) {
-      this.config.MediaPaths.splice(index, 1);
+    handleData: function (e) {
+      this.config.MediaPaths = e;
+      console.log(this.config.MediaPaths);
     },
   },
 };
 </script>
-
-<style lang="scss">
-.client-dropdown {
-  max-width: 500px;
-}
-</style>
