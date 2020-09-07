@@ -11,7 +11,7 @@
           <v-col cols="12" sm="6">
             <v-text-field
               v-model="clientName"
-              :rules="[rules.nameLen || rules.name]"
+              :rules="[rules.nameLen, rules.name]"
               :counter="30"
               label="Client Name"
               required
@@ -25,10 +25,8 @@
             class="mb-2"
             :loading="submitLoad"
             :disabled="submitLoad"
-            text
-            small
             color="blue"
-            @click="loader = 'submitLoad'"
+            @click="addClient()"
           >Submit</v-btn>
         </v-row>
       </v-form>
@@ -49,7 +47,7 @@
             text
             small
             color="red"
-            @click="setLoader(i)"
+            @click="deleteClient(i)"
           >Remove</v-btn>
         </v-list-item>
       </v-list>
@@ -66,8 +64,7 @@ export default {
       clientAddress: "",
       rules: {
         name: (v) => !!v || "Name is required",
-        nameLen: (v) =>
-          v.length <= 30 || "Name must be less than 30 characters",
+        nameLen: (v) => v.length <= 30 || "Name must be at most 30 characters",
         address: (v) => !!v || "Address is required",
       },
       loader: null,
@@ -79,61 +76,46 @@ export default {
     setLoader(i) {
       console.log(i);
       this.loader = i;
-    }
+    },
+    async addClient() {
+      if (this.clientName != "" && this.clientAddress != "") {
+        this.submitLoad = true;
+        const newUser = {
+          Name: this.clientName,
+          Address: this.clientAddress,
+        };
+        /*
+        this.loader = await fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newUser),
+        }).then((res) => res.json());*/
+        this.loader = await this.$http.$post("/api/clients", newUser);
+        this.submitLoad = false;
+        await this.$fetch();
+        this.submitLoad = false;
+      }
+    },
+    async deleteClient(i) {
+      this.removeLoad = true;
+      const deleteUser = {
+        _id: this.users[i]._id,
+      };
+      let result = await this.$axios.$post("/api/clients/delete", deleteUser);
+      console.log(result);
+      /*
+      this.loader = await fetch("http://localhost:3000/api/clients", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(deleteUser),
+      }).then((res) => res.json());*/
+      await this.$fetch();
+      this.removeLoad = false;
+    },
   },
   async fetch() {
     //this.users = await fetch("http://localhost:3000/api/clients").then((res) => res.json());
     this.users = await this.$http.$get("/api/clients");
-  },
-  watch: {
-    async loader() {
-      try {
-        const l = this.loader;
-        console.log("loader " + l);
-        if (l == "submitLoad") {
-          if (this.clientName != "" && this.clientAddres != "") {
-            const newUser = {
-              Name: this.clientName,
-              Address: this.clientAddress,
-            };
-            /*
-            this.loader = await fetch("/api/clients", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(newUser),
-            }).then((res) => res.json());*/
-            this.loader = await this.$http.$post("/api/clients", newUser);
-            await this.$fetch();
-            this.loader = null;
-            this.submitLoad = false;
-          }
-        } else {
-          const deleteUser = {
-            _id: this.users[l]._id,
-          };
-          console.log("deleting user");
-          console.log(deleteUser);
-          let result = await this.$axios.$post(
-            "/api/clients/delete",
-            deleteUser
-          );
-          await console.log(result);
-          /*
-          this.loader = await fetch("http://localhost:3000/api/clients", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(deleteUser),
-          }).then((res) => res.json());*/
-          this.loader = null;
-          console.log(this.removeLoad);
-          setTimeout(() => (this.removeLoad = false), 5000);
-          //await this.$fetch();
-        }
-        //await this.$fetch();
-      } catch (err) {
-        console.log(err);
-      }
-    },
   },
 };
 </script>

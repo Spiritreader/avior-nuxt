@@ -1,80 +1,93 @@
 <template>
-  <v-card class="ma-2" width="800">
+  <v-card class="ma-2">
     <v-card-text>
-      <div class="display-1 text-h4">
-        {{client.HostName}}
-        <v-icon class="pb-1" v-if="activeProcess.process === 'paused'">mdi-sleep</v-icon>
-        <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-flash-circle</v-icon>
-        <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
-        <v-btn
-          v-if="activeProcess.process !== 'paused' && isOnline()"
-          class="mb-2"
-          :loading="pauseMachine"
-          :disabled="pauseMachine"
-          text
-          small
-          color="blue"
-          @click="sendPauseCommand()"
-        >Pause</v-btn>
-        <v-btn
-          v-if="!isActive() && isOnline()"
-          class="mb-2 green--text"
-          :loading="resumeMachine"
-          :disabled="resumeMachine"
-          text
-          small
-          @click="sendResumeCommand()"
-        >Resume</v-btn>
-        <v-btn
-          v-if="isOnline()"
-          class="mb-2 red--text"
-          :loading="shutdownMachine"
-          :disabled="shutdownMachine"
-          text
-          small
-          @click.stop="shutdownConfirm = true"
-        >Shutdown</v-btn>
-          <v-dialog v-model="shutdownConfirm" max-width="290">
+      <div class="display-1 text-h4 d-flex">
+        <div class="mr-auto">
+          {{client.HostName}}
+          <v-icon class="pb-1" v-if="activeProcess.process === 'paused'">mdi-sleep</v-icon>
+          <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-flash-circle</v-icon>
+          <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
+        </div>
+        <div>
+          <v-icon class="pb-1">mdi-pause-circle-outline</v-icon>
+          <v-btn
+            v-if="activeProcess.process !== 'paused' && isOnline()"
+            class="mb-2"
+            :loading="pauseMachine"
+            :disabled="pauseMachine"
+            text
+            small
+            color="blue"
+            @click="sendPauseCommand()"
+          >Pause</v-btn>
+          <v-btn
+            v-if="!isActive() && isOnline()"
+            class="mb-2 green--text"
+            :loading="resumeMachine"
+            :disabled="resumeMachine"
+            text
+            small
+            @click="sendResumeCommand()"
+          >Resume</v-btn>
+          <v-btn
+            v-if="isOnline()"
+            class="mb-2 red--text"
+            :loading="shutdownMachine"
+            :disabled="shutdownMachine"
+            text
+            small
+            @click.stop="shutdownConfirm = true"
+          >Shutdown</v-btn>
+          <v-dialog v-model="shutdownConfirm">
             <v-card>
               <v-card-title>Do you really want to shut down {{ client.HostName }}?</v-card-title>
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="darken-1" text @click="shutdownConfirm = false">Cancel</v-btn>
-                <v-btn color="red darken-1" text @click="shutdownConfirm = false; sendShutdownCommand();">Shutdown</v-btn>
+                <v-btn
+                  color="red darken-1"
+                  text
+                  @click="shutdownConfirm = false; sendShutdownCommand();"
+                >Shutdown</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
+        </div>
       </div>
       <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
-      <v-container>
-        <v-row align="center">
-          <v-col class="d-flex flex-column" justify="end">
-            <p
-              class="body-1"
-              v-bind:class="{ 'status-active': isActive(), 'status-idle': !isActive(), 'status-offline': !isOnline() }"
-            >Status: {{ activeProcess.text }}</p>
-            <v-simple-table dense v-if="Object.keys(getActiveProcessInfo).length < 5">
-              <template v-slot:default>
-                <tbody>
-                  <tr v-for="(value, key) in getActiveProcessInfo" :key="key">
-                    <td>{{ key }}</td>
-                    <td class="text-wrap">{{ value }}</td>
-                  </tr>
-                </tbody>
-              </template>
-            </v-simple-table>
-          </v-col>
-          <v-col v-if="isActive()" class="d-flex justify-end">
-            <v-progress-circular
-              class="text-h5"
-              :rotate="-90"
-              :size="150"
-              :width="20"
-              :value="getActiveProcessProgress"
-              :color="progressColor"
-            >{{ getActiveProcessProgress }}</v-progress-circular>
-          </v-col>
-        </v-row>
+      <p
+        class="body-1"
+        v-bind:class="{ 'status-active': isActive(), 'status-idle': !isActive(), 'status-offline': !isOnline() }"
+      >Status: {{ activeProcess.text }}</p>
+      <p v-if="remaining" class="body-1">Remaining: {{ remaining }}</p>
+      <v-container
+        class="d-flex align-center flex-wrap-reverse flex-sm-nowrap flex-lg-nowrap flex-md-nowrap flex-lg-nowrap flex-xl-nowrap"
+      >
+        <div class="ma-2">
+          <v-list dense v-if="Object.keys(getActiveProcessInfo).length < 5">
+            <v-list-item v-for="(value, key) in getActiveProcessInfo" :key="key">
+              <v-row>
+                <v-col cols="3" sm="4">
+                  <v-list-item-content>{{ key }}</v-list-item-content>
+                </v-col>
+                <v-col cols="9" sm="8">
+                  <v-list-item-content>{{ value }}</v-list-item-content>
+                </v-col>
+              </v-row>
+            </v-list-item>
+          </v-list>
+        </div>
+        <div v-if="isActive()" :class="[activeProcess.process === 'encoder' ? ['progress', 'justify-center', 'align-center'] : 'justify-end', 'd-flex', 'mx-auto', 'mx-sm-0', 'ml-sm-auto']">
+          <v-progress-circular
+            class="text-h5"
+            :rotate="determineIndeterminate() ? 0 : -90"
+            :size="150"
+            :width="20"
+            :value="getActiveProcessProgress"
+            :color="progressColor"
+            :indeterminate="determineIndeterminate()"
+          ><span v-if="!determineIndeterminate()">{{ getActiveProcessProgress }}</span></v-progress-circular>
+        </div>
       </v-container>
     </v-card-text>
     <v-card-actions v-if="Object.keys(getActiveProcessInfo).length >= 5">
@@ -84,19 +97,19 @@
     </v-card-actions>
     <v-expand-transition v-if="Object.keys(getActiveProcessInfo).length >= 5">
       <div v-show="show">
-        <v-divider></v-divider>
-
         <v-card-text>
-          <v-simple-table dense>
-            <template v-slot:default>
-              <tbody>
-                <tr v-for="(value, key) in getActiveProcessInfo" :key="key">
-                  <td>{{ key }}</td>
-                  <td class="text-wrap">{{ value }}</td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
+          <v-list dense>
+            <v-list-item v-for="(value, key) in getActiveProcessInfo" :key="key">
+              <v-row>
+                <v-col cols="3" sm="4" xs="5">
+                  <v-list-item-content>{{ key }}</v-list-item-content>
+                </v-col>
+                <v-col cols="9" sm="8" xs="7">
+                  <v-list-item-content>{{ value }}</v-list-item-content>
+                </v-col>
+              </v-row>
+            </v-list-item>
+          </v-list>
         </v-card-text>
       </div>
     </v-expand-transition>
@@ -124,7 +137,6 @@ export default {
   props: {
     client: Object,
   },
-  mounted: function () {},
   computed: {
     getActiveProcessProgress: function () {
       const activeProcess = this.getActiveProcess().process;
@@ -179,8 +191,10 @@ export default {
       return "#" + ("000000" + h.toString(16)).slice(-6);
     },
   },
-  fetch: function () {},
   methods: {
+    determineIndeterminate: function() {
+      return (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) || (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0);
+    },
     isActive: function () {
       let curProcess = this.getActiveProcess().process;
       return !INACTIVE.includes(curProcess);
@@ -337,5 +351,9 @@ export default {
 
 .error-message {
   color: rgb(244, 67, 54);
+}
+
+.progress {
+  width: 100%;
 }
 </style>

@@ -1,7 +1,6 @@
 <template>
   <v-container>
     <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-      {{selectedClient}}
       <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
@@ -62,11 +61,43 @@
               </v-row>
               <v-row justify="start" class="px-4">
                 <v-col class="mt-0 pt-0">
-                  <List @newdata="handleData($event)" :icon="'mdi-folder'" :list="config.MediaPaths"></List>
+                  <List
+                    @newdata="handleMediaPathData($event)"
+                    :icon="'mdi-folder'"
+                    :list="config.MediaPaths"
+                    :type="'Media Path'"
+                  ></List>
                 </v-col>
               </v-row>
             </v-card>
           </v-tab-item>
+          <!--audio formats-->
+          <v-tab-item :key="configHeaders[1]">
+            <v-card flat class="d-flex">
+              <v-col cols="12" sm="6" md="6">
+                <List
+                  @newdata="handleAudioFormatStereoData($event)"
+                  :icon="'mdi-music-note'"
+                  :list="config.AudioFormats.StereoTags"
+                  :type="'Stereo Format'"
+                ></List>
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <List
+                  @newdata="handleAudioFormatMultiData($event)"
+                  :icon="'mdi-music-note-plus'"
+                  :list="config.AudioFormats.MultiTags"
+                  :type="'Multi Format'"
+                ></List>
+              </v-col>
+            </v-card>
+          </v-tab-item>
+          <!--resolutions-->
+          <v-tab-item :key="configHeaders[2]">
+            {{config.Resolutions}}
+            <Resolution v-for="resolution in config.Resolutions" :key="resolution" :tag="'hi'" :resolution="'heyhowareyou'"></Resolution>
+          </v-tab-item>
+
           <!--
           <v-tab-item v-for="configOption in configHeaders" :key="configOption">
             <v-card flat>
@@ -75,6 +106,7 @@
           </v-tab-item>-->
         </v-tabs-items>
       </v-card>
+      <v-btn :loading="saving" color="red darken-2" class="mt-6">Saveu</v-btn>
     </v-container>
   </v-container>
 </template>
@@ -83,6 +115,7 @@
 export default {
   data: () => ({
     err: "",
+    saving: false,
     loading: false,
     items: [],
     config: {},
@@ -102,12 +135,14 @@ export default {
   async fetch() {
     this.loading = true;
     //this.items = await fetch("api/clients").then(res => res.json());
-    this.items = await this.$http.$get("api/clients")
+    this.items = await this.$http.$get("api/clients");
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
         //this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
-        this.config = await this.$http.$get(`${this.selectedClient.Address}/config`);
+        this.config = await this.$http.$get(
+          `${this.selectedClient.Address}/config`
+        );
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
@@ -127,9 +162,17 @@ export default {
         this.err = err;
       }
     },
-    handleData: function (e) {
+    handleMediaPathData: function (e) {
       this.config.MediaPaths = e;
       console.log(this.config.MediaPaths);
+    },
+    handleAudioFormatStereoData: function (e) {
+      this.config.AudioFormats.StereoTags = e;
+      console.log(this.config.AudioFormats.StereoTags);
+    },
+    handleAudioFormatMultiData: function (e) {
+      this.config.AudioFormats.MultiTags = e;
+      console.log(this.config.AudioFormats.MultiTags);
     },
   },
 };

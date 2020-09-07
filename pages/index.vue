@@ -1,16 +1,14 @@
 <template>
-  <v-layout column justify-center align-center>
-    <v-flex xs12 sm8 md6>
-      <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-        <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
-      </v-row>
-      <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
-        <p>There was something I couldn't load.</p>
-      </v-row>
-      <Client v-else v-for="client in clients" :key="client.Name" :client="client"></Client>
-    </v-flex>
+  <v-container>
+    <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
+      <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
+    </v-row>
+    <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
+      <p>There was something I couldn't load.</p>
+    </v-row>
+    <Client v-else v-for="client in clients" :key="client.Name" :client="client"></Client>
     <v-btn @click="getClients">refresh</v-btn>
-  </v-layout>
+  </v-container>
 </template>
 
 <script>
@@ -55,13 +53,15 @@ export default {
           },
           FileWalker: {
             Active: true,
-            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Directory:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Position: 45340,
             LibSize: 1521120,
           },
           Mover: {
             Active: false,
-            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            File:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Progress: 15,
             Position: "1235",
             FileSize: "544245",
@@ -94,13 +94,15 @@ export default {
           },
           FileWalker: {
             Active: false,
-            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Directory:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Position: 1121120,
             LibSize: 1521120,
           },
           Mover: {
             Active: true,
-            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            File:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Progress: 95,
             Position: "544245",
             FileSize: "544245",
@@ -125,21 +127,22 @@ export default {
             Speed: 0,
             Slice: 7,
             OfSlices: 10,
-            Remaining: 152002120,
+            Remaining: 152002120000,
             Progress: 68,
             ReplacementReason: "",
-            OutPath:
-              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            OutPath: "D:\\Recording\\Fi.ts",
           },
           FileWalker: {
             Active: false,
-            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Directory:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Position: 45340,
             LibSize: 1521120,
           },
           Mover: {
             Active: false,
-            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            File:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Progress: 15,
             Position: "1235",
             FileSize: "544245",
@@ -150,7 +153,7 @@ export default {
         },
         {
           HostName: "#WF",
-          Status: "offline"
+          Status: "offline",
         },
       ],
     };
@@ -159,10 +162,10 @@ export default {
     getIpAddresses: async function () {
       //const response = await fetch("http://localhost:3000/api/clients");
       //const clientInfos = await response.json();
-      const clientInfos = await this.$axios.$get("api/clients");
+      const clientInfos = await this.$http.$get("api/clients");
       const clients = [];
       for (const client of clientInfos) {
-        clients.push({ ip: client.Address, HostName: client.Name });
+        clients.unshift({ ip: client.Address, HostName: client.Name });
       }
       //console.log(clients);
       return clients;
@@ -174,7 +177,7 @@ export default {
         try {
           //const response = await fetch(client.ip);
           //const clientInfo = await response.json();
-          const clientInfo = await this.$axios.$get(client.ip);
+          const clientInfo = await this.$http.$get(client.ip);
           clientInfo.Ip = client.ip;
           const idx = this.clients.findIndex(
             (c) =>
@@ -184,7 +187,7 @@ export default {
           if (idx !== -1) {
             this.clients.splice(idx, 1, clientInfo);
           } else {
-            this.clients.push(clientInfo);
+            this.clients.unshift(clientInfo);
           }
         } catch (err) {
           const idx = this.clients.findIndex(
@@ -192,7 +195,7 @@ export default {
           );
           let temp = this.clients;
           if (idx == -1) {
-            this.clients.push({
+            this.clients.unshift({
               HostName: client.HostName,
               Status: "offline",
             });

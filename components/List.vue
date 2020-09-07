@@ -1,6 +1,6 @@
 <template>
   <v-list flat>
-    <v-subheader>Media Paths</v-subheader>
+    <v-subheader>{{type}}s</v-subheader>
     <!-- <v-list-item-group v-model="selectedMediaPath" color="primary">-->
     <v-list-item v-for="(item, i) in list" :key="i">
       <v-list-item-icon>
@@ -20,7 +20,7 @@
       <v-list-item-content class="ma-0 pa-0">
         <v-list-item-title>
           <v-text-field
-            label="Add directory"
+            :label="`Add ${type}`"
             v-model="newElement"
             v-on:keydown.enter="addElement"
             hide-details
@@ -51,11 +51,12 @@ export default {
     }
   },
   data: () => ({
-    newElement: ""
+    newElement: "",
   }),
   props: {
     list: Array,
-    icon: String
+    icon: String,
+    type: String
   },
   watch: {
     list: {

@@ -9,7 +9,12 @@
         "url": "http://localhost:3000",
         "webRoot": "${workspaceFolder}",
         "address": "127.0.0.1",
-        "userDataDir": false
+        "userDataDir": false,
+        "skipFiles": [
+          "node_modules/**/*.js",
+          "lib/**/*.js",
+          "<node_internals>/**"
+        ]
       },
       {
         "type": "chrome",
