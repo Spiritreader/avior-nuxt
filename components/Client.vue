@@ -4,14 +4,14 @@
       <div class="display-1 text-h4 d-flex">
         <div class="mr-auto">
           {{client.HostName}}
-          <v-icon class="pb-1" v-if="activeProcess.process === 'paused'">mdi-sleep</v-icon>
+          <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
           <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-flash-circle</v-icon>
           <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
         </div>
         <div>
           <v-icon class="pb-1">mdi-pause-circle-outline</v-icon>
           <v-btn
-            v-if="activeProcess.process !== 'paused' && isOnline()"
+            v-if="!client.Paused && isOnline()"
             class="mb-2"
             :loading="pauseMachine"
             :disabled="pauseMachine"
@@ -21,7 +21,7 @@
             @click="sendPauseCommand()"
           >Pause</v-btn>
           <v-btn
-            v-if="!isActive() && isOnline()"
+            v-if="client.Paused && isOnline()"
             class="mb-2 green--text"
             :loading="resumeMachine"
             :disabled="resumeMachine"
