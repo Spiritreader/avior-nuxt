@@ -107,7 +107,7 @@ export default {
           obj[key] = this.client.Encoder[key];
           return obj;
         }, {});
-      this.clientsCleaned.Duration = 
+      this.clientsCleaned.Duration = ""
     },
   },
   props: {
