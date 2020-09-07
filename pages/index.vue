@@ -28,12 +28,49 @@ export default {
   data() {
     return {
       timer: null,
-      clients: [],
+      clients: [{
+          HostName: "VAVA",
+          Encoder: {
+            Active: true,
+            Duration: "0001-01-01T00:00:00Z",
+            Frame: 0,
+            Fps: 0,
+            Q: 0,
+            Size: "",
+            Position: "0001-01-01T00:00:00Z",
+            Bitrate: "",
+            Dup: 0,
+            Drop: 0,
+            Speed: 0,
+            Slice: 2,
+            OfSlices: 10,
+            Remaining: 152002120,
+            Progress: 39,
+            ReplacementReason: "",
+            OutPath: "ReplacementReasonReplacementReasonRepl acementReasonReplacementReasonReplacem entReasonReplacementReasonReplacementReasonR",
+          },
+          FileWalker: {
+            Active: false,
+            Directory: "",
+            Position: 0,
+            LibSize: 0,
+          },
+          Mover: {
+            Active: false,
+            File: "",
+            Progress: 0,
+            Position: "",
+            FileSize: "",
+          },
+          Paused: false,
+          ShutdownPending: false,
+        }],
     };
   },
   methods: {
     getIpAddresses: async function () {
-      let clientInfos = await fetch("api/clients").then(res => res.json());
+      const response = await fetch("api/clients");
+      const clientInfos = await response.json();
       const clients = [];
       for (const client of clientInfos) {
         clients.push({ ip: client.Address, HostName: client.Name });
@@ -46,7 +83,8 @@ export default {
       const clients = await this.getIpAddresses();
       for (const client of clients) {
         try {
-          const clientInfo = await fetch(client.ip).then(res => res.json());
+          const response = await fetch(client.ip);
+          const clientInfo = await response.json();
           const idx = this.clients.findIndex((c) => c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase());
           let temp = this.clients;
           if (idx !== -1) {

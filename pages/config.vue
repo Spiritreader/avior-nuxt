@@ -1,10 +1,11 @@
 <template>
   <v-container>
     <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
+      {{selectedClient}}
       <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
-      <p>There was something I couldn't load.</p>
+      <p>There was something I couldn't load {{err}}</p>
     </v-row>
     <v-container v-else>
       <v-row class="mb-2" justify="start" no-gutters>
@@ -81,6 +82,7 @@
 <script>
 export default {
   data: () => ({
+    err: "",
     loading: false,
     items: [],
     config: {},
@@ -103,12 +105,11 @@ export default {
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
-        this.config = await this.$http.$get(
-          `${this.selectedClient.Address}/config`
-        );
+        this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
+        this.err = err;
       }
     }
   },
@@ -120,6 +121,7 @@ export default {
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
+        this.err = err;
       }
     },
     handleData: function (e) {

@@ -1,11 +1,17 @@
 <template>
-  <v-card class="ma-2" width="500">
+  <v-card class="ma-2" width="800">
     <v-card-text>
-      <p class="display-1 text-h4">{{client.HostName}}</p>
+      <p class="display-1 text-h4">
+        {{client.HostName}}
+        <v-icon class="pb-1" v-if="activeProcess.text == 'Paused'">mdi-sleep</v-icon>
+        <v-icon class="pb-1" v-else-if="activeProcess.text == 'Offline'">mdi-flash-circle</v-icon>
+        <v-icon class="pb-1" v-else-if="activeProcess.text == 'Idle'">mdi-timer-outline</v-icon>
+      </p>
       <v-container>
         <v-row align="center">
           <v-col class="d-flex flex-column" justify="end">
-            <p class="body-1"
+            <p
+              class="body-1"
               v-bind:class="{ 'active': isActive(), 'idle': !isActive() }"
             >Status: {{ activeProcess.text }}</p>
             <p class="body-1" v-if="remaining">Remaining: {{ remaining }}</p>
@@ -23,7 +29,7 @@
         </v-row>
       </v-container>
     </v-card-text>
-    <v-card-actions v-if="getActiveProcessInfo != {}">
+    <v-card-actions v-if="Object.keys(getActiveProcessInfo).length !== 0">
       <v-btn icon @click="show = !show">
         <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </v-btn>
@@ -33,31 +39,33 @@
         <v-divider></v-divider>
 
         <v-card-text>
-          <v-list dense subheader two-line>
-            <v-list-item v-for="(value, key) in getActiveProcessInfo" :key="key">
-              <v-list-item-content>
-                <v-list-item-title>{{ key }}</v-list-item-title>
-                <v-list-item-subtitle>{{ value }}</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
+          <v-simple-table dense> 
+            <template v-slot:default>
+              <tbody>
+                <tr v-for="(value, key) in getActiveProcessInfo" :key="key">
+                  <td>{{ key }}</td>
+                  <td class="text-wrap">{{ value }}</td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
         </v-card-text>
       </div>
     </v-expand-transition>
   </v-card>
 </template>
 <script>
-const ENCODER     = "encoder",
-      FILEWALKER  = "filewalker",
-      MOVER       = "mover",
-      PAUSED      = "paused",
-      IDLE        = "idle",
-      OFFLINE     = "offline",
-      INACTIVE    = [OFFLINE, PAUSED, IDLE];
+const ENCODER = "encoder",
+  FILEWALKER = "filewalker",
+  MOVER = "mover",
+  PAUSED = "paused",
+  IDLE = "idle",
+  OFFLINE = "offline",
+  INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
   mounted() {},
   computed: {
-    getActiveProcessProgress: function() {
+    getActiveProcessProgress: function () {
       const activeProcess = this.getActiveProcess().process;
       switch (activeProcess) {
         case ENCODER:
@@ -107,9 +115,7 @@ export default {
       let curProcess = this.activeProcess.process;
       return !INACTIVE.includes(curProcess);
     },
-    setStatusColor: function () {
-
-    },
+    setStatusColor: function () {},
     getActiveProcess: function () {
       const client = this.client;
       if (client.Status) {
@@ -171,19 +177,19 @@ export default {
     },
     getFileWalkerProgress: function () {
       const fw = this.client.FileWalker;
-      return (fw.Position / fw.LibSize * 100).toFixed(2);
+      return ((fw.Position / fw.LibSize) * 100).toFixed(2);
     },
     getMoverProgress: function () {
       return this.client.Mover.Progress.toFixed(2);
     },
-    filterObject: function(originalObj, filter) {
+    filterObject: function (originalObj, filter) {
       return Object.keys(originalObj)
         .filter((key) => !filter.includes(key))
         .reduce((obj, key) => {
           obj[key] = originalObj[key];
           return obj;
         }, {});
-    }
+    },
   },
   props: {
     client: Object,
