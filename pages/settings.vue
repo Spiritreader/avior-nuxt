@@ -75,8 +75,8 @@ export default {
     };
   },
   async fetch() {
-    this.users = await fetch("/api/clients").then((res) => res.json());
-    // this.$axios.$post(url, postData)
+    //this.users = await fetch("http://localhost:3000/api/clients").then((res) => res.json());
+    this.users = await this.$http.$get("/api/clients");
   },
   watch: {
     async loader() {
@@ -88,11 +88,13 @@ export default {
               Name: this.clientName,
               Address: this.clientAddress,
             };
+            /*
             this.loader = await fetch("/api/clients", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(newUser),
-            }).then((res) => res.json());
+            }).then((res) => res.json());*/
+            this.loader = await this.$http.$post("/api/clients", newUser);
             this.loader = null;
             this.submit_load = false;
           }
@@ -102,7 +104,7 @@ export default {
           };
           console.log("deleting user");
           console.log(deleteUser);
-          this.loader = await fetch("/api/clients", {
+          this.loader = await fetch("http://localhost:3000/api/clients", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(deleteUser),

@@ -101,11 +101,13 @@ export default {
   }),
   async fetch() {
     this.loading = true;
-    this.items = await fetch("api/clients").then(res => res.json());
+    //this.items = await fetch("api/clients").then(res => res.json());
+    this.items = await this.$http.$get("api/clients")
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
-        this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
+        //this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
+        this.config = await this.$http.$get(`${this.selectedClient.Address}/config`);
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
@@ -117,7 +119,8 @@ export default {
     async configLoad(client) {
       this.loading = true;
       try {
-        this.config = await fetch(`${client}/config`).then(res => res.json());
+        //this.config = await fetch(`${client}/config`).then(res => res.json());
+        this.config = await fetch(`${client}/config`);
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);
