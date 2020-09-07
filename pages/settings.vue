@@ -1,12 +1,12 @@
 <template>
   <v-container>
-    <v-row class="title" justify="left" no-gutters>
+    <v-row class="title" no-gutters>
       <h2 class="mb-2">Settings</h2>
     </v-row>
     <v-divider class="mb-2"></v-divider>
     <v-card class="mb-10">
       <v-card-title>Add Client</v-card-title>
-      <v-form v-model="valid">
+      <v-form>
         <v-row class="ml-3 mr-3">
           <v-col cols="12" sm="6">
             <v-text-field
@@ -23,8 +23,8 @@
 
           <v-btn
             class="mb-2"
-            :loading="remove-load"
-            :disabled="remove-load"
+            :loading="remove_load"
+            :disabled="remove_load"
             text
             small
             color="blue"
@@ -43,19 +43,16 @@
             <v-list-item-subtitle v-text="user.Address"></v-list-item-subtitle>
           </v-list-item-content>
 
-          <v-list-action-item>
-            <v-btn
-              :loading="submit-load"
-              :disabled="submit-load"
-              text
-              small
-              color="red"
-              @click="loader = 'submit_load'"
-            >Remove</v-btn>
-          </v-list-action-item>
+          <v-btn
+            :loading="submit_load"
+            :disabled="submit_load"
+            text
+            small
+            color="red"
+            @click="loader = 'submit_load'"
+          >Remove</v-btn>
         </v-list-item>
       </v-list>
-      
     </v-card>
   </v-container>
 </template>
@@ -65,15 +62,13 @@ export default {
   data() {
     return {
       users: [],
-      clientName: '',
-      clientAddress: '',
+      clientName: "",
+      clientAddress: "",
       nameRules: [
-        v => !!v || 'Name is required',
-        v => v.length <= 30 || 'Name must be less than 10 characters',
+        (v) => !!v || "Name is required",
+        (v) => v.length <= 30 || "Name must be less than 10 characters",
       ],
-      addressRules: [
-        v => !!v || 'Name is required',
-      ],
+      addressRules: [(v) => !!v || "Name is required"],
       loader: null,
       submit_load: false,
       remove_load: false,
@@ -84,10 +79,12 @@ export default {
     // this.$axios.$post(url, postData)
   },
   watch: {
-    loader() {
+    async loader() {
       const l = this.loader;
       if (l == submit_load) {
-         
+        const newUser = { Name: clientName, Address: clientAddress };
+        this.loader = await this.$axios.$post("/api/clients", newUser);
+      } else if (l == remove_load) {
       }
 
       this.loader = null;

@@ -1,23 +1,27 @@
 <template>
-  <v-card class="mx-auto" max-width="344">
-      <div>{{client}}asdasd</div>
-    <!-- <v-card-text>
-      <div>{{client}}</div>
-      <p class="display-1 text--primary">{{client.Encoder.Name}}</p>
-      <p
-        v-bind:class="{ 'display-1': client.Encoder.Status != 'Idle' && client.Encoder.Status != 'Paused', 'text--primary': !!client.Encoder.Name }"
-      >Status: {{client.Encoder.Status}}</p>
-      <div class="text--primary">{{ totalProgress }}</div>
-      <v-progress-circular
-        :rotate="-90"
-        :size="100"
-        :width="15"
-        :value="totalProgress"
-        color="primary"
-      >{{ totalProgress }}</v-progress-circular>
+  <v-card class="ma-2" width="500">
+    <v-card-text>
+      <p class="display-1 text-h4">{{client.Name}}</p>
+      <v-container>
+        <v-row align="center">
+          <v-col class="d-flex" justify="left">
+            <div
+              v-bind:class="{ 'active': isActive(), 'idle': !isActive() }"
+            >Status: {{ activeProcess }}</div>
+          </v-col>
+          <v-col>
+            <v-progress-circular
+              :rotate="-90"
+              :size="100"
+              :width="15"
+              :value="totalProgress"
+              :color="totalProgress == 100 ? '#32cd32' : totalProgress == 0 ? '#DCDCDC' : '#87CEEB'"
+            >{{ totalProgress }}</v-progress-circular>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-card-text>
     <v-card-actions>
-      <v-btn text color="deep-purple accent-4">Edit</v-btn>
       <v-btn icon @click="show = !show">
         <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </v-btn>
@@ -27,9 +31,9 @@
         <v-divider></v-divider>
 
         <v-card-text>
-          <v-list subheader three-line>
-            <v-list-item>
-              <v-list-item-content v-for="(value, key) in client.Encoder" :key="key">
+          <v-list subheader two-line>
+            <v-list-item v-for="(value, key) in clientsCleaned" :key="key">
+              <v-list-item-content>
                 <v-list-item-title>{{ key }}</v-list-item-title>
                 <v-list-item-subtitle>{{ value }}</v-list-item-subtitle>
               </v-list-item-content>
@@ -38,31 +42,86 @@
         </v-card-text>
       </div>
     </v-expand-transition>
-    -->
   </v-card>
 </template>
 <script>
 export default {
+  mounted() {
+    this.prepareClientFields();
+  },
   computed: {
+    totalProgress: function () {
+      const encoder = this.client.Encoder;
+      if (encoder.OfSlices == 0) {
+        return encoder.Progress;
+      }
+      return Math.round(
+        ((encoder.Slice - 1) / encoder.OfSlices +
+          encoder.Progress / 100 / encoder.OfSlices) *
+          100
+      );
+    },
+    activeProcess: function () {
+      const client = this.client;
+      if (client.Encoder.Active) {
+        return "Encoder";
+      } else if (client.FileWalker.Active) {
+        return "File Walker";
+      } else if (client.Mover.Active) {
+        return "Mover";
+      } else if (client.Paused) {
+        return "Paused";
+      } else {
+        return "Idle";
+      }
+    },
   },
   data() {
     return {
       show: false,
+      clientsCleaned: {},
     };
   },
   methods: {
-    /*totalProgress: function() {
-      console.log(this.client);
-      const client = this.client.Encoder;
-      console.log("asdf");
-      if (client.OfSlices == 0) {
-        return client.Progress;
+    isActive: function () {
+      const client = this.client;
+      let curProcess;
+      if (client.Encoder.Active) {
+        curProcess = "Encoder";
+      } else if (client.FileWalker.Active) {
+        curProcess = "File Walker";
+      } else if (client.Mover.Active) {
+        curProcess = "Mover";
+      } else if (client.Paused) {
+        curProcess = "Paused";
+      } else {
+        curProcess = "Idle";
       }
-      return ((client.Slice - 1 / client.OfSlices) + (client.Progress / 100 / client.OfSlices)) * 100;
-    }*/
+      return curProcess !== "Idle" && curProcess !== "Paused";
+    },
+    prepareClientFields: function () {
+      const filter = ["Active"];
+      this.clientsCleaned = Object.keys(this.client.Encoder)
+        .filter((key) => !filter.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = this.client.Encoder[key];
+          return obj;
+        }, {});
+      this.clientsCleaned.Duration = 
+    },
   },
   props: {
-    client: String
+    client: Object,
   },
 };
 </script>
+
+<style lang="scss">
+.active {
+  color: limegreen;
+}
+
+.idle {
+  color: gainsboro;
+}
+</style>
