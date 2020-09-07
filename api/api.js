@@ -1,5 +1,3 @@
-import { timeStamp } from 'console';
-
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -36,7 +34,8 @@ function createClient(name, address) {
 }
 
 async function addClient(req, res) {
-    const body = req.body
+    const body = req.body;
+    console.log(body);
     if (body.Name && body.Address) {
         const client = await createClient(body.Name, body.Address)
         if (client) {
@@ -48,8 +47,9 @@ async function addClient(req, res) {
 }
 
 function deleteClient(req, res) {
-    const body = req.body
-    if (body.Name && body.Address) {
+    const body = req.body;
+    console.log(req.body);
+    if (body._id) {
         Client.deleteOne(body, (err) => {
             if (err) {
                 res.status(500).json({ error: err })
@@ -58,7 +58,6 @@ function deleteClient(req, res) {
             }
         })
     }
-
 }
 
 function getClients(req, res) {

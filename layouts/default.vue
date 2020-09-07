@@ -73,22 +73,22 @@ export default {
       fixed: false,
       items: [
         {
-          icon: 'mdi-apps',
-          title: 'Welcome',
+          icon: 'mdi-eye-settings-outline',
+          title: 'Overview',
           to: '/'
         },
         {
-          icon: 'mdi-chart-bubble',
+          icon: 'mdi-file-tree',
           title: 'Job Manager',
           to: '/jobs'
         },
         {
-          icon: 'mdi-chart-bubble',
+          icon: 'mdi-cog-outline',
           title: 'Client Configuration',
           to: '/config'
         },
         {
-          icon: 'mdi-chart-bubble',
+          icon: 'mdi-remote',
           title: 'Settings',
           to: '/settings'
         }

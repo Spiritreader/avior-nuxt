@@ -99,7 +99,7 @@ export default {
   }),
   async fetch() {
     this.loading = true;
-    this.items = await this.$axios.$get("/api/clients");
+    this.items = await fetch("api/clients").then(res => res.json());
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
@@ -116,7 +116,7 @@ export default {
     async configLoad(client) {
       this.loading = true;
       try {
-        this.config = await this.$http.$get(`${client}/config`);
+        this.config = await fetch(`${client}/config`).then(res => res.json());
         this.loading = false;
       } catch (err) {
         console.log(`couldn't load config for client ${client}, err: ${err}`);

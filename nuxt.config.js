@@ -5,7 +5,7 @@ export default {
   ** Nuxt rendering mode
   ** See https://nuxtjs.org/api/configuration-mode
   */
-  mode: 'universal',
+  mode: 'spa',
   /*
   ** Nuxt target
   ** See https://nuxtjs.org/api/configuration-target
@@ -16,8 +16,8 @@ export default {
   ** See https://nuxtjs.org/api/configuration-head
   */
   head: {
-    titleTemplate: '%s - ' + process.env.npm_package_name,
-    title: process.env.npm_package_name || '',
+    titleTemplate: '%s - ' + "powered by Walzen Group",
+    title: "Avior" || '',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -64,6 +64,11 @@ export default {
   ** See https://axios.nuxtjs.org/options
   */
   axios: {},
+  http: {
+    clientTimeout: 1000,
+    serverTimeout: 500
+  },
+  
   /*
   ** vuetify module configuration
   ** https://github.com/nuxt-community/vuetify-module

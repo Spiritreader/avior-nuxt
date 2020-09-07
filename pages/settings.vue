@@ -23,12 +23,12 @@
 
           <v-btn
             class="mb-2"
-            :loading="remove_load"
-            :disabled="remove_load"
+            :loading="submit_load"
+            :disabled="submit_load"
             text
             small
             color="blue"
-            @click="loader = 'remove_load'"
+            @click="loader = 'submit_load'"
           >Submit</v-btn>
         </v-row>
       </v-form>
@@ -37,19 +37,19 @@
       <v-card-title>Client List</v-card-title>
       <v-list>
         <v-divider></v-divider>
-        <v-list-item v-for="user in users" :key="user.Name">
+        <v-list-item v-for="(user, i) in users" :key="user._id">
           <v-list-item-content>
             <v-list-item-title v-text="user.Name"></v-list-item-title>
             <v-list-item-subtitle v-text="user.Address"></v-list-item-subtitle>
           </v-list-item-content>
 
           <v-btn
-            :loading="submit_load"
-            :disabled="submit_load"
+            :loading="remove_load"
+            :disabled="remove_load"
             text
             small
             color="red"
-            @click="loader = 'submit_load'"
+            @click="loader = i"
           >Remove</v-btn>
         </v-list-item>
       </v-list>
@@ -66,28 +66,55 @@ export default {
       clientAddress: "",
       nameRules: [
         (v) => !!v || "Name is required",
-        (v) => v.length <= 30 || "Name must be less than 10 characters",
+        (v) => v.length <= 30 || "Name must be less than 30 characters",
       ],
-      addressRules: [(v) => !!v || "Name is required"],
+      addressRules: [(v) => !!v || "Address is required"],
       loader: null,
       submit_load: false,
       remove_load: false,
     };
   },
   async fetch() {
-    this.users = await this.$axios.$get("/api/clients");
+    this.users = await fetch("/api/clients").then((res) => res.json());
     // this.$axios.$post(url, postData)
   },
   watch: {
     async loader() {
-      const l = this.loader;
-      if (l == submit_load) {
-        const newUser = { Name: clientName, Address: clientAddress };
-        this.loader = await this.$axios.$post("/api/clients", newUser);
-      } else if (l == remove_load) {
-      }
+      try {
+        const l = this.loader;
+        if (l == "submit_load") {
+          if (this.clientName != "" && this.ClientAddres != "") {
+            const newUser = {
+              Name: this.clientName,
+              Address: this.clientAddress,
+            };
+            this.loader = await fetch("/api/clients", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(newUser),
+            }).then((res) => res.json());
+            this.loader = null;
+            this.submit_load = false;
+          }
+        } else {
+          const deleteUser = {
+            _id: this.users[l]._id,
+          };
+          console.log("deleting user");
+          console.log(deleteUser);
+          this.loader = await fetch("/api/clients", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(deleteUser),
+          }).then((res) => res.json());
+          this.loader = null;
+          this.submit_load = false;
+        }
 
-      this.loader = null;
+        this.loader = null;
+      } catch (err) {
+        console.log(err);
+      }
     },
   },
 };
