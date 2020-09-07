@@ -15,9 +15,6 @@
 
 <script>
 export default {
-  created() {
-    //this.timer = setInterval(this.getClients, 2000);
-  },
   beforeDestroy() {
     clearInterval(this.timer);
   },
@@ -37,7 +34,7 @@ export default {
         {
           HostName: "VAVA",
           Encoder: {
-            Active: true,
+            Active: false,
             Duration: "0001-01-01T00:00:00Z",
             Frame: 0,
             Fps: 0,
@@ -54,23 +51,106 @@ export default {
             Progress: 39,
             ReplacementReason: "",
             OutPath:
-              "ReplacementReasonReplacementReasonRepl acementReasonReplacementReasonReplacem entReasonReplacementReasonReplacementReasonR",
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
           },
           FileWalker: {
-            Active: false,
-            Directory: "",
-            Position: 0,
-            LibSize: 0,
+            Active: true,
+            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Position: 45340,
+            LibSize: 1521120,
           },
           Mover: {
             Active: false,
-            File: "",
-            Progress: 0,
-            Position: "",
-            FileSize: "",
+            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Progress: 15,
+            Position: "1235",
+            FileSize: "544245",
           },
           Paused: false,
           ShutdownPending: false,
+          Ip: "http://10.10.13.0",
+        },
+        {
+          HostName: "DESKTOP-KN",
+          Encoder: {
+            Active: false,
+            Duration: "0001-01-01T00:00:00Z",
+            Frame: 0,
+            Fps: 0,
+            Q: 0,
+            Size: "",
+            Position: "0001-01-01T00:00:00Z",
+            Bitrate: "",
+            Dup: 0,
+            Drop: 0,
+            Speed: 0,
+            Slice: 2,
+            OfSlices: 10,
+            Remaining: 152002120,
+            Progress: 39,
+            ReplacementReason: "",
+            OutPath:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+          },
+          FileWalker: {
+            Active: false,
+            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Position: 1121120,
+            LibSize: 1521120,
+          },
+          Mover: {
+            Active: true,
+            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Progress: 95,
+            Position: "544245",
+            FileSize: "544245",
+          },
+          Paused: false,
+          ShutdownPending: false,
+          Ip: "http://10.10.12.0",
+        },
+        {
+          HostName: "ASDF",
+          Encoder: {
+            Active: true,
+            Duration: "0001-01-01T00:00:00Z",
+            Frame: 0,
+            Fps: 0,
+            Q: 0,
+            Size: "",
+            Position: "0001-01-01T00:00:00Z",
+            Bitrate: "",
+            Dup: 0,
+            Drop: 0,
+            Speed: 0,
+            Slice: 7,
+            OfSlices: 10,
+            Remaining: 152002120,
+            Progress: 68,
+            ReplacementReason: "",
+            OutPath:
+              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+          },
+          FileWalker: {
+            Active: false,
+            Directory: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Position: 45340,
+            LibSize: 1521120,
+          },
+          Mover: {
+            Active: false,
+            File: "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Progress: 15,
+            Position: "1235",
+            FileSize: "544245",
+          },
+          Paused: false,
+          ShutdownPending: false,
+          Ip: "http://10.10.11.0",
+        },
+        {
+          HostName: "#WF",
+          Status: "offline"
         },
       ],
     };
@@ -79,7 +159,7 @@ export default {
     getIpAddresses: async function () {
       //const response = await fetch("http://localhost:3000/api/clients");
       //const clientInfos = await response.json();
-      const clientInfos = await this.$http.$get("api/clients");
+      const clientInfos = await this.$axios.$get("api/clients");
       const clients = [];
       for (const client of clientInfos) {
         clients.push({ ip: client.Address, HostName: client.Name });
@@ -94,7 +174,8 @@ export default {
         try {
           //const response = await fetch(client.ip);
           //const clientInfo = await response.json();
-          const clientInfo = await this.$http.$get(client.ip);
+          const clientInfo = await this.$axios.$get(client.ip);
+          clientInfo.Ip = client.ip;
           const idx = this.clients.findIndex(
             (c) =>
               c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
@@ -114,21 +195,11 @@ export default {
             this.clients.push({
               HostName: client.HostName,
               Status: "offline",
-              Encoder: {
-                OfSlices: 0,
-                Slice: 0,
-                Progress: 0,
-              },
             });
           } else {
             this.clients.splice(idx, 1, {
               HostName: client.HostName,
               Status: "offline",
-              Encoder: {
-                OfSlices: 0,
-                Slice: 0,
-                Progress: 0,
-              },
             });
           }
           //console.log(`client ${client.name} is not online! ${err}`);

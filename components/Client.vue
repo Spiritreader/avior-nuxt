@@ -1,45 +1,93 @@
 <template>
   <v-card class="ma-2" width="800">
     <v-card-text>
-      <p class="display-1 text-h4">
+      <div class="display-1 text-h4">
         {{client.HostName}}
-        <v-icon class="pb-1" v-if="activeProcess.text == 'Paused'">mdi-sleep</v-icon>
-        <v-icon class="pb-1" v-else-if="activeProcess.text == 'Offline'">mdi-flash-circle</v-icon>
-        <v-icon class="pb-1" v-else-if="activeProcess.text == 'Idle'">mdi-timer-outline</v-icon>
-      </p>
+        <v-icon class="pb-1" v-if="activeProcess.process === 'paused'">mdi-sleep</v-icon>
+        <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-flash-circle</v-icon>
+        <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
+        <v-btn
+          v-if="activeProcess.process !== 'paused' && isOnline()"
+          class="mb-2"
+          :loading="pauseMachine"
+          :disabled="pauseMachine"
+          text
+          small
+          color="blue"
+          @click="sendPauseCommand()"
+        >Pause</v-btn>
+        <v-btn
+          v-if="!isActive() && isOnline()"
+          class="mb-2 green--text"
+          :loading="resumeMachine"
+          :disabled="resumeMachine"
+          text
+          small
+          @click="sendResumeCommand()"
+        >Resume</v-btn>
+        <v-btn
+          v-if="isOnline()"
+          class="mb-2 red--text"
+          :loading="shutdownMachine"
+          :disabled="shutdownMachine"
+          text
+          small
+          @click.stop="shutdownConfirm = true"
+        >Shutdown</v-btn>
+          <v-dialog v-model="shutdownConfirm" max-width="290">
+            <v-card>
+              <v-card-title>Do you really want to shut down {{ client.HostName }}?</v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="darken-1" text @click="shutdownConfirm = false">Cancel</v-btn>
+                <v-btn color="red darken-1" text @click="shutdownConfirm = false; sendShutdownCommand();">Shutdown</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+      </div>
+      <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
       <v-container>
         <v-row align="center">
           <v-col class="d-flex flex-column" justify="end">
             <p
               class="body-1"
-              v-bind:class="{ 'active': isActive(), 'idle': !isActive() }"
+              v-bind:class="{ 'status-active': isActive(), 'status-idle': !isActive(), 'status-offline': !isOnline() }"
             >Status: {{ activeProcess.text }}</p>
-            <p class="body-1" v-if="remaining">Remaining: {{ remaining }}</p>
+            <v-simple-table dense v-if="Object.keys(getActiveProcessInfo).length < 5">
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="(value, key) in getActiveProcessInfo" :key="key">
+                    <td>{{ key }}</td>
+                    <td class="text-wrap">{{ value }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
           </v-col>
-          <v-col class="d-flex justify-end">
+          <v-col v-if="isActive()" class="d-flex justify-end">
             <v-progress-circular
               class="text-h5"
               :rotate="-90"
               :size="150"
               :width="20"
               :value="getActiveProcessProgress"
-              :color="getActiveProcessProgress == 100 ? '#32cd32' : getActiveProcessProgress == 0 ? '#DCDCDC' : 'red darken-3'"
+              :color="progressColor"
             >{{ getActiveProcessProgress }}</v-progress-circular>
           </v-col>
         </v-row>
       </v-container>
     </v-card-text>
-    <v-card-actions v-if="Object.keys(getActiveProcessInfo).length !== 0">
+    <v-card-actions v-if="Object.keys(getActiveProcessInfo).length >= 5">
       <v-btn icon @click="show = !show">
         <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
       </v-btn>
     </v-card-actions>
-    <v-expand-transition>
+    <v-expand-transition v-if="Object.keys(getActiveProcessInfo).length >= 5">
       <div v-show="show">
         <v-divider></v-divider>
 
         <v-card-text>
-          <v-simple-table dense> 
+          <v-simple-table dense>
             <template v-slot:default>
               <tbody>
                 <tr v-for="(value, key) in getActiveProcessInfo" :key="key">
@@ -63,7 +111,20 @@ const ENCODER = "encoder",
   OFFLINE = "offline",
   INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
-  mounted() {},
+  data: () => ({
+    show: false,
+    remaining: null,
+    pauseMachine: false,
+    resumeMachine: false,
+    shutdownMachine: false,
+    shutdownConfirm: false,
+    errorMessage: null,
+    errorMessageTimeout: null,
+  }),
+  props: {
+    client: Object,
+  },
+  mounted: function () {},
   computed: {
     getActiveProcessProgress: function () {
       const activeProcess = this.getActiveProcess().process;
@@ -102,20 +163,84 @@ export default {
           return {};
       }
     },
+    progressColor: function () {
+      const perc = this.getActiveProcessProgress;
+      let r,
+        g,
+        b = 0;
+      if (perc < 50) {
+        r = 220;
+        g = Math.round(5.1 * perc);
+      } else {
+        g = 160;
+        r = Math.round(510 - 5.1 * perc);
+      }
+      const h = r * 0x10000 + g * 0x100 + b * 0x1;
+      return "#" + ("000000" + h.toString(16)).slice(-6);
+    },
   },
-  fetch() {},
-  data() {
-    return {
-      show: false,
-      remaining: null,
-    };
-  },
+  fetch: function () {},
   methods: {
     isActive: function () {
-      let curProcess = this.activeProcess.process;
+      let curProcess = this.getActiveProcess().process;
       return !INACTIVE.includes(curProcess);
     },
-    setStatusColor: function () {},
+    isOnline: function () {
+      return this.getActiveProcess().process !== OFFLINE;
+    },
+    sendResumeCommand: async function () {
+      this.resumeMachine = true;
+      const url = this.client.Ip + "/resume";
+      try {
+        const response = await fetch(url, {
+          method: "PUT",
+        });
+      } catch (err) {
+        this.setErrorMessage(err, "resume");
+      }
+      this.resumeMachine = false;
+    },
+    sendPauseCommand: async function () {
+      this.pauseMachine = true;
+      const url = this.client.Ip + "/pause";
+      try {
+        const response = await fetch(url, {
+          method: "PUT",
+        });
+        this.setClientPaused();
+      } catch (err) {
+        this.setErrorMessage(err, "pause");
+      }
+      this.pauseMachine = false;
+    },
+    sendShutdownCommand: async function () {
+      this.shutdownMachine = true;
+      const url = this.client.Ip + "/shutdown";
+      try {
+        const response = await fetch(url, {
+          method: "PUT",
+        });
+      } catch (err) {
+        this.setErrorMessage(err, "shut down");
+      }
+      this.shutdownMachine = false;
+    },
+    setClientPaused: function () {
+      this.client.Paused = true;
+      this.client.Encoder.Active = false;
+      this.client.FileWalker.Active = false;
+      this.client.Mover.Active = false;
+    },
+    setErrorMessage: function (err, mode) {
+      clearTimeout(this.errorMessageTimeout);
+      this.errorMessage = `Could not ${mode} ${this.client.HostName}.`;
+      this.errorMessageTimeout = setTimeout(
+        function () {
+          this.errorMessage = null;
+        }.bind(this),
+        5000
+      );
+    },
     getActiveProcess: function () {
       const client = this.client;
       if (client.Status) {
@@ -177,6 +302,9 @@ export default {
     },
     getFileWalkerProgress: function () {
       const fw = this.client.FileWalker;
+      if (fw.LibSize == 0) {
+        return 0;
+      }
       return ((fw.Position / fw.LibSize) * 100).toFixed(2);
     },
     getMoverProgress: function () {
@@ -191,22 +319,23 @@ export default {
         }, {});
     },
   },
-  props: {
-    client: Object,
-  },
 };
 </script>
 
 <style lang="scss">
-.active {
-  color: limegreen;
+.status-active {
+  color: rgb(76, 175, 80);
 }
 
-.idle {
+.status-idle {
   color: gainsboro;
 }
 
-.offline {
-  color: red;
+.status-offline {
+  color: rgb(244, 67, 54);
+}
+
+.error-message {
+  color: rgb(244, 67, 54);
 }
 </style>

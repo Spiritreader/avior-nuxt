@@ -47,16 +47,20 @@ async function addClient(req, res) {
 }
 
 function deleteClient(req, res) {
+    console.log("endpoint delete hit");
     const body = req.body;
+    console.log(req.headers);
     console.log(req.body);
     if (body._id) {
         Client.deleteOne(body, (err) => {
             if (err) {
-                res.status(500).json({ error: err })
+                res.status(404).json({ error: err })
             } else {
                 res.json({ message: "deleted", client: body })
             }
         })
+    } else {
+        res.status(500).json({ error: "no bueno" })
     }
 }
 
@@ -75,7 +79,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 app.post("/clients", addClient);
-app.delete("/clients", deleteClient)
+app.post("/clients/delete", deleteClient)
 app.get("/clients", getClients)
 
 export default {
