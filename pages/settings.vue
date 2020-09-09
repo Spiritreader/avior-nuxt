@@ -48,7 +48,7 @@
             small
             color="red"
             @click="deleteClient(i)"
-          >Remove</v-btn>
+          ><v-icon>mdi-close</v-icon></v-btn>
         </v-list-item>
       </v-list>
     </v-card>

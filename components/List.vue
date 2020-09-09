@@ -9,7 +9,7 @@
       <v-list-item-content>
         <v-list-item-title v-text="item"></v-list-item-title>
       </v-list-item-content>
-      <v-btn text small color="red" @click="removeElement(i)" class="pt-1">Remove</v-btn>
+      <v-btn icon small color="red" @click="removeElement(i)" class="mt-0"><v-icon>mdi-close</v-icon></v-btn>
     </v-list-item>
     <v-list-item :key="list + 1">
       <v-list-item-icon @click="addElement" class="mr-5">

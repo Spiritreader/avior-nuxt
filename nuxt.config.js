@@ -36,8 +36,7 @@ export default {
   ** Plugins to load before mounting the App
   ** https://nuxtjs.org/guide/plugins
   */
-  plugins: [
-  ],
+  plugins: [],
   /*
   ** Auto import components
   ** See https://nuxtjs.org/api/configuration-components
@@ -65,10 +64,10 @@ export default {
   */
   axios: {},
   http: {
-    clientTimeout: 1000,
-    serverTimeout: 500
+    clientTimeout: 1500,
+    serverTimeout: 1500
   },
-  
+
   /*
   ** vuetify module configuration
   ** https://github.com/nuxt-community/vuetify-module

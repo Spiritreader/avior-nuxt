@@ -1,25 +1,38 @@
 <template>
   <v-container>
-    <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-      <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
-    </v-row>
-    <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
-      <p>There was something I couldn't load.</p>
-    </v-row>
-    <Client v-else v-for="client in clients" :key="client.Name" :client="client"></Client>
-    <v-btn @click="getClients">refresh</v-btn>
+    <div>
+      <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
+        <v-btn @click="autoRefresh">
+          <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
+          <v-icon v-else>mdi-cached</v-icon>
+        </v-btn>
+      </v-row>
+      <div v-if="!$fetchState.error && totalLoadedLeft > 0">
+        <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+      </div>
+      <div v-else-if="$fetchState.pending">
+        <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
+          <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
+        </v-row>
+      </div>
+      <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
+        <p>There was something I couldn't load.</p>
+      </v-row>
+      <Client v-for="client in clients" :key="client.Name" :client="client"></Client>
+    </div>
   </v-container>
 </template>
 
 <script>
 export default {
+  inject: ["theme"],
   beforeDestroy() {
     clearInterval(this.timer);
   },
   mounted() {
-    if (process.client) {
+    /*if (process.client) {
       this.timer = setInterval(this.getClients, 2000);
-    }
+    }*/
   },
   async fetch() {
     console.log("fetching");
@@ -27,6 +40,8 @@ export default {
   },
   data() {
     return {
+      totalLoadedLeft: 0,
+      refreshBtn: "Enable Auto-Refresh",
       timer: null,
       clients: [
         {
@@ -53,8 +68,7 @@ export default {
           },
           FileWalker: {
             Active: true,
-            Directory:
-              "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            Directory: "D:\\Recording\\Fil",
             Position: 45340,
             LibSize: 1521120,
           },
@@ -150,6 +164,41 @@ export default {
           Paused: false,
           ShutdownPending: false,
           Ip: "http://10.10.11.0",
+          EncoderLineOut: [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            77,
+            98,
+            8,
+            6,
+            6,
+            34,
+            243,
+            132,
+            234,
+            423,
+            243,
+            24,
+            24,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).tsD:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).tsD:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
+            23,
+          ],
+          InFile: "sadf",
         },
         {
           HostName: "#WF",
@@ -159,15 +208,23 @@ export default {
     };
   },
   methods: {
+    autoRefresh() {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+        this.refreshBtn = "Enable Auto-Refresh";
+      } else if (process.client) {
+        this.timer = setInterval(this.getClients, 2000);
+        this.refreshBtn = "Disable Auto-Refresh";
+      }
+    },
     getIpAddresses: async function () {
-      //const response = await fetch("http://localhost:3000/api/clients");
-      //const clientInfos = await response.json();
       const clientInfos = await this.$http.$get("api/clients");
       const clients = [];
       for (const client of clientInfos) {
         clients.unshift({ ip: client.Address, HostName: client.Name });
       }
-      //console.log(clients);
+      this.totalLoadedLeft = clients.length;
       return clients;
     },
     getClients: async function () {
@@ -175,10 +232,11 @@ export default {
       const clients = await this.getIpAddresses();
       for (const client of clients) {
         try {
-          //const response = await fetch(client.ip);
-          //const clientInfo = await response.json();
           const clientInfo = await this.$http.$get(client.ip);
           clientInfo.Ip = client.ip;
+          clientInfo.EncoderLineOut = await this.$http.$get(
+            client.ip + "/encoder"
+          );
           const idx = this.clients.findIndex(
             (c) =>
               c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
@@ -190,6 +248,7 @@ export default {
             this.clients.unshift(clientInfo);
           }
         } catch (err) {
+          console.log(err);
           const idx = this.clients.findIndex(
             (c) => c.HostName.toLowerCase() === client.HostName.toLowerCase()
           );
@@ -205,10 +264,93 @@ export default {
               Status: "offline",
             });
           }
-          //console.log(`client ${client.name} is not online! ${err}`);
+        }
+        if (this.totalLoadedLeft > 0) {
+          this.totalLoadedLeft--;
         }
       }
     },
   },
 };
 </script>
+
+<style>
+.custom-loader {
+  animation: loader 3.5s infinite;
+  display: flex;
+}
+@-moz-keyframes loader {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+@-webkit-keyframes loader {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+@-o-keyframes loader {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+@keyframes loader {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0);
+  }
+}
+
+.vb > .vb-dragger {
+  z-index: 5;
+  width: 12px;
+  right: 0;
+}
+
+.vb > .vb-dragger > .vb-dragger-styler {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: rotate3d(0, 0, 0, 0);
+  transform: rotate3d(0, 0, 0, 0);
+  -webkit-transition: background-color 100ms ease-out, margin 100ms ease-out,
+    height 100ms ease-out;
+  transition: background-color 100ms ease-out, margin 100ms ease-out,
+    height 100ms ease-out;
+  background-color: rgba(48, 121, 244, 0.1);
+  margin: 5px 5px 5px 0;
+  border-radius: 20px;
+  height: calc(100% - 10px);
+  display: block;
+}
+
+.vb.vb-scrolling-phantom > .vb-dragger > .vb-dragger-styler {
+  background-color: rgba(48, 121, 244, 0.3);
+}
+
+.vb > .vb-dragger:hover > .vb-dragger-styler {
+  background-color: rgba(48, 121, 244, 0.5);
+  margin: 0px;
+  height: 100%;
+}
+
+.vb.vb-dragging > .vb-dragger > .vb-dragger-styler {
+  background-color: rgba(48, 121, 244, 0.5);
+  margin: 0px;
+  height: 100%;
+}
+
+.vb.vb-dragging-phantom > .vb-dragger > .vb-dragger-styler {
+  background-color: rgba(48, 121, 244, 0.5);
+}
+</style>
