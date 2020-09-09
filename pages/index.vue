@@ -7,7 +7,7 @@
           <v-icon v-else>mdi-cached</v-icon>
         </v-btn>
       </v-row>
-      <div v-if="!$fetchState.error && totalLoadedLeft > 0">
+      <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !timer">
         <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
       </div>
       <div v-else-if="$fetchState.pending">
