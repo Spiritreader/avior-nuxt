@@ -84,8 +84,8 @@
         class="d-flex align-center flex-wrap-reverse flex-sm-nowrap flex-lg-nowrap flex-md-nowrap flex-lg-nowrap flex-xl-nowrap"
       >
         <div class="ma-2 file-info">
-          <v-list v-if="getActiveProcessInfoLength < 5" dense>
-            <v-list-item v-for="(value, key) in getActiveProcessInfo" :key="key">
+          <v-list v-if="activeProcessInfoLength < 5" dense>
+            <v-list-item v-for="(value, key) in activeProcessInfo" :key="key">
               <v-row>
                 <v-col class="pa-0" md="2" sm="4" xs="6">
                   <v-list-item-content>{{ key }}</v-list-item-content>
@@ -140,8 +140,8 @@
           </v-list>
         </div>
         <div
-          v-if="isActive()"
-          :class="[/*activeProcess.process === 'encoder' ? ['progress', 'justify-center', 'align-center'] : */'justify-end', 'd-flex', 'mx-auto', 'mx-sm-0', 'ml-sm-auto']"
+          v-if="isActive() && activeProcess.process !== 'working'"
+          class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'"
         >
           <v-progress-circular
             transition="slide-x-transition"
@@ -149,18 +149,18 @@
             :rotate="determineIndeterminate() ? 0 : -90"
             :size="150"
             :width="20"
-            :value="getActiveProcessProgress"
+            :value="activeProcessProgress"
             :color="'red darken-3'"
             :indeterminate="determineIndeterminate()"
           >
-            <span v-if="!determineIndeterminate()">{{ getActiveProcessProgress }}%</span>
+            <span v-if="!determineIndeterminate()">{{ activeProcessProgress }}%</span>
           </v-progress-circular>
         </div>
       </v-container>
     </v-card-text>
     <v-card-actions>
       <v-btn
-        v-if="getActiveProcessInfoLength >= 5"
+        v-if="activeProcessInfoLength >= 5"
         icon
         @click="showProcessInfo = !showProcessInfo"
       >
@@ -174,11 +174,11 @@
         <v-icon>mdi-console</v-icon>
       </v-btn>
     </v-card-actions>
-    <v-expand-transition v-if="getActiveProcessInfoLength >= 5">
+    <v-expand-transition v-if="activeProcessInfoLength >= 5">
       <div v-show="showProcessInfo">
         <v-card-text>
           <v-list dense>
-            <v-list-item v-for="(value, key) in getActiveProcessInfo" :key="key">
+            <v-list-item v-for="(value, key) in activeProcessInfo" :key="key">
               <v-row>
                 <v-col class="pa-0" md="2" sm="4" xs="6">
                   <v-list-item-content>{{ key }}</v-list-item-content>
@@ -221,6 +221,7 @@ const ENCODER = "encoder",
   PAUSED = "paused",
   IDLE = "idle",
   OFFLINE = "offline",
+  WORKING = "working",
   INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
   data: () => ({
@@ -238,10 +239,10 @@ export default {
     client: Object,
   },
   computed: {
-    getActiveProcessInfoLength: function () {
-      return Object.keys(this.getActiveProcessInfo).length;
+    activeProcessInfoLength: function () {
+      return Object.keys(this.activeProcessInfo).length;
     },
-    getActiveProcessProgress: function () {
+    activeProcessProgress: function () {
       const activeProcess = this.getActiveProcess().process;
       switch (activeProcess) {
         case ENCODER:
@@ -256,12 +257,14 @@ export default {
           return 0;
         case IDLE:
           return 0;
+        case WORKING:
+          return 0;
       }
     },
     activeProcess: function () {
       return this.getActiveProcess();
     },
-    getActiveProcessInfo: function () {
+    activeProcessInfo: function () {
       const activeProcess = this.getActiveProcess().process;
       switch (activeProcess) {
         case ENCODER:
@@ -276,10 +279,12 @@ export default {
           return {};
         case IDLE:
           return {};
+        case WORKING:
+          return {};
       }
     },
     progressColor: function () {
-      const perc = this.getActiveProcessProgress;
+      const perc = this.activeProcessProgress;
       let r = 0,
         g = 0,
         b = 0;
@@ -394,6 +399,8 @@ export default {
         return { process: MOVER, text: "Mover" };
       } else if (client.Paused) {
         return { process: PAUSED, text: "Paused" };
+      } else if (client.InFile !== "") {
+        return { process: WORKING, text: "Working"}
       } else {
         return { process: IDLE, text: "Idle" };
       }
@@ -518,7 +525,7 @@ export default {
 
 .custom-loader-linear {
   animation: loader-linear 10s infinite;
-  transition-timing-function: linear;
+  animation-timing-function: linear;
   -webkit-animation-timing-function: linear;
   display: flex;
 }

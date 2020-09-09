@@ -2,11 +2,11 @@
   <div>
     <div class="d-flex">
       <v-text-field
-        label="Maximum Age"
+        label="Maximum Size"
         type="number"
         min="0"
-        v-model.number="settingsInternal.MaxAge"
-        placeholder="Days"
+        v-model.number="settingsInternal.MaxSize"
+        placeholder="GB"
         hide-details
         outlined
       ></v-text-field>
@@ -16,11 +16,9 @@
     </div>
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2 mt-4">
-        <div>
-          <p
-            class="px-4 pt-4 pb-3"
-          >Maximum duplicate file age in days before it is no longer protected from replacement</p>
-        </div>
+        <p
+          class="px-4 pt-4 pb-3"
+        >Maximum unencoded allowed file size in Gigabytes. Files beyond this threshold will be ignored</p>
       </v-card>
     </v-expand-transition>
   </div>

@@ -6,7 +6,7 @@
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>No one seems to be online. {{err}}</p>
     </v-row>
-    <v-container v-else>
+    <v-container width="100%" class="px-0 mx-0" v-else>
       <v-row class="mb-2" justify="start" no-gutters>
         <v-col class="client-dropdown">
           <v-select
@@ -127,7 +127,7 @@
 
           <!--modules-->
           <v-tab-item :key="configHeaders[3]" class="mt-2">
-            <v-container class="d-flex flex-column-reverse">
+            <!--<v-container class="d-flex flex-column-reverse">
               <v-row>
                 <v-col
                   class="min-module-width"
@@ -156,7 +156,64 @@
                   </Module>
                 </v-col>
               </v-row>
-            </v-container>
+            </v-container>-->
+            {{config.Modules}}
+            <div class="d-flex flex-wrap">
+              <div class="module-col">
+                <Module :name="'AudioModule'" :module="config.Modules.AudioModule">
+                  <AudioSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.AudioModule.Settings"
+                    :name="'AudioModule'"
+                  ></AudioSettings>
+                </Module>
+                <Module :name="'AgeModule'" :module="config.Modules.AgeModule">
+                  <AgeSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.AgeModule.Settings"
+                    :name="'AgeModule'"
+                  ></AgeSettings>
+                </Module>
+                <Module :name="'LegacyModule'" :module="config.Modules.LegacyModule"></Module>
+                <Module :name="'LengthModule'" :module="config.Modules.LengthModule">
+                  <LengthSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.LengthModule.Settings"
+                    :name="'LengthModule'"
+                  ></LengthSettings>
+                </Module>
+              </div>
+              <div class="module-col">
+                <Module :name="'LogMatchModule'" :module="config.Modules.LogMatchModule">
+                  <LogMatchSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.LogMatchModule.Settings"
+                    :name="'LogMatchModule'"
+                  ></LogMatchSettings>
+                </Module>
+                <Module :name="'MaxSizeModule'" :module="config.Modules.MaxSizeModule">
+                  <MaxSizeSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.MaxSizeModule.Settings"
+                    :name="'MaxSizeModule'"
+                  ></MaxSizeSettings>
+                </Module>
+                <Module :name="'ResolutionModule'" :module="config.Modules.ResolutionModule">
+                  <ResolutionSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.ResolutionModule.Settings"
+                    :name="'ResolutionModule'"
+                  ></ResolutionSettings>
+                </Module>
+                <Module :name="'SizeApproxModule'" :module="config.Modules.SizeApproxModule">
+                  <SizeApproxSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.SizeApproxModule.Settings"
+                    :name="'SizeApproxModule'"
+                  ></SizeApproxSettings>
+                </Module>
+              </div>
+            </div>
           </v-tab-item>
 
           <!--
@@ -296,5 +353,18 @@ export default {
   .min-module-width {
     min-width: 280px;
   }
+}
+
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  /*grid-template-columns: repeat(2, 1fr);
+  grid-gap: 0px;*/
+}
+
+.module-col {
+  flex-grow: 1;
+  flex-basis: 50%;
+  min-width: 300px;
 }
 </style>

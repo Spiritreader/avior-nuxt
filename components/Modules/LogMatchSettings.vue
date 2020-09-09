@@ -1,6 +1,6 @@
 <template>
   <div>
-    Accuracy
+    Mode
     <v-btn icon class="ma-2" color="primary" @click="expand = !expand">
       <v-icon>mdi-help-circle-outline</v-icon>
     </v-btn>
@@ -74,8 +74,6 @@ export default {
   watch: {
     selected: {
       handler: function () {
-        let value = this.selected;
-        this.settingsInternal.Mode = this.steps[value];
         this.$emit("newdata", {
           Name: this.name,
           Settings: this.settingsInternal,

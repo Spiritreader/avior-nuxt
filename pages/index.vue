@@ -1,25 +1,23 @@
 <template>
   <v-container>
-    <div>
-      <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
-        <v-btn @click="autoRefresh">
-          <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
-          <v-icon v-else>mdi-cached</v-icon>
-        </v-btn>
-      </v-row>
-      <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !timer">
-        <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
-      </div>
-      <div v-else-if="$fetchState.pending">
-        <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-          <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
-        </v-row>
-      </div>
-      <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
-        <p>There was something I couldn't load.</p>
-      </v-row>
-      <Client v-for="client in clients" :key="client.Name" :client="client"></Client>
+    <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
+      <v-btn @click="autoRefresh">
+        <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
+        <v-icon v-else>mdi-cached</v-icon>
+      </v-btn>
+    </v-row>
+    <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !timer">
+      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
     </div>
+    <div v-else-if="$fetchState.pending">
+      <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
+        <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
+      </v-row>
+    </div>
+    <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
+      <p>There was something I couldn't load.</p>
+    </v-row>
+    <Client v-for="client in clients" :key="client.Name" :client="client"></Client>
   </v-container>
 </template>
 
@@ -43,10 +41,6 @@ export default {
         }, 1000);
       }
     }
-
-    /*if (process.client) {
-      this.timer = setInterval(this.getClients, 2000);
-    }*/
   },
   async fetch() {
     console.log("fetching");
@@ -60,7 +54,7 @@ export default {
       timer: null,
       clients: [
         {
-          HostName: "VAVA",
+          HostName: "Blabla",
           Encoder: {
             Active: false,
             Duration: "0001-01-01T00:00:00Z",
@@ -82,7 +76,7 @@ export default {
               "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
           },
           FileWalker: {
-            Active: true,
+            Active: false,
             Directory: "D:\\Recording\\Fil",
             Position: 45340,
             LibSize: 1521120,
@@ -98,6 +92,7 @@ export default {
           Paused: false,
           ShutdownPending: false,
           Ip: "http://10.10.13.0",
+          InFile: "sadf",
         },
         {
           HostName: "DESKTOP-KN",
@@ -139,6 +134,7 @@ export default {
           Paused: false,
           ShutdownPending: false,
           Ip: "http://10.10.12.0",
+          InFile: "sadf",
         },
         {
           HostName: "ASDF",
