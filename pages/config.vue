@@ -127,37 +127,6 @@
 
           <!--modules-->
           <v-tab-item :key="configHeaders[3]" class="mt-2">
-            <!--<v-container class="d-flex flex-column-reverse">
-              <v-row>
-                <v-col
-                  class="min-module-width"
-                  v-for="cfgmodule of Object.entries(config.Modules)"
-                  :key="cfgmodule[0]"
-                >
-                  <Module :name="cfgmodule[0]" :module="cfgmodule[1]">
-                    <AudioSettings
-                      v-if="cfgmodule[0] == 'AudioModule'"
-                      @newdata="handleModuleSettings($event)"
-                      :settings="config.Modules[cfgmodule[0]].Settings"
-                      :name="cfgmodule[0]"
-                    ></AudioSettings>
-                    <AgeSettings
-                      v-if="cfgmodule[0] == 'AgeModule'"
-                      @newdata="handleModuleSettings($event)"
-                      :settings="config.Modules[cfgmodule[0]].Settings"
-                      :name="cfgmodule[0]"
-                    ></AgeSettings>
-                    <LogMatchSettings
-                      v-if="cfgmodule[0] == 'LogMatchModule'"
-                      @newdata="handleModuleSettings($event)"
-                      :settings="config.Modules[cfgmodule[0]].Settings"
-                      :name="cfgmodule[0]"
-                    ></LogMatchSettings>
-                  </Module>
-                </v-col>
-              </v-row>
-            </v-container>-->
-            {{config.Modules}}
             <div class="d-flex flex-wrap">
               <div class="module-col">
                 <Module :name="'AudioModule'" :module="config.Modules.AudioModule">
@@ -216,6 +185,32 @@
             </div>
           </v-tab-item>
 
+          <!--encoder config-->
+          <v-tab-item :key="configHeaders[4]" class="mt-2">
+            <v-select
+              class="px-4 pt-4"
+              :items="encoderConfigArray"
+              :item-text="'tag'"
+              :item-value="'tag'"
+              v-model="selectedEncoderConfigTag"
+              @change="loadEncoderConfig"
+              label="Select an encoder configuration"
+              outlined
+            ></v-select>
+            <div v-if="selectedEncoderConfig.content">
+              {{selectedEncoderConfig.new}}
+              <EncoderConfig
+                :tag="selectedEncoderConfig.tag"
+                :id="selectedEncoderConfig.id"
+                :new="selectedEncoderConfig.new"
+                :content="selectedEncoderConfig.content"
+                @deleted="handleEncoderSettingsDelete($event)"
+                @newdata="handleEncoderSettingsData($event)"
+                :allowNew="true"
+              ></EncoderConfig>
+            </div>
+          </v-tab-item>
+
           <!--
           <v-tab-item v-for="configOption in configHeaders" :key="configOption">
             <v-card flat>
@@ -233,6 +228,8 @@
 export default {
   data: () => ({
     err: "",
+    selectedEncoderConfigTag: "",
+    selectedEncoderConfig: {},
     saving: false,
     loading: false,
     items: [],
@@ -265,6 +262,21 @@ export default {
       }
       return ary;
     },
+    encoderConfigArray() {
+      let ary = [];
+      let idx = 0;
+      for (let prop of Object.entries(this.config.EncoderConfig)) {
+        if (prop[0] === "") {
+          ary.push({ tag: prop[0], content: prop[1], id: idx, new: true });
+        } else {
+          ary.push({ tag: prop[0], content: prop[1], id: idx, new: false });
+        }
+
+        idx++;
+      }
+      ary.unshift({ tag: "New Template...", content: {}, id: -1, new: true });
+      return ary;
+    },
   },
   async fetch() {
     this.loading = true;
@@ -288,6 +300,12 @@ export default {
     }
   },
   methods: {
+    loadEncoderConfig() {
+      this.selectedEncoderConfig = this.encoderConfigArray.find(
+        (cfg) => cfg.tag == this.selectedEncoderConfigTag
+      );
+      console.log(this.selectedEncoderConfig);
+    },
     async configLoad(client) {
       this.loading = true;
       this.err = false;
@@ -308,15 +326,12 @@ export default {
     },
     handleMediaPathData: function (e) {
       this.config.MediaPaths = e;
-      console.log(this.config.MediaPaths);
     },
     handleAudioFormatStereoData: function (e) {
       this.config.AudioFormats.StereoTags = e;
-      console.log(this.config.AudioFormats.StereoTags);
     },
     handleAudioFormatMultiData: function (e) {
       this.config.AudioFormats.MultiTags = e;
-      console.log(this.config.AudioFormats.MultiTags);
     },
     handleResolutionContentData: function (e) {
       this.config.Resolutions[e.tag] = e.content;
@@ -333,6 +348,15 @@ export default {
     },
     handleModuleSettings: function (e) {
       this.config.Modules[e.Name].Settings = e.Settings;
+    },
+    handleEncoderSettingsData: function (e) {
+      this.$set(this.config.EncoderConfig, e.tag, e.content);
+    },
+    handleEncoderSettingsDelete: function (e) {
+      console.log(e);
+      this.$delete(this.config.EncoderConfig, e);
+      console.log("hihey");
+      console.log(this.config.EncoderConfig);
     },
   },
 };

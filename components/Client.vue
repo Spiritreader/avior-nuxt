@@ -40,19 +40,21 @@
             <v-icon>mdi-play-circle-outline</v-icon>
           </v-btn>
 
-          <v-btn
-            v-if="isOnline()"
-            class="mb-2"
-            :loading="shutdownMachine"
-            :disabled="shutdownMachine"
-            large
-            icon
-            color="red"
-            @click.stop="shutdownConfirm = true"
-          >
-            <v-icon>mdi-power</v-icon>
-          </v-btn>
-          <v-dialog v-model="shutdownConfirm" max-width="500">
+          <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                class="mb-2"
+                :loading="shutdownMachine"
+                :disabled="shutdownMachine"
+                large
+                icon
+                color="red"
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon>mdi-power</v-icon>
+              </v-btn>
+            </template>
             <v-card>
               <v-card-title>Do you really want to shut down {{ client.HostName }}?</v-card-title>
               <v-card-actions>
@@ -159,11 +161,7 @@
       </v-container>
     </v-card-text>
     <v-card-actions>
-      <v-btn
-        v-if="activeProcessInfoLength >= 5"
-        icon
-        @click="showProcessInfo = !showProcessInfo"
-      >
+      <v-btn v-if="activeProcessInfoLength >= 5" icon @click="showProcessInfo = !showProcessInfo">
         <v-icon>mdi-format-list-bulleted</v-icon>
       </v-btn>
       <v-btn
@@ -400,7 +398,7 @@ export default {
       } else if (client.Paused) {
         return { process: PAUSED, text: "Paused" };
       } else if (client.InFile !== "") {
-        return { process: WORKING, text: "Working"}
+        return { process: WORKING, text: "Working" };
       } else {
         return { process: IDLE, text: "Idle" };
       }
@@ -561,13 +559,13 @@ export default {
 
 @keyframes flash {
   0% {
-    opacity: 1.0;
+    opacity: 1;
   }
   50% {
     opacity: 0.5;
   }
   100% {
-    opacity: 1.0;
+    opacity: 1;
   }
 }
 </style>

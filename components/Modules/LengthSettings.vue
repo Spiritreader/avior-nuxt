@@ -13,7 +13,6 @@
         </div>
       </v-card>
     </v-expand-transition>
-    {{threshold}}
     <v-slider color="red darken-3" v-model="threshold" class="align-center" :max="max" :min="min" hide-details>
       <template v-slot:append>
         <v-text-field
