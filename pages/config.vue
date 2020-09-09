@@ -1,10 +1,10 @@
 <template>
   <v-container>
     <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-      <v-progress-circular :size="150" :width="50" color="red darken-3" indeterminate></v-progress-circular>
+      <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
-      <p>There was something I couldn't load {{err}}</p>
+      <p>No one seems to be online. {{err}}</p>
     </v-row>
     <v-container v-else>
       <v-row class="mb-2" justify="start" no-gutters>
@@ -21,8 +21,16 @@
         </v-col>
       </v-row>
       <!-- Config Card -->
-      <v-row v-if="config == {} || loading" justify="center" class="mb-6" no-gutters>
-        <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
+      <v-row
+        v-if="config == null || config == {} || loading"
+        justify="center"
+        class="mb-6"
+        no-gutters
+      >
+        <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
+      </v-row>
+      <v-row justify="center" class="mb-6" no-gutters v-else-if="err != ''">
+        <v-icon size="150">mdi-lan-disconnect</v-icon>
       </v-row>
       <v-card v-else>
         <v-tabs
@@ -118,16 +126,34 @@
           </v-tab-item>
 
           <!--modules-->
-
           <v-tab-item :key="configHeaders[3]" class="mt-2">
-            <v-container d-flex flex-column>
+            <v-container class="d-flex flex-column-reverse">
               <v-row>
                 <v-col
                   class="min-module-width"
                   v-for="cfgmodule of Object.entries(config.Modules)"
                   :key="cfgmodule[0]"
                 >
-                  <Module :name="cfgmodule[0]" :module="cfgmodule[1]"></Module>
+                  <Module :name="cfgmodule[0]" :module="cfgmodule[1]">
+                    <AudioSettings
+                      v-if="cfgmodule[0] == 'AudioModule'"
+                      @newdata="handleModuleSettings($event)"
+                      :settings="config.Modules[cfgmodule[0]].Settings"
+                      :name="cfgmodule[0]"
+                    ></AudioSettings>
+                    <AgeSettings
+                      v-if="cfgmodule[0] == 'AgeModule'"
+                      @newdata="handleModuleSettings($event)"
+                      :settings="config.Modules[cfgmodule[0]].Settings"
+                      :name="cfgmodule[0]"
+                    ></AgeSettings>
+                    <LogMatchSettings
+                      v-if="cfgmodule[0] == 'LogMatchModule'"
+                      @newdata="handleModuleSettings($event)"
+                      :settings="config.Modules[cfgmodule[0]].Settings"
+                      :name="cfgmodule[0]"
+                    ></LogMatchSettings>
+                  </Module>
                 </v-col>
               </v-row>
             </v-container>
@@ -196,22 +222,29 @@ export default {
         );
         this.loading = false;
       } catch (err) {
-        console.log(`couldn't load config for client ${client}, err: ${err}`);
+        console.log(
+          `couldn't load config for client ${this.selectedClient}, err: ${err}`
+        );
         this.err = err;
+        throw err;
       }
     }
   },
   methods: {
     async configLoad(client) {
       this.loading = true;
+      this.err = false;
       try {
+        console.log("getting config for " + client);
         //this.config = await fetch(`${client}/config`).then(res => res.json());
-        this.config = await fetch(`${client}/config`);
-        this.loading = false;
+        this.config = await this.$http.$get(`${client}/config/`);
       } catch (err) {
-        console.log(`couldn't load config for client ${client}, err: ${err}`);
         this.err = err;
+        console.log(
+          `couldn't load config for client ${client}, err: ${this.err}`
+        );
       }
+      this.loading = false;
     },
     addResolution() {
       this.$set(this.config.Resolutions, "", "");
@@ -241,6 +274,9 @@ export default {
       resConfig.forEach((r) => (obj[r.tag] = r.resolution));
       this.config.Resolutions = obj;
     },
+    handleModuleSettings: function (e) {
+      this.config.Modules[e.Name].Settings = e.Settings;
+    },
   },
 };
 </script>
@@ -256,7 +292,7 @@ export default {
     min-width: 350px;
   }
 }
-@media only screen and (min-width: 370px) {
+@media only screen and (min-width: 360px) {
   .min-module-width {
     min-width: 280px;
   }

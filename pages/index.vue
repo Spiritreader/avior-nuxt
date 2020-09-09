@@ -12,7 +12,7 @@
       </div>
       <div v-else-if="$fetchState.pending">
         <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-          <v-progress-circular :size="150" :width="50" color="red darken-3" indeterminate></v-progress-circular>
+          <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
         </v-row>
       </div>
       <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
@@ -28,8 +28,22 @@ export default {
   inject: ["theme"],
   beforeDestroy() {
     clearInterval(this.timer);
+    clearInterval(this.debugTimer);
   },
   mounted() {
+    if (process.client) {
+      if (this.debugTimer == null) {
+        this.debugTimer = setInterval(() => {
+          let yidx = this.clients.findIndex((c) => c.HostName == "DESKTOP-KN");
+          if (this.clients[yidx].Mover.Progress > 90) {
+            this.clients[yidx].Mover.Progress = 0;
+          } else {
+            this.clients[yidx].Mover.Progress += 5;
+          }
+        }, 1000);
+      }
+    }
+
     /*if (process.client) {
       this.timer = setInterval(this.getClients, 2000);
     }*/
@@ -40,6 +54,7 @@ export default {
   },
   data() {
     return {
+      debugTimer: null,
       totalLoadedLeft: 0,
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
@@ -98,10 +113,10 @@ export default {
             Dup: 0,
             Drop: 0,
             Speed: 0,
-            Slice: 2,
-            OfSlices: 10,
-            Remaining: 152002120,
-            Progress: 39,
+            Slice: 0,
+            OfSlices: 0,
+            Remaining: 0,
+            Progress: 0,
             ReplacementReason: "",
             OutPath:
               "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
@@ -139,10 +154,10 @@ export default {
             Dup: 0,
             Drop: 0,
             Speed: 0,
-            Slice: 7,
+            Slice: 6,
             OfSlices: 10,
             Remaining: 152002120000,
-            Progress: 68,
+            Progress: 10,
             ReplacementReason: "",
             OutPath: "D:\\Recording\\Fi.ts",
           },
@@ -310,47 +325,5 @@ export default {
   to {
     transform: rotate(0);
   }
-}
-
-.vb > .vb-dragger {
-  z-index: 5;
-  width: 12px;
-  right: 0;
-}
-
-.vb > .vb-dragger > .vb-dragger-styler {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-transform: rotate3d(0, 0, 0, 0);
-  transform: rotate3d(0, 0, 0, 0);
-  -webkit-transition: background-color 100ms ease-out, margin 100ms ease-out,
-    height 100ms ease-out;
-  transition: background-color 100ms ease-out, margin 100ms ease-out,
-    height 100ms ease-out;
-  background-color: rgba(48, 121, 244, 0.1);
-  margin: 5px 5px 5px 0;
-  border-radius: 20px;
-  height: calc(100% - 10px);
-  display: block;
-}
-
-.vb.vb-scrolling-phantom > .vb-dragger > .vb-dragger-styler {
-  background-color: rgba(48, 121, 244, 0.3);
-}
-
-.vb > .vb-dragger:hover > .vb-dragger-styler {
-  background-color: rgba(48, 121, 244, 0.5);
-  margin: 0px;
-  height: 100%;
-}
-
-.vb.vb-dragging > .vb-dragger > .vb-dragger-styler {
-  background-color: rgba(48, 121, 244, 0.5);
-  margin: 0px;
-  height: 100%;
-}
-
-.vb.vb-dragging-phantom > .vb-dragger > .vb-dragger-styler {
-  background-color: rgba(48, 121, 244, 0.5);
 }
 </style>

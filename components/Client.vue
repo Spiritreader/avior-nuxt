@@ -1,11 +1,17 @@
 <template>
-  <v-card class="ma-2">
+  <v-card :loading="client.Encoder && (client.Encoder.OfSlices > 0)" class="ma-2">
+    <template style="min-height: 4px;" v-slot:progress>
+      <v-progress-linear v-model="client.Encoder.Progress" buffer-value="0" stream></v-progress-linear>
+    </template>
     <v-card-text>
       <div class="display-1 text-h4 d-flex">
         <div class="mr-auto">
           {{client.HostName}}
           <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
-          <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-flash-circle</v-icon>
+          <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">
+            <!--mdi-flash-circle-->
+            mdi-lan-disconnect
+          </v-icon>
           <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
         </div>
         <div v-if="isOnline()">
@@ -68,7 +74,9 @@
         v-bind:class="{ 'status-active': isActive(), 'status-idle': !isActive(), 'status-offline': !isOnline() }"
       >
         Status: {{ activeProcess.text }}
-        <span v-if="client.Encoder && client.Encoder.Active && client.Encoder.OfSlices !== 0">Estimating</span>
+        <span
+          v-if="client.Encoder && client.Encoder.Active && client.Encoder.OfSlices !== 0"
+        >Estimating</span>
       </p>
       <p v-if="client.InFile" class="body-2">{{ client.InFile }}</p>
 
@@ -142,7 +150,7 @@
             :size="150"
             :width="20"
             :value="getActiveProcessProgress"
-            :color="progressColor"
+            :color="'red darken-3'"
             :indeterminate="determineIndeterminate()"
           >
             <span v-if="!determineIndeterminate()">{{ getActiveProcessProgress }}%</span>
@@ -158,7 +166,11 @@
       >
         <v-icon>mdi-format-list-bulleted</v-icon>
       </v-btn>
-      <v-btn v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')" icon @click="showEncoderLog = !showEncoderLog">
+      <v-btn
+        v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')"
+        icon
+        @click="showEncoderLog = !showEncoderLog"
+      >
         <v-icon>mdi-console</v-icon>
       </v-btn>
     </v-card-actions>
@@ -268,15 +280,21 @@ export default {
     },
     progressColor: function () {
       const perc = this.getActiveProcessProgress;
-      let r,
-        g,
+      let r = 0,
+        g = 0,
         b = 0;
-      if (perc < 50) {
-        r = 220;
-        g = Math.round(5.1 * perc);
+      if (perc < 33) {
+        r = 243;
+        g = Math.round(33 + 1.3 * perc);
+        b = Math.round(33 + 6.36 * perc);
+      } else if (perc < 66) {
+        r = Math.round(328 - 2.57 * perc);
+        g = 72;
+        b = 243;
       } else {
-        g = 160;
-        r = Math.round(510 - 5.1 * perc);
+        r = Math.round(400 - 3.67 * perc);
+        g = Math.round(-79.4 + 2.3 * perc);
+        b = 243;
       }
       const h = r * 0x10000 + g * 0x100 + b * 0x1;
       return "#" + ("000000" + h.toString(16)).slice(-6);
@@ -496,5 +514,53 @@ export default {
 .virtual-scroller-content-wrapper {
   flex: none;
   overflow: auto;
+}
+
+.custom-loader-linear {
+  animation: loader-linear 10s infinite;
+  transition-timing-function: linear;
+  -webkit-animation-timing-function: linear;
+  display: flex;
+}
+
+@keyframes loader-linear {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.flashit {
+  -webkit-animation: flash 1s infinite;
+  animation: flash 1s infinite;
+}
+@-webkit-keyframes flash {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.v-progress-circular__overlay {
+  -webkit-animation: flash 1s infinite;
+  animation: flash 5s infinite;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1.0;
+  }
 }
 </style>

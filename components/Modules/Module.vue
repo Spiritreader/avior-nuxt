@@ -1,7 +1,7 @@
 <template>
-  <v-card color="#181818">
+  <v-card color="#181818" class="pl-1">
     <v-card-title class="mb-0 pb-0">{{ name }}</v-card-title>
-    <div class="px-4 pb-4">
+    <v-container>
       <v-checkbox label="Enabled" v-model="moduleInternal.Enabled"></v-checkbox>
       <v-text-field
         label="Priority"
@@ -10,7 +10,14 @@
         hide-details
         outlined
       ></v-text-field>
-    </div>
+    </v-container>
+    <v-container v-if="module.Settings" class="text-overline pb-0 mb-0">Settings</v-container>
+    <v-container>
+      <slot></slot>
+    </v-container>
+    <!--<v-container v-if="name == 'AudioModule'">
+      <AudioSettings :settings="module.Settings"></AudioSettings>
+    </v-container>-->
   </v-card>
 </template>
 

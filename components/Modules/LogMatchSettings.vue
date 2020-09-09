@@ -7,31 +7,29 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div>
-          <p
-            class="px-4 pt-4 mb-0 pb-0"
-          >Determines how lenient or strict the encoder should be with the audio format detection.</p>
+          <p class="px-4 pt-4 mb-0 pb-0">Log file matching criteria for include and exclude matches</p>
           <v-list>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
                 <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>low will detect audio if tuner log includes a reference
+              </v-list-item-icon>include mode: allow if both or include matches
             </v-list-item>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
                 <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>med will detect audio if tuner log includes a reference and the metadata log has a tag
+              </v-list-item-icon>neutral mode: reject if both or exclude matches
             </v-list-item>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
                 <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>high will detect audio if tuner log exclusively lists it
+              </v-list-item-icon>exclude mode: reject if exclude matches
             </v-list-item>
           </v-list>
         </div>
       </v-card>
     </v-expand-transition>
     <v-slider
-      v-model="selectedFormat"
+      v-model="selected"
       :tick-labels="steps"
       :max="2"
       ticks="always"
@@ -61,23 +59,23 @@ export default {
   },
   mounted() {
     this.settingsInternal = this.settings;
-    this.selectedFormat = this.steps.indexOf(this.settingsInternal.Accuracy);
+    this.selected = this.steps.indexOf(this.settingsInternal.Mode);
   },
   data: () => ({
     expand: false,
-    selectedFormat: 0,
+    selected: 0,
     settingsInternal: {},
-    steps: ["low", "med", "high"],
+    steps: ["include", "neutral", "exclude"],
   }),
   props: {
     settings: Object,
     name: String,
   },
   watch: {
-    selectedFormat: {
+    selected: {
       handler: function () {
-        let value = this.selectedFormat;
-        this.settingsInternal.Accuracy = this.steps[value];
+        let value = this.selected;
+        this.settingsInternal.Mode = this.steps[value];
         this.$emit("newdata", {
           Name: this.name,
           Settings: this.settingsInternal,
