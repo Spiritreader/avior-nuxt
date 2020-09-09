@@ -18,7 +18,8 @@
         <v-icon>mdi-{{ `chevron-${miniVariant ? 'right' : 'left'}` }}</v-icon>
       </v-btn>
       <v-btn icon @click.stop="clipped = !clipped">
-        <v-icon>mdi-application</v-icon>
+        <!--<v-icon>mdi-application</v-icon>-->
+        <img class="ml-1" width="30" src="/dryicons_love_file_icon_6200.png">
       </v-btn>
       <v-toolbar-title class="ml-4" v-text="title" />
       <v-spacer />
@@ -30,6 +31,9 @@
     </v-main>
     <v-footer :absolute="!fixed" app>
       <span>&copy; {{ new Date().getFullYear() }}</span>
+      <span class="ml-4">
+        <a href="https://dryicons.com/icon/love-file-icon-6200">Icon by Dryicons</a>
+      </span>
     </v-footer>
   </v-app>
 </template>

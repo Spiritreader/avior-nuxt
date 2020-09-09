@@ -12,7 +12,7 @@
       </div>
       <div v-else-if="$fetchState.pending">
         <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-          <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
+          <v-progress-circular :size="150" :width="50" color="red darken-3" indeterminate></v-progress-circular>
         </v-row>
       </div>
       <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>

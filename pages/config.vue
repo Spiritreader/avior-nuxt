@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-      <v-progress-circular :size="150" :width="80" color="red darken-3" indeterminate></v-progress-circular>
+      <v-progress-circular :size="150" :width="50" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load {{err}}</p>
