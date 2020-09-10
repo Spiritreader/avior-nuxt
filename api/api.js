@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const http = require('http');
 var bodyParser = require('body-parser');
@@ -78,9 +79,9 @@ function getClients(req, res) {
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-app.post("/clients", addClient);
-app.post("/clients/delete", deleteClient)
-app.get("/clients", getClients)
+app.post("/clients", cors(), addClient);
+app.post("/clients/delete", cors(), deleteClient)
+app.get("/clients", cors(), getClients)
 
 export default {
     handler: app,

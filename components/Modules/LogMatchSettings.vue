@@ -74,6 +74,7 @@ export default {
   watch: {
     selected: {
       handler: function () {
+        this.settingsInternal.Mode = this.steps[this.selected];
         this.$emit("newdata", {
           Name: this.name,
           Settings: this.settingsInternal,

@@ -69,35 +69,36 @@
               </v-row>
               <v-row justify="start" class="px-4">
                 <v-col class="mt-0 pt-0">
-                  <List
+                  <SimpleList
                     @newdata="handleMediaPathData($event)"
                     :icon="'mdi-folder'"
                     :list="config.MediaPaths"
                     :type="'Media Path'"
-                  ></List>
+                  ></SimpleList>
                 </v-col>
               </v-row>
             </v-card>
           </v-tab-item>
+
           <!--audio formats-->
           <v-tab-item :key="configHeaders[1]">
             <v-card flat>
               <v-container class="d-flex flex-wrap">
                 <v-col cols="12" sm="6" md="6">
-                  <List
+                  <SimpleList
                     @newdata="handleAudioFormatStereoData($event)"
                     :icon="'mdi-music-note'"
                     :list="config.AudioFormats.StereoTags"
                     :type="'Stereo Format'"
-                  ></List>
+                  ></SimpleList>
                 </v-col>
                 <v-col cols="12" sm="6" md="6">
-                  <List
+                  <SimpleList
                     @newdata="handleAudioFormatMultiData($event)"
                     :icon="'mdi-music-note-plus'"
                     :list="config.AudioFormats.MultiTags"
                     :type="'Multi Format'"
-                  ></List>
+                  ></SimpleList>
                 </v-col>
               </v-container>
             </v-card>
@@ -187,28 +188,37 @@
 
           <!--encoder config-->
           <v-tab-item :key="configHeaders[4]" class="mt-2">
-            <v-select
-              class="px-4 pt-4"
-              :items="encoderConfigArray"
-              :item-text="'tag'"
-              :item-value="'tag'"
-              v-model="selectedEncoderConfigTag"
-              @change="loadEncoderConfig"
-              label="Select an encoder configuration"
-              outlined
-            ></v-select>
-            <div v-if="selectedEncoderConfig.content">
-              {{selectedEncoderConfig.new}}
-              <EncoderConfig
-                :tag="selectedEncoderConfig.tag"
-                :id="selectedEncoderConfig.id"
-                :new="selectedEncoderConfig.new"
-                :content="selectedEncoderConfig.content"
-                @deleted="handleEncoderSettingsDelete($event)"
-                @newdata="handleEncoderSettingsData($event)"
-                :allowNew="true"
-              ></EncoderConfig>
-            </div>
+            <v-card>
+              <v-select
+                outlined
+                class="px-4 pt-4 mb-0 pb-0"
+                :items="encoderPriority"
+                v-model="config.EncoderPriority"
+                label="Select an encoder process priority"
+              ></v-select>
+
+              <v-select
+                class="px-4 pt-0"
+                :items="encoderConfigArray"
+                :item-text="'tag'"
+                :item-value="'tag'"
+                v-model="selectedEncoderConfigTag"
+                @change="loadEncoderConfig"
+                label="Add or edit an encoder configuration"
+                outlined
+              ></v-select>
+              <div v-if="selectedEncoderConfig.content">
+                <EncoderConfig
+                  :tag="selectedEncoderConfig.tag"
+                  :id="selectedEncoderConfig.id"
+                  :new="selectedEncoderConfig.new"
+                  :content="selectedEncoderConfig.content"
+                  @deleted="handleEncoderSettingsDelete($event)"
+                  @newdata="handleEncoderSettingsData($event)"
+                  :allowNew="true"
+                ></EncoderConfig>
+              </div>
+            </v-card>
           </v-tab-item>
 
           <!--
@@ -219,14 +229,43 @@
           </v-tab-item>-->
         </v-tabs-items>
       </v-card>
-      <v-btn :loading="saving" color="red darken-2" class="mt-6">opslaan</v-btn>
+      <v-btn :loading="saving" @click="saveConfig()" color="red darken-2" class="mt-6">opslaan</v-btn>
+      <v-btn @click="configImportConfirm = true" color="gray darken-3" class="ml-6 mt-6">Import</v-btn>
+      <v-btn @click="exportConfig()" color="gray darken-3" class="mt-6">Export</v-btn>
     </v-container>
+
+    <v-dialog v-if="configImportConfirm" v-model="configImportConfirm" max-width="500">
+      <v-card>
+        <v-card-title>
+          Paste your json configuration here!
+          <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
+        </v-card-title>
+        <v-card-subtitle>Make sure to hit opslaan afterwards.</v-card-subtitle>
+        <v-container>
+          <v-textarea outlined label="Import" name="Import Config" v-model="configImportString"></v-textarea>
+          <span class="pl-1" v-if="configImportError">Invalid JSON: {{configImportError}}</span>
+        </v-container>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="darken-1"
+            text
+            @click="configImportConfirm = false; configImportString = ''"
+          >Cancel</v-btn>
+          <v-btn color="green" text @click="importConfig">Import</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
 export default {
   data: () => ({
+    configImportConfirm: false,
+    configImportString: "",
+    configImportError: null,
+    encoderPriority: ["IDLE", "BELOW_NORMAL", "NORMAL", "ABOVE_NORMAL", "HIGH"],
     err: "",
     selectedEncoderConfigTag: "",
     selectedEncoderConfig: {},
@@ -295,16 +334,29 @@ export default {
           `couldn't load config for client ${this.selectedClient}, err: ${err}`
         );
         this.err = err;
-        throw err;
+        this.loading = false;
       }
     }
   },
   methods: {
+    importConfig() {
+      try {
+        let json = JSON.parse(this.configImportString);
+        this.config = json;
+        this.configImportConfirm = false;
+        this.configImportError = null;
+      } catch (err) {
+        this.configImportError = err;
+        console.log(`invalid json: ${err}`);
+      }
+    },
+    saveConfig() {
+      return this.config;
+    },
     loadEncoderConfig() {
       this.selectedEncoderConfig = this.encoderConfigArray.find(
         (cfg) => cfg.tag == this.selectedEncoderConfigTag
       );
-      console.log(this.selectedEncoderConfig);
     },
     async configLoad(client) {
       this.loading = true;
@@ -353,10 +405,7 @@ export default {
       this.$set(this.config.EncoderConfig, e.tag, e.content);
     },
     handleEncoderSettingsDelete: function (e) {
-      console.log(e);
       this.$delete(this.config.EncoderConfig, e);
-      console.log("hihey");
-      console.log(this.config.EncoderConfig);
     },
   },
 };

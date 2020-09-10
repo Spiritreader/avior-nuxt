@@ -32,11 +32,11 @@ export default {
     if (process.client) {
       if (this.debugTimer == null) {
         this.debugTimer = setInterval(() => {
-          let yidx = this.clients.findIndex((c) => c.HostName == "DESKTOP-KN");
-          if (this.clients[yidx].Mover.Progress > 90) {
-            this.clients[yidx].Mover.Progress = 0;
+          let yidx = this.clients.findIndex((c) => c.HostName == "ASDF");
+          if (this.clients[yidx].Encoder.Progress > 90) {
+            this.clients[yidx].Encoder.Progress = 0;
           } else {
-            this.clients[yidx].Mover.Progress += 5;
+            this.clients[yidx].Encoder.Progress += 5;
           }
         }, 1000);
       }

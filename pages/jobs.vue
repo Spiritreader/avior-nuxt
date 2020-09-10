@@ -3,7 +3,7 @@
     <div class="d-flex asfasdfasdf flex-wrap"></div>
     <v-row>
       <v-card class="mx-auto" width="100%">
-        <v-list>
+        <v-list flat>
           <v-list-item>
             <v-list-item-icon>
               <v-icon>mdi-home</v-icon>
@@ -14,12 +14,12 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   :loading="reassigning"
-                  :disabled="reassigning || !selectedJobs"
+                  :disabled="reassigning || selectedJobs.length === 0"
                   v-bind="attrs"
                   color="blue"
                   v-on="on"
                   class="mx-2"
-                >Reassign {{ selectedJobs ? selectedJobs.length + " Jobs" : ""}}</v-btn>
+                >Reassign {{ selectedJobs.length > 0 ? selectedJobs.length + " Jobs" : ""}}</v-btn>
               </template>
               <v-card>
                 <v-list>
@@ -36,13 +36,14 @@
                   <v-btn
                     color="darken-1"
                     text
-                    @click="reassignDialog = false; reassignToClient = {}"
+                    @click="reassignDialog = false; reassignToClient = null"
                   >Cancel</v-btn>
                   <v-btn
+                    :disabled="!reassignToClient"
                     color="green darken-1"
                     text
                     @click="reassignDialog = false; reassignJobs();"
-                  >Reassign to {{reassignToClient.Name}}</v-btn>
+                  >{{ reassignToClient ? `Reassign to ${reassignToClient.Name}` : "Select Client" }}</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -60,6 +61,12 @@
                 >Add Job</v-btn>
               </template>
               <v-card>
+                <v-container>
+                  <v-form>
+                    <v-text-field v-model="newJob.Path" label="Path" required></v-text-field>
+                  </v-form>
+                </v-container>
+
                 <v-list>
                   <v-list-item-group v-model="reassignToClient" color="primary">
                     <v-list-item v-for="(client, i) in clients" :key="i" :value="client">
@@ -74,13 +81,9 @@
                   <v-btn
                     color="darken-1"
                     text
-                    @click="addJobDialog = false; reassignToClient = {}"
+                    @click="addJobDialog = false; reassignToClient = null"
                   >Cancel</v-btn>
-                  <v-btn
-                    color="green darken-1"
-                    text
-                    @click="addJobDialog = false; reassignJobs();"
-                  >Reassign to {{reassignToClient.Name}}</v-btn>
+                  <v-btn color="green darken-1" text @click="addJobDialog = false; reassignJobs();"></v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -102,47 +105,89 @@
             <template v-slot:activator>
               <v-list-item-content>
                 <v-list-item-title>
-                  <v-icon :color="client.Online ? 'green' : 'red'">mdi-power</v-icon>
+                  <v-icon class="pb-1" :color="client.Online ? 'green' : 'red'">mdi-power</v-icon>
                   {{ client.Name }}
                 </v-list-item-title>
-                <v-list-item-subtitle v-text="client.Jobs ? client.Jobs.length : 0"></v-list-item-subtitle>
+                <v-list-item-subtitle
+                  v-text="client.Jobs ? `${client.Jobs.length} assigned` : '${client.Jobs.length} assigned'"
+                ></v-list-item-subtitle>
               </v-list-item-content>
             </template>
-            <v-list-item-group
-              v-model="selectedJobs"
-              :key="`job-all`"
-            >
-              <v-list-item class="my-2" :value="client.Jobs">
-                <template v-slot:default="{ active }">
+            <v-list-item-group v-if="client.Jobs.length > 0" :key="`job-all`">
+              <v-list-item class="my-2" :value="client.SelectAll" @click="selectAllJobs(client)">
+                <template v-slot:default="{}">
                   <v-list-item-action>
-                    <v-checkbox :input-value="active" color="primary"></v-checkbox>
+                    <v-checkbox :input-value="client.SelectAll" color="primary"></v-checkbox>
                   </v-list-item-action>
-
                   <v-list-item-content>
-                    <v-list-item-title class="text-wrap">Select All</v-list-item-title>
+                    <v-list-item-title>{{client.SelectAll ? 'Deselect All' : 'Select All'}}</v-list-item-title>
                   </v-list-item-content>
                 </template>
               </v-list-item>
             </v-list-item-group>
-            <v-list-item-group
-              v-for="(job, i) in client.Jobs"
-              v-model="selectedJobs"
-              multiple
-              :key="`job-${i}`"
-            >
-              <v-list-item class="my-2" :value="job">
-                <template v-slot:default="{ active }">
-                  <v-list-item-action>
-                    <v-checkbox :input-value="active" color="primary"></v-checkbox>
-                  </v-list-item-action>
+            <v-list-item class="my-2" v-for="(job, i) in client.Jobs" :key="`job-${i}`">
+              <template v-slot:default="{ active }">
+                <v-list-item-action>
+                  <v-checkbox
+                    :input-value="active"
+                    multiple
+                    v-model="selectedJobs"
+                    :value="job"
+                    color="primary"
+                  ></v-checkbox>
+                </v-list-item-action>
 
-                  <v-list-item-content>
-                    <v-list-item-title class="text-wrap" v-text="getJobName(job)"></v-list-item-title>
-                    <v-list-item-subtitle class="text-wrap">{{ job.Path }}</v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
-              </v-list-item>
-            </v-list-item-group>
+                <v-list-item-content>
+                  <v-list-item-title class="text-wrap" v-text="getJobName(job)"></v-list-item-title>
+                  <v-list-item-subtitle class="text-wrap">{{ job.Path }}</v-list-item-subtitle>
+                </v-list-item-content>
+                <v-list-item-action>
+                  <v-dialog max-width="1000" v-model="job.EditJobDialog">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon v-bind="attrs" color="blue" v-on="on" class="mx-2">
+                        <v-icon>mdi-circle-edit-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-container>
+                        <v-form>
+                          <v-text-field label="Path" v-model="job.Path" :value="job.Path" required></v-text-field>
+                          <v-text-field label="Name" v-model="job.Name" :value="job.Name" required></v-text-field>
+                          <v-text-field
+                            label="Subtitle"
+                            v-model="job.Subtitle"
+                            :value="job.Subtitle"
+                            required
+                          ></v-text-field>
+                          <v-text-field
+                            label="CustomParameters"
+                            v-model="job.CustomParameters"
+                            :value="job.CustomParameters"
+                          ></v-text-field>
+                          <v-select
+                            :items="clients"
+                            :item-text="'Name'"
+                            :item-value="'ID'"
+                            :value="'ID'"
+                            v-model="job.AssignedClient.ID"
+                            label="Client"
+                            outlined
+                          ></v-select>
+                          <v-btn class="mr-4" @click="closeEditJobDialog(job)">Cancel</v-btn>
+                          <v-btn
+                            class="mr-4"
+                            :loading="job.EditingJob"
+                            :disabled="job.EditingJob"
+                            color="green"
+                            @click="updateJob(job)"
+                          >Update Job</v-btn>
+                        </v-form>
+                      </v-container>
+                    </v-card>
+                  </v-dialog>
+                </v-list-item-action>
+              </template>
+            </v-list-item>
           </v-list-group>
         </v-list>
       </v-card>
@@ -157,9 +202,10 @@ export default {
     reassigning: false,
     reassignError: [],
     reassignDialog: false,
-    reassignToClient: {},
+    reassignToClient: null,
     addJobDialog: false,
     addingJob: false,
+    newJob: {},
     selectedJobs: [],
     jobs: [],
     clients: [],
@@ -169,7 +215,23 @@ export default {
     console.log("fetching");
     await this.getClients();
   },
+  fetchOnServer: false,
   methods: {
+    updateJob: async function (job) {
+      this.$set(job, "EditJobDialog", true);
+      this.$set(job, "EditingJob", true);
+      try {
+        await this.$http.$put(this.url + "/jobs/", job);
+        await this.getClients();
+      } catch (err) {
+        console.log(err);
+      }
+      this.closeEditJobDialog(job);
+    },
+    closeEditJobDialog: function (job) {
+      this.$set(job, "EditJobDialog", false);
+      this.$set(job, "EditingJob", false);
+    },
     reassignJobs: async function () {
       this.reassigning = true;
       let timeout;
@@ -184,17 +246,39 @@ export default {
       });
       await this.getClients();
       this.reassigning = false;
-      this.reassignToClient = {};
+      this.reassignToClient = null;
+      this.selectedJobs = [];
     },
-    selectAllJobs: function(client) {
-      if (client.Selec)
-      client.Jobs.forEach((j) => {
-        this.selectedJobs.push(j);
-      });
+    selectAllJobs: function (client) {
+      if (!client.SelectAll) {
+        client.Jobs.forEach((j) => {
+          if (!this.selectedJobs.includes(j)) {
+            this.selectedJobs.push(j);
+          }
+        });
+        client.SelectAll = true;
+      } else {
+        try {
+          client.SelectAll = false;
+          const jobs = this.selectedJobs.filter(
+            (j) =>
+              !client.Jobs.reduce((result, ele) => {
+                result.push(ele.ID);
+                return result;
+              }, []).includes(j.ID)
+          );
+          this.selectedJobs = jobs;
+        } catch (err) {
+          console.log(`err: ${err}`);
+        }
+      }
     },
     getJobsForClient: function (client) {
-      // this might return undefined if there is no client matching the AssignedClient.ID of the job
-      return this.jobs.filter((j) => client.ID === j.AssignedClient.ID);
+      return this.jobs.filter((j) => {
+        this.$set(j, "EditJobDialog", false);
+        this.$set(j, "EditingJob", false);
+        return client.ID === j.AssignedClient.ID;
+      });
     },
     getJobName: function (job) {
       let jobName = job.Name;
@@ -214,25 +298,39 @@ export default {
       this.jobs = await this.$http.$get(this.url + "/jobs/");
     },
     getClients: async function () {
+      let promises = [];
       const registeredClients = await this.$http.$get("api/clients/");
       let onlineClient;
-      let clients;
       for (let c of registeredClients) {
-        this.url = c.Address;
         try {
-          clients = await this.$http.$get(this.url + "/clients/");
-          break;
+          let promise = new Promise(async (resolve, reject) => {
+            let response;
+            try {
+              response = await this.$http.$get(c.Address);
+            } catch (err) {
+              reject({ address: "none", response: {} });
+              return;
+            }
+            resolve({ address: c.Address, response: response });
+          });
+          promises.push(promise);
         } catch (error) {
-          console.log(`${c.Name} is not online.`);
+          console.log(`$failed to create promises: ${error}`);
         }
       }
-      await this.getJobs();
-      clients.sort((a, b) => (a.Online === b.Online ? 0 : a.Online ? -1 : 1));
-      clients.forEach((c) => {
-        c.Jobs = this.getJobsForClient(c);
-        c.SelectAll = false;
-      });
-      this.clients = clients;
+
+      let resolution = await Promise.race(promises);
+      if (resolution.address != "none") {
+        this.url = resolution.address;
+        let clients = await this.$http.$get(this.url + "/clients/");
+        await this.getJobs();
+        clients.sort((a, b) => (a.Online === b.Online ? 0 : a.Online ? -1 : 1));
+        clients.forEach((c) => {
+          c.Jobs = this.getJobsForClient(c);
+          c.SelectAll = false;
+        });
+        this.clients = clients;
+      }
     },
   },
 };

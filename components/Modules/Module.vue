@@ -1,5 +1,5 @@
 <template>
-  <v-card color="#181818" class="pl-1 mx-2 mb-4">
+  <v-card color="#242424" class="pl-1 mx-2 mb-4">
     <v-card-title class="mb-0 pb-0">{{ name }}</v-card-title>
     <v-container>
       <v-checkbox label="Enabled" v-model="moduleInternal.Enabled"></v-checkbox>
@@ -38,6 +38,7 @@ export default {
   },
   mounted() {
     this.moduleInternal = this.module;
+    console.log("hi from " + this.name);
   },
   data: () => ({
     moduleInternal: {

@@ -1,7 +1,7 @@
 <template>
-  <v-card :loading="client.Encoder && (client.Encoder.OfSlices > 0)" class="ma-2">
+  <v-card :loading="client.Encoder && client.Encoder.Active" class="ma-2">
     <template style="min-height: 4px;" v-slot:progress>
-      <v-progress-linear v-model="client.Encoder.Progress" buffer-value="0" stream></v-progress-linear>
+      <v-progress-linear v-model="client.Encoder.Progress" :buffer-value="bufferValue" stream></v-progress-linear>
     </template>
     <v-card-text>
       <div class="display-1 text-h4 d-flex">
@@ -237,6 +237,13 @@ export default {
     client: Object,
   },
   computed: {
+    bufferValue() {
+      if (this.client.Encoder.Active) {
+        return 100;
+      } else if (this.client.Mover.Active) {
+        return this.client.Mover.Progress;
+      }
+    },
     activeProcessInfoLength: function () {
       return Object.keys(this.activeProcessInfo).length;
     },

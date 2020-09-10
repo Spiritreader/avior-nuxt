@@ -30,7 +30,7 @@
       </v-container>
     </v-main>
     <v-footer :absolute="!fixed" app>
-      <span>&copy; {{ new Date().getFullYear() }}</span>
+      <span>&copy; {{ new Date().getFullYear() }} Walzen Group - Ying, Lennard, Sam</span>
       <span class="ml-4">
         <a href="https://dryicons.com/icon/love-file-icon-6200">Icon by Dryicons</a>
       </span>

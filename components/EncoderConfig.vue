@@ -86,6 +86,37 @@
 <script>
 export default {
   methods: {
+    refresh() {
+      if (!this.new) {
+        this.disabledTag = true;
+      } else {
+        this.disabledTag = false;
+      }
+      this.preArgumentsString = "";
+      this.postArgumentsString = "";
+      this.stashString = "";
+      console.log("mounted");
+      console.log(this.content);
+      this.tagInternal = this.tag;
+      if (this.content.PreArguments) {
+        this.content.PreArguments.forEach(
+          (l) => (this.preArgumentsString += l + "\n")
+        );
+      }
+
+      if (this.content.PostArguments) {
+        this.content.PostArguments.forEach(
+          (l) => (this.postArgumentsString += l + "\n")
+        );
+      }
+      if (this.content.Stash) {
+        this.content.Stash.forEach((l) => (this.stashString += l + "\n"));
+      }
+      this.outDirectory = this.content.OutDirectory;
+      if (this.new) {
+        this.disabledTag = false;
+      }
+    },
     isNew() {
       return this.new;
     },
@@ -110,11 +141,7 @@ export default {
     },
   },
   mounted() {
-    if (!this.new) {
-      this.disabledTag = true;
-    } else {
-      this.disabledTag = false;
-    }
+    this.refresh();
   },
   data: () => ({
     deleteConfirm: false,
@@ -141,35 +168,7 @@ export default {
     },
     id: {
       handler: function () {
-        if (!this.new) {
-          this.disabledTag = true;
-        } else {
-          this.disabledTag = false;
-        }
-        this.preArgumentsString = "";
-        this.postArgumentsString = "";
-        this.stashString = "";
-        console.log("mounted");
-        console.log(this.content);
-        this.tagInternal = this.tag;
-        if (this.content.PreArguments) {
-          this.content.PreArguments.forEach(
-            (l) => (this.preArgumentsString += l + "\n")
-          );
-        }
-
-        if (this.content.PostArguments) {
-          this.content.PostArguments.forEach(
-            (l) => (this.postArgumentsString += l + "\n")
-          );
-        }
-        if (this.content.Stash) {
-          this.content.Stash.forEach((l) => (this.stashString += l + "\n"));
-        }
-        this.outDirectory = this.content.OutDirectory;
-        if (this.new) {
-          this.disabledTag = false;
-        }
+        this.refresh();
       },
     },
   },
