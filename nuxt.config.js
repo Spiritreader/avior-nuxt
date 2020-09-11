@@ -65,7 +65,8 @@ export default {
   axios: {},
   http: {
     clientTimeout: 1500,
-    serverTimeout: 1500
+    serverTimeout: 1500,
+    browserBaseURL: "http://10.10.10.37:3000"
   },
 
   /*
@@ -102,8 +103,7 @@ export default {
       }
     }
   },
-/*
   server: {
     host: '0.0.0.0'
-  }*/
+  }
 }

@@ -1,7 +1,26 @@
 <template>
-  <v-card :loading="client.Encoder && client.Encoder.Active" class="ma-2">
+  <v-card
+    :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)"
+    class="ma-2"
+  >
     <template style="min-height: 4px;" v-slot:progress>
-      <v-progress-linear v-model="client.Encoder.Progress" :buffer-value="bufferValue" stream></v-progress-linear>
+      <v-progress-linear
+        v-if="client.Encoder.OfSlices > 0"
+        v-model="client.Encoder.Progress"
+        :buffer-value="bufferValue"
+        :indeterminate="determineIndeterminate()"
+        height="8"
+        stream
+      ></v-progress-linear>
+      <v-progress-linear
+        v-else
+        v-model="client.Encoder.Progress"
+        :buffer-value="bufferValue"
+        :indeterminate="determineIndeterminate()"
+        height="8"
+        striped
+        stream
+      ></v-progress-linear>
     </template>
     <v-card-text>
       <div class="display-1 text-h4 d-flex">
@@ -56,7 +75,12 @@
               </v-btn>
             </template>
             <v-card>
-              <v-card-title>Do you really want to shut down {{ client.HostName }}?</v-card-title>
+              <v-card-title>Shut down service</v-card-title>
+              <v-card-text>
+                Do you really want to shut down {{ client.HostName }}'s service? This action is irreversible with the web-gui.
+                You'll have to restart it physically on the client machine.
+              </v-card-text>
+
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="darken-1" text @click="shutdownConfirm = false">Cancel</v-btn>
@@ -64,7 +88,7 @@
                   color="red darken-1"
                   text
                   @click="shutdownConfirm = false; sendShutdownCommand();"
-                >Shutdown</v-btn>
+                >Hit me</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -223,6 +247,8 @@ const ENCODER = "encoder",
   INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
   data: () => ({
+    encoderInterpolation: 0,
+    interpolationHandle: null,
     showProcessInfo: false,
     showEncoderLog: false,
     remaining: null,
@@ -240,8 +266,10 @@ export default {
     bufferValue() {
       if (this.client.Encoder.Active) {
         return 100;
+      } else if (this.client.FileWalker.Active) {
+        return this.getFileWalkerProgress();
       } else if (this.client.Mover.Active) {
-        return this.client.Mover.Progress;
+        return this.getMoverProgress();
       }
     },
     activeProcessInfoLength: function () {
@@ -453,16 +481,18 @@ export default {
       return client;
     },
     getEncoderProgress: function () {
-      const encoder = this.client.Encoder;
-
+      let encoder = this.client.Encoder;
+      let progress = 0;
       if (encoder.OfSlices == 0) {
-        return encoder.Progress.toFixed(2);
+        progress = encoder.Progress.toFixed(2);
+      } else {
+        progress = (
+          ((encoder.Slice - 1) / encoder.OfSlices +
+            encoder.Progress / 100 / encoder.OfSlices) *
+          100
+        ).toFixed(2);
       }
-      return (
-        ((encoder.Slice - 1) / encoder.OfSlices +
-          encoder.Progress / 100 / encoder.OfSlices) *
-        100
-      ).toFixed(2);
+      return progress;
     },
     getFileWalkerProgress: function () {
       const fw = this.client.FileWalker;

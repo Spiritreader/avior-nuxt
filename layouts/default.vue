@@ -88,7 +88,7 @@ export default {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1b1b1b;
 }
 
 /* Handle */
@@ -99,6 +99,10 @@ export default {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+::-webkit-scrollbar-corner {
+   background: #555;
 }
 
 .max-container-width {

@@ -1,8 +1,15 @@
 <template>
   <v-card color="#242424" class="pl-1 mx-2 mb-4">
-    <v-card-title class="mb-0 pb-0">{{ name }}</v-card-title>
+    <v-card-title class="mb-0 pb-0">
+      {{ name }}
+      <v-spacer></v-spacer>
+      <v-switch
+        color="red darken-3"
+        :label="moduleInternal.Enabled ? ' Enabled' : ' Disabled'"
+        v-model="moduleInternal.Enabled"
+      ></v-switch>
+    </v-card-title>
     <v-container>
-      <v-checkbox label="Enabled" v-model="moduleInternal.Enabled"></v-checkbox>
       <v-text-field
         label="Priority"
         type="number"

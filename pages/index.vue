@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <div>
     <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
       <v-btn @click="autoRefresh">
         <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
@@ -18,7 +18,7 @@
       <p>There was something I couldn't load.</p>
     </v-row>
     <Client v-for="client in clients" :key="client.Name" :client="client"></Client>
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -53,7 +53,7 @@ export default {
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
       clients: [
-        {
+        /*{
           HostName: "Blabla",
           Encoder: {
             Active: false,
@@ -214,7 +214,7 @@ export default {
         {
           HostName: "#WF",
           Status: "offline",
-        },
+        },*/
       ],
     };
   },

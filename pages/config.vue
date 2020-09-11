@@ -1,12 +1,12 @@
 <template>
-  <v-container>
+  <div>
     <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
       <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>No one seems to be online. {{err}}</p>
     </v-row>
-    <v-container width="100%" class="px-0 mx-0" v-else>
+    <v-container v-else>
       <v-row class="mb-2" justify="start" no-gutters>
         <v-col class="client-dropdown">
           <v-select
@@ -39,6 +39,7 @@
           background-color="red darken-3"
           show-arrows
           dark
+          centered
         >
           <v-tabs-slider color="white"></v-tabs-slider>
           <v-tab v-for="configOption in configHeaders" :key="configOption">{{ configOption }}</v-tab>
@@ -229,9 +230,13 @@
           </v-tab-item>-->
         </v-tabs-items>
       </v-card>
-      <v-btn :loading="saving" @click="saveConfig()" color="red darken-2" class="mt-6">opslaan</v-btn>
-      <v-btn @click="configImportConfirm = true" color="gray darken-3" class="ml-6 mt-6">Import</v-btn>
-      <v-btn @click="exportConfig()" color="gray darken-3" class="mt-6">Export</v-btn>
+      <div class="d-flex flex-wrap">
+        <v-btn :loading="saving" @click="saveConfig()" color="red darken-2" class="mt-6 mr-6">opslaan</v-btn>
+        <div>
+          <v-btn @click="configImportConfirm = true" color="gray darken-3" class="mt-6">Import</v-btn>
+          <v-btn @click="exportConfig()" color="gray darken-3" class="mt-6">Export</v-btn>
+        </div>
+      </div>
     </v-container>
 
     <v-dialog v-if="configImportConfirm" v-model="configImportConfirm" max-width="500">
@@ -256,7 +261,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <script>

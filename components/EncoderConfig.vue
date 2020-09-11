@@ -39,6 +39,7 @@
         :disabled="disabledTag"
         outlined
         auto-grow
+        placeholder="One command per line please :)"
         name="PreArgumentsInput"
         label="Pre-Arguments"
         v-model="preArgumentsString"
@@ -49,6 +50,7 @@
         :disabled="disabledTag"
         outlined
         label="Post-Arguments"
+        placeholder="One command per line please :)"
         auto-grow
         name="PostArgumentsInput"
         v-model="postArgumentsString"
@@ -59,6 +61,7 @@
         :disabled="disabledTag"
         outlined
         label="Stash"
+        placeholder="Use this to store parameters you're currently not using :)"
         auto-grow
         name="StashInput"
         v-model="stashString"
