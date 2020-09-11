@@ -8,7 +8,7 @@
         v-if="client.Encoder.OfSlices > 0"
         v-model="client.Encoder.Progress"
         :buffer-value="bufferValue"
-        :indeterminate="determineIndeterminate()"
+        :v-show="!determineIndeterminate()"
         height="8"
         stream
       ></v-progress-linear>
@@ -16,7 +16,7 @@
         v-else
         v-model="client.Encoder.Progress"
         :buffer-value="bufferValue"
-        :indeterminate="determineIndeterminate()"
+        :v-show="!determineIndeterminate()"
         height="8"
         striped
         stream
@@ -173,10 +173,10 @@
             transition="slide-x-transition"
             class="text-h5"
             :rotate="determineIndeterminate() ? 0 : -90"
-            :size="150"
-            :width="20"
+            :size="175"
+            :width="21"
             :value="activeProcessProgress"
-            :color="'red darken-3'"
+            :color="'yellow darken-3'"
             :indeterminate="determineIndeterminate()"
           >
             <span v-if="!determineIndeterminate()">{{ activeProcessProgress }}%</span>
@@ -342,7 +342,9 @@ export default {
     determineIndeterminate: function () {
       return (
         (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) ||
-        (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0)
+        (this.client.FileWalker.Active &&
+          this.client.FileWalker.LibSize === 0) ||
+        this.client.InFile == ""
       );
     },
     isActive: function () {
@@ -354,6 +356,9 @@ export default {
     },
     sendResumeCommand: async function () {
       this.resumeMachine = true;
+      setTimeout(() => {
+        this.resumeMachine = false;
+      }, 1000);
       const url = this.client.Ip + "/resume";
       try {
         const response = await fetch(url, {
@@ -362,10 +367,15 @@ export default {
       } catch (err) {
         this.setErrorMessage(err, "resume");
       }
-      this.resumeMachine = false;
+    },
+    timeout(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
     },
     sendPauseCommand: async function () {
       this.pauseMachine = true;
+      setTimeout(() => {
+        this.pauseMachine = false;
+      }, 1000);
       const url = this.client.Ip + "/pause";
       try {
         const response = await fetch(url, {
@@ -373,6 +383,7 @@ export default {
         });
         if (response == "paused") {
           try {
+            //todo: BUGGED!!!!! reponse never comes
             const refreshResponse = await this.$http.$get(url);
             if (
               !(
@@ -385,12 +396,13 @@ export default {
             }
           } catch (err) {
             this.setErrorMessage(err, "pause");
+            this.pauseMachine = false;
           }
         }
       } catch (err) {
         this.setErrorMessage(err, "pause");
+        this.pauseMachine = false;
       }
-      this.pauseMachine = false;
     },
     sendShutdownCommand: async function () {
       this.shutdownMachine = true;
@@ -590,8 +602,8 @@ export default {
   }
 }
 .v-progress-circular__overlay {
-  -webkit-animation: flash 1s infinite;
-  animation: flash 5s infinite;
+  -webkit-animation: flash 5s infinite;
+  animation: flash 15s infinite;
 }
 
 @keyframes flash {

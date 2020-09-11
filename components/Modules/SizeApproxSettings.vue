@@ -87,7 +87,7 @@
           hide-details
           outlined
         ></v-text-field>
-        <v-btn icon class="mt-3 ml-2 mb-2" color="primary" @click="expand3 = !expand3">
+        <v-btn icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
       </div>
@@ -140,7 +140,9 @@ export default {
 .priority-tb {
   max-width: 120px;
 }
+
 .maxout {
   width: 100%;
 }
+
 </style>>

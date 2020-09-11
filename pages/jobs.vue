@@ -6,10 +6,91 @@
         <v-list flat>
           <!-- Start Buttons -->
           <v-list-item>
-            <v-list-item-icon>
+            <v-list-item-icon class="pl-4 pt-3">
               <v-icon>mdi-home</v-icon>
             </v-list-item-icon>
             <v-container class>
+              <!-- Begin Add Job -->
+              <v-dialog v-model="addJobDialog" max-width="500">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    :loading="addingJob"
+                    :disabled="addingJob"
+                    v-bind="attrs"
+                    color="blue"
+                    v-on="on"
+                    outlined
+                    class="ma-2 pl-2"
+                  >
+                    <v-icon class="mr-2">mdi-plus</v-icon>New
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-container>
+                    <v-form v-if="!addJobsDialog">
+                      <v-text-field label="Path" v-model="newJob.Path" required></v-text-field>
+                      <v-text-field label="Name" v-model="newJob.Name" required></v-text-field>
+                      <v-text-field label="Subtitle" v-model="newJob.Subtitle" required></v-text-field>
+                      <v-textarea label="Custom Parameters" v-model="newJob.CustomParameters"></v-textarea>
+                      <v-select
+                        :items="clients"
+                        :item-text="'Name'"
+                        :item-value="'ID'"
+                        v-model="newJob.AssignedClient.ID"
+                        label="Client"
+                        outlined
+                      ></v-select>
+                      <v-btn
+                        class="mr-2 my-2"
+                        @click="addJobDialog = false; clearNewJob();"
+                      >Cancel</v-btn>
+                      <v-btn
+                        class="mr-6"
+                        :loading="addingJob"
+                        :disabled="addingJob"
+                        outlined
+                        color="green"
+                        @click="addJob();"
+                      >Add Job</v-btn>
+                      <v-btn
+                        outlined
+                        color="blue darken-1"
+                        class="mr-6 my-2"
+                        @click="addJobsDialog = true;"
+                      >JSON</v-btn>
+                    </v-form>
+                    <!-- Begin Add Multiple Jobs -->
+                    <v-form v-else>
+                      <v-textarea
+                        label="JSON"
+                        :error-messages="newJobsError"
+                        v-model="newJobs"
+                        rows="12"
+                      ></v-textarea>
+                      <v-btn
+                        class="mr-4"
+                        @click="addJobDialog = false; addJobsDialog = false; resetJsonJobs();"
+                      >Cancel</v-btn>
+                      <v-btn
+                        outlined
+                        class="mr-4"
+                        :loading="addingJobs"
+                        :disabled="addingJobs"
+                        color="green"
+                        @click="addJobs();"
+                      >Add Jobs</v-btn>
+                      <v-btn
+                        outlined
+                        color="blue darken-1"
+                        class="mr-6 my-2"
+                        @click="addJobsDialog = false;"
+                      >Job Form</v-btn>
+                    </v-form>
+                    <!-- End Add Multiple Jobs-->
+                  </v-container>
+                </v-card>
+              </v-dialog>
+              <!-- End Add Job -->
               <!-- Begin Reassign -->
               <v-dialog v-model="reassignDialog" max-width="300">
                 <template v-slot:activator="{ on, attrs }">
@@ -17,6 +98,7 @@
                     :loading="reassigning"
                     :disabled="reassigning || selectedJobs.length === 0"
                     v-bind="attrs"
+                    outlined
                     color="blue"
                     v-on="on"
                     class="ma-2"
@@ -49,76 +131,51 @@
                 </v-card>
               </v-dialog>
               <!-- End Reassign -->
-              <!-- Begin Add Job -->
-              <v-dialog v-model="addJobDialog" max-width="500">
+              <!-- Begin Delete Selected Jobs -->
+              <v-dialog max-width="500" v-model="deleteSelectedJobsDialog">
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
-                    :loading="addingJob"
-                    :disabled="addingJob"
+                    :loading="deletingSelectedJobs"
+                    :disabled="deletingSelectedJobs || selectedJobs.length === 0"
                     v-bind="attrs"
-                    color="blue"
+                    color="red"
                     v-on="on"
-                    class="ma-2"
-                  >Add Job</v-btn>
+                    outlined
+                    class="ma-2 pl-2"
+                  >
+                    <v-icon class="mr-2">mdi-delete</v-icon>Delete {{ selectedJobs.length > 0 ? selectedJobs.length + " Jobs" : ""}}
+                  </v-btn>
                 </template>
                 <v-card>
-                  <v-container>
-                    <v-form v-if="!addJobsDialog">
-                      <v-text-field label="Path" v-model="newJob.Path" required></v-text-field>
-                      <v-text-field label="Name" v-model="newJob.Name" required></v-text-field>
-                      <v-text-field label="Subtitle" v-model="newJob.Subtitle" required></v-text-field>
-                      <v-text-field label="Custom Parameters" v-model="newJob.CustomParameters"></v-text-field>
-                      <v-select
-                        :items="clients"
-                        :item-text="'Name'"
-                        :item-value="'ID'"
-                        v-model="newJob.AssignedClient.ID"
-                        label="Client"
-                        outlined
-                      ></v-select>
-                      <v-btn class="mr-2 my-2" @click="addJobDialog = false; clearNewJob();">Cancel</v-btn>
-                      <v-btn
-                        class="mr-6"
-                        :loading="addingJob"
-                        :disabled="addingJob"
-                        color="green"
-                        @click="addJob();"
-                      >Add Job</v-btn>
-                      <v-btn
-                        color="blue darken-1"
-                        class="mr-6 my-2"
-                        @click="addJobsDialog = true;"
-                      >JSON</v-btn>
-                    </v-form>
-                    <!-- Begin Add Multiple Jobs -->
-                    <v-form v-else>
-                      <v-textarea
-                        label="JSON"
-                        :error-messages="newJobsError"
-                        v-model="newJobs"
-                        rows="12"
-                      ></v-textarea>
-                      <v-btn
-                        class="mr-4"
-                        @click="addJobDialog = false; addJobsDialog = false; resetJsonJobs();"
-                      >Cancel</v-btn>
-                      <v-btn
-                        class="mr-4"
-                        :loading="addingJobs"
-                        :disabled="addingJobs"
-                        color="green"
-                        @click="addJobs();"
-                      >Add Jobs</v-btn>
-                      <v-btn
-                        color="blue darken-1"
-                        class="mr-6 my-2"
-                        @click="addJobsDialog = false;"
-                      >Job Form</v-btn>
-                    </v-form>
-                    <!-- End Add Multiple Jobs-->
-                  </v-container>
+                  <v-card-title>Delete Selected Jobs</v-card-title>
+                  <v-card-text>Do you really want to delete the following jobs?</v-card-text>
+                  <v-card-text>
+                    <v-list-item
+                      v-for="(value, idx) in selectedJobs"
+                      :key="`job-${idx}`"
+                      two-line
+                    >
+                      <v-list-item-content>
+                        <v-list-item-title class="text-wrap">{{getJobName(value)}}</v-list-item-title>
+                        <v-list-item-subtitle class="text-wrap">{{value.Path}}</v-list-item-subtitle>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn class="mr-4" @click="deleteSelectedJobsDialog = false;">Cancel</v-btn>
+                    <v-btn
+                      outlined
+                      class="mr-4"
+                      :loading="deletingSelectedJobs"
+                      :disabled="deletingSelectedJobs"
+                      color="red"
+                      @click="deleteSelectedJobs();"
+                    >Delete Jobs</v-btn>
+                  </v-card-actions>
                 </v-card>
               </v-dialog>
+              <!-- End Delete Selected Jobs -->
             </v-container>
           </v-list-item>
           <!-- End Buttons -->
@@ -201,11 +258,11 @@
                             :value="job.Subtitle"
                             required
                           ></v-text-field>
-                          <v-text-field
+                          <v-textarea
                             label="Custom Parameters"
                             v-model="job.CustomParameters"
                             :value="job.CustomParameters"
-                          ></v-text-field>
+                          ></v-textarea
                           <v-select
                             :items="clients"
                             :item-text="'Name'"
@@ -220,6 +277,7 @@
                             class="mr-4"
                             :loading="job.EditingJob"
                             :disabled="job.EditingJob"
+                            outlined
                             color="green"
                             @click="updateJob(job)"
                           >Update Job</v-btn>
@@ -254,6 +312,7 @@
                         <v-spacer></v-spacer>
                         <v-btn class="mr-4" @click="closeDeleteJobDialog(job)">Cancel</v-btn>
                         <v-btn
+                          outlined
                           class="mr-4"
                           :loading="job.DeleteJob"
                           :disabled="job.DeleteJob"
@@ -284,6 +343,8 @@ export default {
     reassignError: [],
     reassignDialog: false,
     reassignToClient: null,
+    deletingSelectedJobs: false,
+    deleteSelectedJobsDialog: false,
     addJobDialog: false,
     addingJob: false,
     newJobs: `[
@@ -387,16 +448,24 @@ export default {
         }
         this.addingJobs = false;
         this.addJobsDialog = false;
+        this.addJobDialog = false;
       } catch (error) {
         console.error(error);
         this.newJobsError = "Invalid JSON!";
         this.addingJobs = false;
+        this.selectedJobs = [];
       }
     },
     addJob: async function () {
       this.addingJob = true;
+      const job = JSON.parse(JSON.stringify(this.newJob));
+      if (job.CustomParameters && job.CustomParameters !== "") {
+        job.CustomParameters = job.CustomParameters.split("\n");
+      } else {
+        job.CustomParameters = null;
+      }
       try {
-        await this.$http.$post(this.url + "/jobs/", this.newJob);
+        await this.$http.$post(this.url + "/jobs/", job);
         await this.getClients();
         this.clearNewJob();
       } catch (err) {
@@ -404,12 +473,18 @@ export default {
       }
       this.addingJob = false;
       this.addJobDialog = false;
+        this.selectedJobs = [];
     },
     updateJob: async function (job) {
-      this.$set(job, "EditJobDialog", true);
       this.$set(job, "EditingJob", true);
+      const jobToSend = this.filteredJob(job);
+      if (job.CustomParameters && jobToSend.CustomParameters !== "") {
+        jobToSend.CustomParameters = jobToSend.CustomParameters.split("\n");
+      } else {
+        jobToSend.CustomParameters = null;
+      }
       try {
-        await this.$http.$put(this.url + "/jobs/", job);
+        await this.$http.$put(this.url + "/jobs/", jobToSend);
         await this.getClients();
       } catch (err) {
         console.error(err);
@@ -417,10 +492,8 @@ export default {
       this.closeEditJobDialog(job);
     },
     deleteJob: async function (job) {
-      this.$set(job, "DeleteJobDialog", true);
       this.$set(job, "DeleteJob", true);
       try {
-        console.log(JSON.stringify(job));
         await this.$http.$delete(`${this.url}/jobs/${job.ID}`);
         await this.getClients();
       } catch (err) {
@@ -453,6 +526,18 @@ export default {
       this.reassignToClient = null;
       this.selectedJobs = [];
     },
+    deleteSelectedJobs: async function () {
+      this.deletingSelectedJobs = true;
+      const promises = [];
+      this.selectedJobs.forEach((j) => {
+        promises.push(this.deleteJob(j));
+      });
+      await Promise.all(promises);
+      await this.getClients();
+      this.deletingSelectedJobs = false;
+      this.deleteSelectedJobsDialog = false;
+      this.selectedJobs = [];
+    },
     selectAllJobs: function (client) {
       if (!client.SelectAll) {
         client.Jobs.forEach((j) => {
@@ -483,6 +568,9 @@ export default {
         this.$set(j, "EditingJob", false);
         this.$set(j, "DeleteJobDialog", false);
         this.$set(j, "DeleteJob", false);
+        if (j.CustomParameters && typeof j.CustomParameters === "object") {
+          j.CustomParameters = j.CustomParameters.join("\n");
+        }
         return client.ID === j.AssignedClient.ID;
       });
     },

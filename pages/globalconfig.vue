@@ -23,7 +23,7 @@
           <v-icon class="mr-1">mdi-heart</v-icon>Name Exclude
         </v-tab>
         <v-tab href="#tab-3">
-          <v-icon class="mr-1">mdi-playlist-remove</v-icon>Exclude
+          <v-icon class="mr-1">mdi-playlist-remove</v-icon>Sub Exclude
         </v-tab>
         <v-tab href="#tab-4">
           <v-icon class="mr-1">mdi-playlist-check</v-icon>Log Include
@@ -318,6 +318,10 @@ export default {
       this.clientLoader = false;
     },
     async deleteClient(client) {
+      const jobs = await this.getJobsForClient(client);
+      if (this.jobs.length > 0) {
+        this.err = "This client still has ${jobs.length} jobs. Please reassign them first!";
+      }
       this.clientLoader = true;
       await this.timeout(300);
       this.clients.splice(this.clients.indexOf(client), 1);
@@ -362,13 +366,14 @@ export default {
         this.clients = clients;
       }
     },
-    getJobsForClient: function (client) {
-      return this.jobs.filter((j) => {
+    getJobsForClient: async function (client) {
+      const jobs = await this.getJobs();
+      return jobs.filter((j) => {
         return client.ID === j.AssignedClient.ID;
       });
     },
     getJobs: async function () {
-      this.jobs = await this.$http.$get(this.url + "/jobs/");
+      return this.$http.$get(this.url + "/jobs/");
     },
   },
   mounted() {},

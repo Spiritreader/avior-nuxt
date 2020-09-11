@@ -29,7 +29,7 @@ export default {
     clearInterval(this.debugTimer);
   },
   mounted() {
-    if (process.client) {
+    /*if (process.client) {
       if (this.debugTimer == null) {
         this.debugTimer = setInterval(() => {
           let yidx = this.clients.findIndex((c) => c.HostName == "ASDF");
@@ -40,6 +40,14 @@ export default {
           }
         }, 1000);
       }
+    }*/
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+      this.refreshBtn = "Enable Auto-Refresh";
+    } else if (process.client) {
+      this.timer = setInterval(this.getClients, 2000);
+      this.refreshBtn = "Disable Auto-Refresh";
     }
   },
   async fetch() {

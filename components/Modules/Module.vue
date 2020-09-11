@@ -1,6 +1,6 @@
 <template>
   <v-card color="#242424" class="pl-1 mx-2 mb-4">
-    <v-card-title class="mb-0 pb-0">
+    <v-card-title class="mb-0 pb-0 pt-0">
       {{ name }}
       <v-spacer></v-spacer>
       <v-switch
