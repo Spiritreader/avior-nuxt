@@ -211,18 +211,25 @@
       >
         <v-icon>mdi-console</v-icon>
       </v-btn>
-      <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" dense borderless exclusive>
+      <v-btn-toggle
+        v-if="isOnline()"
+        v-model="toggle_exclusive"
+        class="ml-auto"
+        dense
+        borderless
+        exclusive
+      >
         <v-btn icon @click="getMainLog()">
-          <v-icon>mdi-format-align-left</v-icon>
+          <v-icon>mdi-text-box-outline</v-icon>
         </v-btn>
         <v-btn icon @click="getErrorLog()">
-          <v-icon>mdi-format-align-center</v-icon>
+          <v-icon>mdi-text-box-remove-outline</v-icon>
         </v-btn>
         <v-btn icon @click="getProcessedLog()">
-          <v-icon>mdi-format-align-right</v-icon>
+          <v-icon>mdi-text-box-plus-outline</v-icon>
         </v-btn>
         <v-btn icon @click="getSkippedLog()">
-          <v-icon>mdi-format-align-justify</v-icon>
+          <v-icon>mdi-text-box-minus-outline</v-icon>
         </v-btn>
       </v-btn-toggle>
     </v-card-actions>
@@ -272,6 +279,7 @@
     <!-- Begin Main Log -->
     <v-expand-transition>
       <div v-show="showMainLog">
+        <v-card-title class="mb-0 pb-0">Main Log</v-card-title>
         <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
           <template v-slot="{ item }">
             <div>
@@ -289,6 +297,8 @@
     <!-- Begin Error Log -->
     <v-expand-transition>
       <div v-show="showErrorLog">
+        <v-card-title class="mb-0 pb-0">Error Log</v-card-title>
+
         <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
           <template v-slot="{ item }">
             <div>
@@ -306,6 +316,7 @@
     <!-- Begin Processed Log -->
     <v-expand-transition>
       <div v-show="showProcessedLog">
+        <v-card-title class="mb-0 pb-0">Processed Log</v-card-title>
         <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
           <template v-slot="{ item }">
             <div>
@@ -323,6 +334,7 @@
     <!-- Begin Skipped Log -->
     <v-expand-transition>
       <div v-show="showSkippedLog">
+        <v-card-title class="mb-0 pb-0">Skipped Log</v-card-title>
         <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
           <template v-slot="{ item }">
             <div>
@@ -459,7 +471,7 @@ export default {
       if (!this.showMainLog) {
         const log = await this.$http.$get(this.client.Ip + "/logs/main/");
         this.mainLog = log.split("\n");
-      } 
+      }
       this.showMainLog = !this.showMainLog;
     },
     getErrorLog: async function () {

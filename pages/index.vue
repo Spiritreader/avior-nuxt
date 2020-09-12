@@ -60,7 +60,7 @@ export default {
       totalLoadedLeft: 0,
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
-      clients: [{          HostName: "Blabla",
+      clients: [/*{          HostName: "Blabla",
           Encoder: {
             Active: false,
             Duration: "0001-01-01T00:00:00Z",
@@ -141,7 +141,7 @@ export default {
           ShutdownPending: false,
           Ip: "http://10.10.12.0",
           InFile: "sadf",
-        },
+        },*/
         /*
         {
           HostName: "ASDF",
