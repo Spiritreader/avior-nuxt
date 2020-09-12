@@ -6,6 +6,10 @@
         <v-icon v-else>mdi-cached</v-icon>
       </v-btn>
     </v-row>
+    <div v-if="$fetchState.pending && totalLoadedLeft > 0 && !noSkeleton">
+      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+    </div>
+    <!--
     <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !noSkeleton">
       <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
     </div>
@@ -13,7 +17,7 @@
       <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
         <v-progress-circular :size="150" :width="20" color="yellow darken-3" indeterminate></v-progress-circular>
       </v-row>
-    </div>
+    </div>-->
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
@@ -46,8 +50,10 @@ export default {
       this.timer = null;
       this.refreshBtn = "Enable Auto-Refresh";
     } else if (process.client) {
-      this.timer = setInterval(this.getClients, 2000);
-      this.refreshBtn = "Disable Auto-Refresh";
+      setTimeout(() => {
+        this.timer = setInterval(this.getClients, 2000);
+        this.refreshBtn = "Disable Auto-Refresh";
+      }, 1000);
     }
   },
   async fetch() {
@@ -66,8 +72,130 @@ export default {
       totalLoadedLeft: 0,
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
-      clients: [
-        /*{          HostName: "Blabla",
+      clients: [],
+      //clients: this.testClients()
+    };
+  },
+  methods: {
+    async getReachableIps() {
+      const clients = await this.getIpAddresses();
+      let grouped = [[clients[0]]];
+      let lastSeenName = "";
+      outer: for (let client of clients.slice(1)) {
+        for (let subArray of grouped) {
+          if (subArray[0].HostName == client.HostName) {
+            subArray.push(client);
+            continue outer;
+          } else if (lastSeenName == client.HostName) {
+            lastSeenName = client.HostName;
+            continue outer;
+          }
+        }
+        grouped.push([client]);
+      }
+      let bestClientIps = [];
+      for (let clientGroup of grouped) {
+        let promises = [];
+        for (let client of clientGroup) {
+          try {
+            let promise = new Promise(async (resolve, reject) => {
+              let response;
+              try {
+                response = await this.$http.$get(client.ip);
+              } catch (err) {
+                reject(client);
+                return;
+              }
+              resolve(client);
+            });
+            promises.push(promise);
+          } catch (error) {
+            console.log(`$failed to create promises: ${error}`);
+          }
+        }
+        try {
+          let raceResult = await Promise.race(promises);
+          bestClientIps.push(raceResult);
+        } catch (err) {
+          bestClientIps.push(err);
+        }
+      }
+      console.log(bestClientIps);
+      this.totalLoadedLeft = bestClientIps.length;
+      return bestClientIps;
+    },
+    autoRefresh() {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+        this.refreshBtn = "Enable Auto-Refresh";
+      } else if (process.client) {
+        this.timer = setInterval(this.getClients, 2000);
+        this.refreshBtn = "Disable Auto-Refresh";
+      }
+    },
+    getIpAddresses: async function () {
+      const clientInfos = await this.$http.$get("api/clients");
+      const clients = [];
+      for (const client of clientInfos) {
+        clients.unshift({ ip: client.Address, HostName: client.Name });
+      }
+      if (this.init) {
+        //enable when not using getbestips
+        this.totalLoadedLeft = clients.length;
+        this.init = false;
+      }
+      return clients;
+    },
+    getClients: async function () {
+      const promises = [];
+      // enable when not using getbestips
+      //const clients = await this.getIpAddresses();
+      const clients = this.bestIps;
+
+      for (const client of clients) {
+        try {
+          const clientInfo = await this.$http.$get(client.ip);
+          clientInfo.Ip = client.ip;
+          clientInfo.EncoderLineOut = await this.$http.$get(
+            client.ip + "/encoder/"
+          );
+          const idx = this.clients.findIndex(
+            (c) =>
+              c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
+          );
+          let temp = this.clients;
+          if (idx !== -1) {
+            this.clients.splice(idx, 1, clientInfo);
+          } else {
+            this.clients.unshift(clientInfo);
+          }
+        } catch (err) {
+          const idx = this.clients.findIndex(
+            (c) => c.HostName.toLowerCase() === client.HostName.toLowerCase()
+          );
+          let temp = this.clients;
+          if (idx == -1) {
+            this.clients.unshift({
+              HostName: client.HostName,
+              Status: "offline",
+            });
+          } else {
+            this.clients.splice(idx, 1, {
+              HostName: client.HostName,
+              Status: "offline",
+            });
+          }
+        }
+        if (this.totalLoadedLeft > 0) {
+          this.totalLoadedLeft--;
+        }
+      }
+    },
+    testClients() {
+      return [
+        {
+          HostName: "Blabla",
           Encoder: {
             Active: false,
             Duration: "0001-01-01T00:00:00Z",
@@ -148,7 +276,7 @@ export default {
           ShutdownPending: false,
           Ip: "http://10.10.12.0",
           InFile: "sadf",
-        },*/
+        },
         /*
         {
           HostName: "ASDF",
@@ -229,124 +357,7 @@ export default {
           HostName: "#WF",
           Status: "offline",
         },*/
-      ],
-    };
-  },
-  methods: {
-    async getReachableIps() {
-      const clients = await this.getIpAddresses();
-      let grouped = [[clients[0]]];
-      let lastSeenName = "";
-      outer: for (let client of clients.slice(1)) {
-        for (let subArray of grouped) {
-          if (subArray[0].HostName == client.HostName) {
-            subArray.push(client);
-            continue outer;
-          } else if (lastSeenName == client.HostName) {
-            lastSeenName = client.HostName;
-            continue outer;
-          }
-        }
-        grouped.push([client]);
-      }
-      let bestClientIps = [];
-      for (let clientGroup of grouped) {
-        let promises = [];
-        for (let client of clientGroup) {
-          try {
-            let promise = new Promise(async (resolve, reject) => {
-              let response;
-              try {
-                response = await this.$http.$get(client.ip);
-              } catch (err) {
-                reject(client);
-                return;
-              }
-              resolve(client);
-            });
-            promises.push(promise);
-          } catch (error) {
-            console.log(`$failed to create promises: ${error}`);
-          }
-        }
-        try {
-          let raceResult = await Promise.race(promises);
-          bestClientIps.push(raceResult);
-        } catch (err) {
-          bestClientIps.push(err);
-        }
-      }
-      console.log(bestClientIps);
-      this.totalLoadedLeft = bestClientIps.length;
-      return bestClientIps;
-    },
-    autoRefresh() {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-        this.refreshBtn = "Enable Auto-Refresh";
-      } else if (process.client) {
-        this.timer = setInterval(this.getClients, 2000);
-        this.refreshBtn = "Disable Auto-Refresh";
-      }
-    },
-    getIpAddresses: async function () {
-      const clientInfos = await this.$http.$get("api/clients");
-      const clients = [];
-      for (const client of clientInfos) {
-        clients.unshift({ ip: client.Address, HostName: client.Name });
-      }
-      if (this.init) {
-        //enable when not using getbestips
-        //this.totalLoadedLeft = clients.length;
-        this.init = false;
-      }
-      return clients;
-    },
-    getClients: async function () {
-      const promises = [];
-      // enable when not using getbestips
-      //const clients = await this.getIpAddresses();
-      const clients = this.bestIps;
-
-      for (const client of clients) {
-        try {
-          const clientInfo = await this.$http.$get(client.ip);
-          clientInfo.Ip = client.ip;
-          clientInfo.EncoderLineOut = await this.$http.$get(
-            client.ip + "/encoder/"
-          );
-          const idx = this.clients.findIndex(
-            (c) =>
-              c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
-          );
-          let temp = this.clients;
-          if (idx !== -1) {
-            this.clients.splice(idx, 1, clientInfo);
-          } else {
-            this.clients.unshift(clientInfo);
-          }
-        } catch (err) {
-          const idx = this.clients.findIndex(
-            (c) => c.HostName.toLowerCase() === client.HostName.toLowerCase()
-          );
-          let temp = this.clients;
-          if (idx == -1) {
-            this.clients.unshift({
-              HostName: client.HostName,
-              Status: "offline",
-            });
-          } else {
-            this.clients.splice(idx, 1, {
-              HostName: client.HostName,
-              Status: "offline",
-            });
-          }
-        }
-        if (this.totalLoadedLeft > 0) {
-          this.totalLoadedLeft--;
-        }
-      }
+      ];
     },
   },
 };

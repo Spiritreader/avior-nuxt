@@ -252,7 +252,13 @@
         </v-card-title>
         <v-card-subtitle>Make sure to hit opslaan afterwards. DatabaseURL is omitted for security reasons.</v-card-subtitle>
         <v-container>
-          <v-textarea outlined label="Import" name="Import Config" :error-messages="configImportError" v-model="configImportString"></v-textarea>
+          <v-textarea
+            outlined
+            label="Import"
+            name="Import Config"
+            :error-messages="configImportError"
+            v-model="configImportString"
+          ></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -273,15 +279,17 @@
         </v-card-title>
         <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
         <v-container>
-          <v-textarea outlined label="Config" rows="12" v-model="configExportString" name="Export Config"></v-textarea>
+          <v-textarea
+            outlined
+            label="Config"
+            rows="12"
+            v-model="configExportString"
+            name="Export Config"
+          ></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="darken-1"
-            text
-            @click="configExportDialog = false"
-          >Close</v-btn>
+          <v-btn color="darken-1" text @click="configExportDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -348,12 +356,12 @@ export default {
     },
     configExportString() {
       return JSON.stringify(this.config, null, 1);
-    }
+    },
   },
   async fetch() {
     this.loading = true;
     //this.items = await fetch("api/clients").then(res => res.json());
-    this.items = await this.$http.$get("api/clients");
+    this.items = await this.getBestIps();
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
@@ -372,6 +380,51 @@ export default {
     }
   },
   methods: {
+    async getBestIps() {
+      const clients = await this.$http.$get("api/clients/");
+      let grouped = [[clients[0]]];
+      let lastSeenName = "";
+      outer: for (let client of clients.slice(1)) {
+        for (let subArray of grouped) {
+          if (subArray[0].Name == client.Name) {
+            subArray.push(client);
+            continue outer;
+          } else if (lastSeenName == client.Name) {
+            lastSeenName = client.HostName;
+            continue outer;
+          }
+        }
+        grouped.push([client]);
+      }
+      let bestClientIps = [];
+      for (let clientGroup of grouped) {
+        let promises = [];
+        for (let client of clientGroup) {
+          try {
+            let promise = new Promise(async (resolve, reject) => {
+              let response;
+              try {
+                response = await this.$http.$get(client.Address);
+              } catch (err) {
+                reject(client);
+                return;
+              }
+              resolve(client);
+            });
+            promises.push(promise);
+          } catch (error) {
+            console.log(`$failed to create promises: ${error}`);
+          }
+        }
+        try {
+          let raceResult = await Promise.race(promises);
+          bestClientIps.push(raceResult);
+        } catch (err) {
+          bestClientIps.push(err);
+        }
+      }
+      return bestClientIps;
+    },
     importConfig() {
       try {
         let json = JSON.parse(this.configImportString);

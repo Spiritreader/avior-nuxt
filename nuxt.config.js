@@ -64,8 +64,8 @@ export default {
   */
   axios: {},
   http: {
-    clientTimeout: 1500,
-    serverTimeout: 1500,
+    clientTimeout: 1000,
+    serverTimeout: 1000,
     browserBaseURL: "/"
   },
 
