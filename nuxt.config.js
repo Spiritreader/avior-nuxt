@@ -66,7 +66,7 @@ export default {
   http: {
     clientTimeout: 1500,
     serverTimeout: 1500,
-    browserBaseURL: "http://10.10.10.37:3000"
+    //browserBaseURL: "http://10.10.10.37:3000"
   },
 
   /*
@@ -102,8 +102,8 @@ export default {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
       }
     }
-  },
+  },/*
   server: {
     host: '0.0.0.0'
-  }
+  }*/
 }

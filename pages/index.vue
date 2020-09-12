@@ -11,7 +11,7 @@
     </div>
     <div v-else-if="$fetchState.pending">
       <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
-        <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
+        <v-progress-circular :size="150" :width="20" color="yellow darken-3" indeterminate></v-progress-circular>
       </v-row>
     </div>
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
@@ -60,9 +60,7 @@ export default {
       totalLoadedLeft: 0,
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
-      clients: [
-        /*{
-          HostName: "Blabla",
+      clients: [{          HostName: "Blabla",
           Encoder: {
             Active: false,
             Duration: "0001-01-01T00:00:00Z",
@@ -105,7 +103,7 @@ export default {
         {
           HostName: "DESKTOP-KN",
           Encoder: {
-            Active: false,
+            Active: true,
             Duration: "0001-01-01T00:00:00Z",
             Frame: 0,
             Fps: 0,
@@ -116,10 +114,10 @@ export default {
             Dup: 0,
             Drop: 0,
             Speed: 0,
-            Slice: 0,
-            OfSlices: 0,
-            Remaining: 0,
-            Progress: 0,
+            Slice: 6,
+            OfSlices: 10,
+            Remaining: 152002120000,
+            Progress: 10,
             ReplacementReason: "",
             OutPath:
               "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
@@ -132,7 +130,7 @@ export default {
             LibSize: 1521120,
           },
           Mover: {
-            Active: true,
+            Active: false,
             File:
               "D:\\Recording\\FilmMittwoch im Ersten  Schönes Schlamassel_2020-09-03-00-23-00-Das Erste HD (AC3,deu).ts",
             Progress: 95,
@@ -144,6 +142,7 @@ export default {
           Ip: "http://10.10.12.0",
           InFile: "sadf",
         },
+        /*
         {
           HostName: "ASDF",
           Encoder: {

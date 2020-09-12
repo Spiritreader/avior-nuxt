@@ -24,7 +24,7 @@
           <v-btn
             class="mb-2"
             :loading="submitLoad"
-            :disabled="submitLoad"
+            :disabled="submitLoad || clientName === '' || clientAddress === ''"
             color="blue"
             @click="addClient()"
           >Submit</v-btn>
@@ -42,13 +42,15 @@
           </v-list-item-content>
 
           <v-btn
-            :loading="removeLoad"
-            :disabled="removeLoad"
+            :loading="user.removeLoad"
+            :disabled="user.removeLoad"
             text
             small
             color="red"
-            @click="deleteClient(i)"
-          ><v-icon>mdi-close</v-icon></v-btn>
+            @click="deleteClient(user)"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-list-item>
       </v-list>
     </v-card>
@@ -57,6 +59,13 @@
 
 <script>
 export default {
+  mounted() {
+    this.rules = {
+      name: (v) => !!v || "Name is required",
+      nameLen: (v) => v.length <= 30 || "Name must be at most 30 characters",
+      address: (v) => !!v || "Address is required",
+    };
+  },
   data() {
     return {
       users: [],
@@ -69,7 +78,6 @@ export default {
       },
       loader: null,
       submitLoad: false,
-      removeLoad: false,
     };
   },
   methods: {
@@ -96,10 +104,10 @@ export default {
         this.submitLoad = false;
       }
     },
-    async deleteClient(i) {
-      this.removeLoad = true;
+    async deleteClient(client) {
+      client.removeLoad = true;
       const deleteUser = {
-        _id: this.users[i]._id,
+        _id: client._id,
       };
       let result = await this.$axios.$post("/api/clients/delete", deleteUser);
       console.log(result);
@@ -110,12 +118,16 @@ export default {
         body: JSON.stringify(deleteUser),
       }).then((res) => res.json());*/
       await this.$fetch();
-      this.removeLoad = false;
+      client.removeLoad = false;
     },
   },
   async fetch() {
     //this.users = await fetch("http://localhost:3000/api/clients").then((res) => res.json());
-    this.users = await this.$http.$get("/api/clients");
+    const users = await this.$http.$get("/api/clients");
+    users.forEach((user) => {
+      user.removeLoad = false;
+    })
+    this.users = users;
   },
 };
 </script>

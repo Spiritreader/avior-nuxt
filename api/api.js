@@ -5,9 +5,16 @@ const http = require('http');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 import config from '../api/config.json';
+
+mongoose.set('useUnifiedTopology', true);
 //Create MongoDB Database with Name MongooseTest
 mongoose.connect(config.url)
 const clientDocument = "RegisteredClient"
+
+var corsOptions = {
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  }
+  
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'error:'))
@@ -82,6 +89,8 @@ app.use(bodyParser.json())
 app.post("/clients", cors(), addClient);
 app.post("/clients/delete", cors(), deleteClient)
 app.get("/clients", cors(), getClients)
+app.options('/clients/', cors())
+app.options('/clients/delete', cors())
 
 export default {
     handler: app,

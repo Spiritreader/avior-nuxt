@@ -1,12 +1,11 @@
 <template>
   <v-data-table
     :headers="headers"
-    :items="desserts"
+    :items="data"
     :search="nameSearch"
     show-select
     v-model="selected"
-    item-key="name"
-    sort-by="calories"
+    item-key="ID"
     class="elevation-1 mt-2"
   >
     <template v-slot:top>
@@ -21,9 +20,49 @@
           hide-details
         ></v-text-field>
         <v-spacer></v-spacer>
+        <v-dialog v-model="dialogDeleteSelected" max-width="500px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="red darken-2"
+              outlined
+              :disabled="selected.length === 0"
+              class="ml-2"
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon>mdi-delete</v-icon>
+              {{ selected.length > 0 ? selected.length : "" }}
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-title>
+              <span class="headline">Delete {{ selected.length }} Fields</span>
+            </v-card-title>
+
+            <v-card-text>Do you really want to delete the following fields?</v-card-text>
+            <v-card-text>
+              <v-list-item v-for="(field, idx) in selected" :key="`field-${idx}`">
+                <v-list-item-content>
+                  <v-list-item-title class="text-wrap">{{ field.Value }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="darken-1" text @click="dialogDeleteSelected = false">Cancel</v-btn>
+              <v-btn
+                color="red darken-1"
+                text
+                @click="dialogDeleteSelected = false; deleteSelected();"
+              >Hit me</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">New Item</v-btn>
+            <v-btn outlined color="indigo lighten-3" class="mx-2" v-bind="attrs" v-on="on">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
           </template>
           <v-card>
             <v-card-title>
@@ -33,21 +72,7 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.name" label="Dessert name"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.calories" label="Calories"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.fat" label="Fat (g)"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.carbs" label="Carbs (g)"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.protein" label="Protein (g)"></v-text-field>
-                  </v-col>
+                  <v-text-field v-model="editedItem.Value" label="Field name"></v-text-field>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -55,7 +80,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="save">Save</v-btn>
+              <v-btn color="blue darken-1" text @click="add">{{ actionButton }}</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -64,51 +89,73 @@
     <!-- eslint-disable -->
     <template v-slot:item.actions="{ item }">
       <v-icon small class="mr-2" @click="editItem(item)">mdi-pencil</v-icon>
-      <v-icon small @click="deleteItem(item)">mdi-delete</v-icon>
-    </template>
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
+
+      <v-dialog v-model="item.deleteDialog" max-width="500">
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon small v-bind="attrs" v-on="on">mdi-delete</v-icon>
+        </template>
+        <v-card>
+          <v-card-title>Delete {{ item.Value }}</v-card-title>
+          <v-card-text>Do you really want to delete {{ item.Value }}?</v-card-text>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="darken-1" text @click="item.deleteDialog = false">Cancel</v-btn>
+            <v-btn
+              color="red darken-1"
+              text
+              @click="item.deleteDialog = false; deleteItem(item);"
+            >Hit me</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
   </v-data-table>
 </template>
 
 <script>
 export default {
-  data: () => ({
-    selected: [],
-    nameSearch: "",
-    dialog: false,
-    headers: [
-      {
-        text: "Dessert (100g serving)",
-        align: "start",
-        sortable: false,
-        value: "name",
-      },
-      { text: "Actions", value: "actions", sortable: false, align: "right" },
-    ],
-    desserts: [],
-    editedIndex: -1,
-    editedItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    },
-    defaultItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    },
-  }),
-
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Item" : "Edit Item";
+      return this.editedIndex === -1 ? "New Field" : "Edit Field";
     },
+    actionButton() {
+      return this.editedIndex === -1 ? "Add" : "Update";
+    },
+    data() {
+      return this.value
+    }
+  },
+
+  props: {
+    value: Array,
+  },
+  data() {
+    return {
+      selected: [],
+      //data: this.value,
+      nameSearch: "",
+      dialogDeleteSelected: false,
+      dialog: false,
+      headers: [
+        {
+          text: "Field",
+          align: "start",
+          sortable: true,
+          value: "Value",
+        },
+        { text: "Actions", value: "actions", sortable: false, align: "right" },
+      ],
+      editedIndex: -1,
+      editedItem: {
+        ID: "",
+        Value: "",
+      },
+      defaultItem: {
+        ID: "",
+        Value: "",
+      },
+    };
   },
 
   watch: {
@@ -117,96 +164,21 @@ export default {
     },
   },
 
-  created() {
-    this.initialize();
-  },
-
   methods: {
-    initialize() {
-      this.desserts = [
-        {
-          name: "Frozen Yogurt",
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-        },
-        {
-          name: "Ice cream sandwich",
-          calories: 237,
-          fat: 9.0,
-          carbs: 37,
-          protein: 4.3,
-        },
-        {
-          name: "Eclair",
-          calories: 262,
-          fat: 16.0,
-          carbs: 23,
-          protein: 6.0,
-        },
-        {
-          name: "Cupcake",
-          calories: 305,
-          fat: 3.7,
-          carbs: 67,
-          protein: 4.3,
-        },
-        {
-          name: "Gingerbread",
-          calories: 356,
-          fat: 16.0,
-          carbs: 49,
-          protein: 3.9,
-        },
-        {
-          name: "Jelly bean",
-          calories: 375,
-          fat: 0.0,
-          carbs: 94,
-          protein: 0.0,
-        },
-        {
-          name: "Lollipop",
-          calories: 392,
-          fat: 0.2,
-          carbs: 98,
-          protein: 0,
-        },
-        {
-          name: "Honeycomb",
-          calories: 408,
-          fat: 3.2,
-          carbs: 87,
-          protein: 6.5,
-        },
-        {
-          name: "Donut",
-          calories: 452,
-          fat: 25.0,
-          carbs: 51,
-          protein: 4.9,
-        },
-        {
-          name: "KitKat",
-          calories: 518,
-          fat: 26.0,
-          carbs: 65,
-          protein: 7,
-        },
-      ];
+    deleteSelected() {
+      this.$emit("newdata", { mode: "deleteMany", ary: this.selected});
+      this.selected = [];
     },
 
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item);
+      this.editedIndex = this.data.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
-
     deleteItem(item) {
-      const index = this.desserts.indexOf(item);
-      confirm("Are you sure you want to delete this item?") &&
-        this.desserts.splice(index, 1);
+      const index = this.data.indexOf(item);
+      //this.data.splice(index, 1);
+      this.$emit("newdata", { mode: "delete", obj: item });
     },
 
     close() {
@@ -217,11 +189,15 @@ export default {
       });
     },
 
-    save() {
+    add() {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem);
+        //Object.assign(this.data[this.editedIndex], this.editedItem);
+        //this.$emit("input", this.data);
+        this.$emit("newdata", { mode: "update", obj: this.editedItem });
       } else {
-        this.desserts.push(this.editedItem);
+        //this.data.push(this.editedItem);
+        //this.$emit("input", this.data);
+        this.$emit("newdata", { mode: "create", obj: this.editedItem });
       }
       this.close();
     },

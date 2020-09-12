@@ -1,0 +1,33 @@
+FROM node:14.8.0-buster
+
+RUN mkdir -p /usr/src/moodtracker
+RUN apt update && apt upgrade
+RUN apt install git
+RUN apt install python2
+RUN apt install openssh-client
+
+# Make ssh dir
+RUN mkdir /root/.ssh/
+
+# Copy over private key, and set permissions
+# Warning! Anyone who gets their hands on this image will be able
+# to retrieve this private key file from the corresponding image layer
+COPY id_rsa_docker /root/.ssh/id_rsa
+RUN chmod 700 /root/.ssh/id_rsa
+RUN chown -R root:root /root/.ssh
+
+# Create known_hosts
+RUN echo "gitlab.inf.uni-konstanz.de,134.34.224.11 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE2u4dYRPi4TInhr/fqNU83TVzYVNhvm/l4Qv2XwOtkP/WTskwXulKR1xkAOl51Vco/ClXeR+/VB+6+E2Q62g+c=" >> /root/.ssh/known_hosts
+
+
+# Clone the conf files into the docker container
+RUN git clone git@gitlab.inf.uni-konstanz.de:ying-kai.dang/group-2.git /usr/src/moodtracker
+WORKDIR /usr/src/moodtracker/moodtracker-web
+
+RUN npm install
+RUN npm run build
+EXPOSE 10008
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=10008
+
+CMD [ "npm", "start" ]

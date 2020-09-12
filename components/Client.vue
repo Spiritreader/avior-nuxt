@@ -3,6 +3,7 @@
     :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)"
     class="ma-2"
   >
+    <!-- Begin Progress Bar -->
     <template style="min-height: 4px;" v-slot:progress>
       <v-progress-linear
         v-if="client.Encoder.OfSlices > 0"
@@ -22,17 +23,18 @@
         stream
       ></v-progress-linear>
     </template>
+    <!-- End Progress Bar -->
+    <!-- Begin Card Main -->
     <v-card-text>
+      <!-- Begin Card Header -->
       <div class="display-1 text-h4 d-flex">
         <div class="mr-auto">
           {{client.HostName}}
           <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
-          <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">
-            <!--mdi-flash-circle-->
-            mdi-lan-disconnect
-          </v-icon>
+          <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
           <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
         </div>
+        <!-- Begin Card Buttons -->
         <div v-if="isOnline()">
           <v-btn
             v-if="!client.Paused"
@@ -58,7 +60,7 @@
           >
             <v-icon>mdi-play-circle-outline</v-icon>
           </v-btn>
-
+          <!-- Begin Shutdown Dialog -->
           <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
@@ -92,8 +94,12 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <!-- End Shutdown Dialog -->
         </div>
+        <!-- End Card Buttons -->
       </div>
+      <!-- End Card Header -->
+      <!-- Begin Card Info -->
       <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
       <p
         class="body-1 ma-0"
@@ -105,11 +111,13 @@
         >Estimating</span>
       </p>
       <p v-if="client.InFile" class="body-2">{{ client.InFile }}</p>
-
+      <!-- End Card Info -->
+      <!-- Begin Card Content -->
       <v-container
         class="d-flex align-center flex-wrap-reverse flex-sm-nowrap flex-lg-nowrap flex-md-nowrap flex-lg-nowrap flex-xl-nowrap"
       >
         <div class="ma-2 file-info">
+          <!-- Begin Dense Card Content -->
           <v-list v-if="activeProcessInfoLength < 5" dense>
             <v-list-item v-for="(value, key) in activeProcessInfo" :key="key">
               <v-row>
@@ -122,6 +130,8 @@
               </v-row>
             </v-list-item>
           </v-list>
+          <!-- End Dense Card Content -->
+          <!-- Begin Encoder Card Content -->
           <v-list v-else-if="activeProcess.process === 'encoder' && isActive()" dense>
             <v-list-item v-if="remaining && remaining !== '00:00:00'">
               <v-row>
@@ -164,7 +174,9 @@
               </v-row>
             </v-list-item>
           </v-list>
+          <!-- End Encoder Card Content -->
         </div>
+        <!-- Begin Progress Circle -->
         <div
           v-if="isActive() && activeProcess.process !== 'working'"
           class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'"
@@ -182,8 +194,12 @@
             <span v-if="!determineIndeterminate()">{{ activeProcessProgress }}%</span>
           </v-progress-circular>
         </div>
+        <!-- End Progress Circle -->
       </v-container>
+      <!-- End Card Content -->
     </v-card-text>
+    <!-- End Card Main -->
+    <!-- Begin Card Actions -->
     <v-card-actions>
       <v-btn v-if="activeProcessInfoLength >= 5" icon @click="showProcessInfo = !showProcessInfo">
         <v-icon>mdi-format-list-bulleted</v-icon>
@@ -195,7 +211,23 @@
       >
         <v-icon>mdi-console</v-icon>
       </v-btn>
+      <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" dense borderless exclusive>
+        <v-btn icon @click="getMainLog()">
+          <v-icon>mdi-format-align-left</v-icon>
+        </v-btn>
+        <v-btn icon @click="getErrorLog()">
+          <v-icon>mdi-format-align-center</v-icon>
+        </v-btn>
+        <v-btn icon @click="getProcessedLog()">
+          <v-icon>mdi-format-align-right</v-icon>
+        </v-btn>
+        <v-btn icon @click="getSkippedLog()">
+          <v-icon>mdi-format-align-justify</v-icon>
+        </v-btn>
+      </v-btn-toggle>
     </v-card-actions>
+    <!-- End Card Actions -->
+    <!-- Begin Extended Info -->
     <v-expand-transition v-if="activeProcessInfoLength >= 5">
       <div v-show="showProcessInfo">
         <v-card-text>
@@ -214,6 +246,8 @@
         </v-card-text>
       </div>
     </v-expand-transition>
+    <!-- End Extended Info -->
+    <!-- Begin Encoder Log -->
     <v-expand-transition v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')">
       <div v-show="showEncoderLog">
         <v-virtual-scroll
@@ -234,6 +268,75 @@
         </v-virtual-scroll>
       </div>
     </v-expand-transition>
+    <!-- Begin Encoder Log -->
+    <!-- Begin Main Log -->
+    <v-expand-transition>
+      <div v-show="showMainLog">
+        <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
+          <template v-slot="{ item }">
+            <div>
+              <v-list-item class="encoder-line-out my-2">
+                <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                  <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
+          </template>
+        </v-virtual-scroll>
+      </div>
+    </v-expand-transition>
+    <!-- End Main Log-->
+    <!-- Begin Error Log -->
+    <v-expand-transition>
+      <div v-show="showErrorLog">
+        <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
+          <template v-slot="{ item }">
+            <div>
+              <v-list-item class="encoder-line-out my-2">
+                <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                  <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
+          </template>
+        </v-virtual-scroll>
+      </div>
+    </v-expand-transition>
+    <!-- End Error Log-->
+    <!-- Begin Processed Log -->
+    <v-expand-transition>
+      <div v-show="showProcessedLog">
+        <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
+          <template v-slot="{ item }">
+            <div>
+              <v-list-item class="encoder-line-out my-2">
+                <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                  <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
+          </template>
+        </v-virtual-scroll>
+      </div>
+    </v-expand-transition>
+    <!-- End Processed Log-->
+    <!-- Begin Skipped Log -->
+    <v-expand-transition>
+      <div v-show="showSkippedLog">
+        <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
+          <template v-slot="{ item }">
+            <div>
+              <v-list-item class="encoder-line-out my-2">
+                <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                  <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
+          </template>
+        </v-virtual-scroll>
+      </div>
+    </v-expand-transition>
+    <!-- End Skipped Log -->
   </v-card>
 </template>
 <script>
@@ -247,6 +350,15 @@ const ENCODER = "encoder",
   INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
   data: () => ({
+    toggle_exclusive: [],
+    showMainLog: false,
+    showErrorLog: false,
+    showProcessedLog: false,
+    showSkippedLog: false,
+    mainLog: [],
+    errorLog: [],
+    processedLog: [],
+    skippedLog: [],
     encoderInterpolation: 0,
     interpolationHandle: null,
     showProcessInfo: false,
@@ -258,12 +370,13 @@ export default {
     shutdownConfirm: false,
     errorMessage: null,
     errorMessageTimeout: null,
+    testData: `asdf\nasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdf\nasdf;jkafz\nasd;lfkja\nasfdljk\noij\npijo\nijpo\noij\nlio;h\nuigy\nuygoh\nhuio\nhiuo\nuiho\nhuoi\nohui\nihuo\niuohi\njihiou\njihuio\njiuhoi\njiuioh\njiuiho\njiuhio\njiouh\njiouiho\njiuho\njiuhoi\njhi\nij`,
   }),
   props: {
     client: Object,
   },
   computed: {
-    bufferValue() {
+    bufferValue: function () {
       if (this.client.Encoder.Active) {
         return 100;
       } else if (this.client.FileWalker.Active) {
@@ -339,6 +452,46 @@ export default {
     },
   },
   methods: {
+    getMainLog: async function () {
+      this.showErrorLog = false;
+      this.showProcessedLog = false;
+      this.showSkippedLog = false;
+      if (!this.showMainLog) {
+        const log = await this.$http.$get(this.client.Ip + "/logs/main/");
+        this.mainLog = log.split("\n");
+      } 
+      this.showMainLog = !this.showMainLog;
+    },
+    getErrorLog: async function () {
+      this.showMainLog = false;
+      this.showProcessedLog = false;
+      this.showSkippedLog = false;
+      if (!this.showErrorLog) {
+        const log = await this.$http.$get(this.client.Ip + "/logs/err/");
+        this.errorLog = log.split("\n");
+      }
+      this.showErrorLog = !this.showErrorLog;
+    },
+    getProcessedLog: async function () {
+      this.showMainLog = false;
+      this.showErrorLog = false;
+      this.showSkippedLog = false;
+      if (!this.showProcessedLog) {
+        const log = await this.$http.$get(this.client.Ip + "/logs/processed/");
+        this.processedLog = log.split("\n");
+      }
+      this.showProcessedLog = !this.showProcessedLog;
+    },
+    getSkippedLog: async function () {
+      this.showMainLog = false;
+      this.showProcessedLog = false;
+      this.showProcessedLog = false;
+      if (!this.showSkippedLog) {
+        const log = await this.$http.$get(this.client.Ip + "/logs/skipped/");
+        this.skippedLog = log.split("\n");
+      }
+      this.showSkippedLog = !this.showSkippedLog;
+    },
     determineIndeterminate: function () {
       return (
         (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) ||
@@ -568,53 +721,5 @@ export default {
 .virtual-scroller-content-wrapper {
   flex: none;
   overflow: auto;
-}
-
-.custom-loader-linear {
-  animation: loader-linear 10s infinite;
-  animation-timing-function: linear;
-  -webkit-animation-timing-function: linear;
-  display: flex;
-}
-
-@keyframes loader-linear {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.flashit {
-  -webkit-animation: flash 1s infinite;
-  animation: flash 1s infinite;
-}
-@-webkit-keyframes flash {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-.v-progress-circular__overlay {
-  -webkit-animation: flash 5s infinite;
-  animation: flash 15s infinite;
-}
-
-@keyframes flash {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
 }
 </style>

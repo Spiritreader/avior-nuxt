@@ -231,10 +231,15 @@
         </v-tabs-items>
       </v-card>
       <div class="d-flex flex-wrap">
-        <v-btn :loading="saving" @click="saveConfig()" color="red darken-2" class="mt-6 mr-6">opslaan</v-btn>
+        <v-btn
+          :loading="saving"
+          @click="saveConfig()"
+          color="red darken-2"
+          class="mt-6 mr-6"
+        >Upload Config</v-btn>
         <div>
           <v-btn @click="configImportConfirm = true" color="gray darken-3" class="mt-6">Import</v-btn>
-          <v-btn @click="exportConfig()" color="gray darken-3" class="mt-6">Export</v-btn>
+          <v-btn @click="configExportDialog = true" color="gray darken-3" class="mt-6">Export</v-btn>
         </div>
       </div>
     </v-container>
@@ -245,10 +250,9 @@
           Paste your json configuration here!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle>Make sure to hit opslaan afterwards.</v-card-subtitle>
+        <v-card-subtitle>Make sure to hit opslaan afterwards. DatabaseURL is omitted for security reasons.</v-card-subtitle>
         <v-container>
-          <v-textarea outlined label="Import" name="Import Config" v-model="configImportString"></v-textarea>
-          <span class="pl-1" v-if="configImportError">Invalid JSON: {{configImportError}}</span>
+          <v-textarea outlined label="Import" name="Import Config" :error-messages="configImportError" v-model="configImportString"></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -261,12 +265,33 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-if="configExportDialog" v-model="configExportDialog" max-width="500">
+      <v-card>
+        <v-card-title>
+          Here's your configuration in a json format!
+          <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
+        </v-card-title>
+        <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
+        <v-container>
+          <v-textarea outlined label="Config" rows="12" v-model="configExportString" name="Export Config"></v-textarea>
+        </v-container>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="darken-1"
+            text
+            @click="configExportDialog = false"
+          >Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 export default {
   data: () => ({
+    configExportDialog: false,
     configImportConfirm: false,
     configImportString: "",
     configImportError: null,
@@ -321,6 +346,9 @@ export default {
       ary.unshift({ tag: "New Template...", content: {}, id: -1, new: true });
       return ary;
     },
+    configExportString() {
+      return JSON.stringify(this.config, null, 1);
+    }
   },
   async fetch() {
     this.loading = true;
@@ -349,14 +377,28 @@ export default {
         let json = JSON.parse(this.configImportString);
         this.config = json;
         this.configImportConfirm = false;
-        this.configImportError = null;
+        this.configImportError = "";
       } catch (err) {
-        this.configImportError = err;
+        this.configImportError = `Invalid JSON: ${err.toString()}`;
         console.log(`invalid json: ${err}`);
       }
     },
-    saveConfig() {
-      return this.config;
+    async saveConfig() {
+      this.saving = true;
+      console.log(this.selectedClient.Address);
+      try {
+        let result = await this.$http.$put(
+          `${this.selectedClient.Address.trim()}/config`,
+          this.config
+        );
+        setTimeout(() => {
+          this.saving = false;
+        }, 500);
+      } catch (err) {
+        console.log(err);
+        this.err = "there was an error saving the configuration";
+        this.saving = false;
+      }
     },
     loadEncoderConfig() {
       this.selectedEncoderConfig = this.encoderConfigArray.find(
