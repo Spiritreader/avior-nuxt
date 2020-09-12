@@ -3,10 +3,6 @@ FROM node:current-buster-slim
 RUN mkdir -p /app
 WORKDIR /app
 
-# Update aptitude with new repo
-RUN apt update && apt upgrade
-RUN apt install git
-
 # Install software 
 COPY . /app
 
