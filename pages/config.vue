@@ -6,7 +6,7 @@
     <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>No one seems to be online. {{err}}</p>
     </v-row>
-    <v-container v-else>
+    <v-container class="px-0" v-else>
       <v-row class="mb-2" justify="start" no-gutters>
         <v-col class="client-dropdown">
           <v-select
@@ -359,7 +359,7 @@ export default {
       try {
         //this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
         this.config = await this.$http.$get(
-          `${this.selectedClient.Address}/config`
+          `${this.selectedClient.Address}/config/`
         );
         this.loading = false;
       } catch (err) {

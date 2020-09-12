@@ -118,6 +118,7 @@
       >
         <div class="ma-2 file-info">
           <!-- Begin Dense Card Content -->
+          <!-- If the current process has less than 5 properties to display, display all the properties in the main card without a transition panel -->
           <v-list v-if="activeProcessInfoLength < 5" dense>
             <v-list-item v-for="(value, key) in activeProcessInfo" :key="key">
               <v-row>
@@ -382,7 +383,6 @@ export default {
     shutdownConfirm: false,
     errorMessage: null,
     errorMessageTimeout: null,
-    testData: `asdf\nasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdfnasdfkjasdf\nasdf;jkafz\nasd;lfkja\nasfdljk\noij\npijo\nijpo\noij\nlio;h\nuigy\nuygoh\nhuio\nhiuo\nuiho\nhuoi\nohui\nihuo\niuohi\njihiou\njihuio\njiuhoi\njiuioh\njiuiho\njiuhio\njiouh\njiouiho\njiuho\njiuhoi\njhi\nij`,
   }),
   props: {
     client: Object,
@@ -441,6 +441,9 @@ export default {
           return {};
       }
     },
+    /**
+     * Color goes from red (0) to light blue (100)
+     */
     progressColor: function () {
       const perc = this.activeProcessProgress;
       let r = 0,
@@ -504,6 +507,9 @@ export default {
       }
       this.showSkippedLog = !this.showSkippedLog;
     },
+    /**
+     * Determines if the client is currently in an intermediate state
+     */
     determineIndeterminate: function () {
       return (
         (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) ||
@@ -512,6 +518,9 @@ export default {
         this.client.InFile == ""
       );
     },
+    /**
+     * Checks if the client is active
+     */
     isActive: function () {
       let curProcess = this.getActiveProcess().process;
       return !INACTIVE.includes(curProcess);
@@ -532,9 +541,6 @@ export default {
       } catch (err) {
         this.setErrorMessage(err, "resume");
       }
-    },
-    timeout(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
     },
     sendPauseCommand: async function () {
       this.pauseMachine = true;

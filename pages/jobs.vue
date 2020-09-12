@@ -8,15 +8,12 @@
     </v-row>
     <v-row v-else>
       <v-card class="mx-auto" width="100%">
-        <v-system-bar
-          color="light-green darken-3"
-          :window="true"
-        >
+        <v-system-bar color="light-green darken-3" :window="true">
           <span>{{jobs.length}} job{{s}} left to process</span>
           <v-spacer></v-spacer>
         </v-system-bar>
         <v-list flat>
-          <!-- Start Buttons -->
+          <!-- Begin Buttons -->
           <v-list-item>
             <v-list-item-icon class="pl-4 pt-3">
               <v-icon>mdi-home</v-icon>
@@ -386,13 +383,13 @@ export default {
     clients: [],
     url: "",
   }),
-   computed: {
+  computed: {
     s() {
       if (this.jobs.length > 1) {
-        return "s"
+        return "s";
       }
-      return ""
-    }
+      return "";
+    },
   },
   async fetch() {
     console.log("fetching");
@@ -649,16 +646,55 @@ export default {
     width: 60%;
   }
 }
+
+@media only screen and (min-width: 325px) {
+  .box-width {
+    width: 65%;
+  }
+}
+
 @media only screen and (min-width: 350px) {
   .box-width {
     width: 70%;
   }
 }
-@media only screen and (min-width: 450px) {
+
+@media only screen and (min-width: 365px) {
   .box-width {
-    width: 90%;
+    width: 75%;
   }
 }
+
+@media only screen and (min-width: 385px) {
+  .box-width {
+    width: 80%;
+  }
+}
+
+@media only screen and (min-width: 410px) {
+  .box-width {
+    width: 84%;
+  }
+}
+
+@media only screen and (min-width: 430px) {
+  .box-width {
+    width: 88%;
+  }
+}
+
+@media only screen and (min-width: 456px) {
+  .box-width {
+    width: 93%;
+  }
+}
+
+@media only screen and (min-width: 490px) {
+  .box-width {
+    width: 97%;
+  }
+}
+
 @media only screen and (min-width: 540px) {
   .box-width {
     width: 100%;
