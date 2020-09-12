@@ -1,14 +1,11 @@
 <template>
   <div>
-    <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
-      <v-btn @click="autoRefresh">
+    <v-row v-if="!$fetchState.error" class="d-flex justify-center">
+      <v-btn @click="autoRefresh" :disabled="$fetchState.pending">
         <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
         <v-icon v-else>mdi-cached</v-icon>
       </v-btn>
     </v-row>
-    <div v-if="$fetchState.pending && totalLoadedLeft > 0 && !noSkeleton">
-      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
-    </div>
     <!--
     <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !noSkeleton">
       <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
@@ -18,10 +15,20 @@
         <v-progress-circular :size="150" :width="20" color="yellow darken-3" indeterminate></v-progress-circular>
       </v-row>
     </div>-->
-    <v-row v-else-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
+    <v-row v-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
-    <Client v-for="client in clients" :key="client.Name" :client="client"></Client>
+    <Client v-for="client in clientInfos" :key="client.Name" :client="client"></Client>
+    <div v-if="$fetchState.pending && totalLoadedLeft > 0 && !noSkeleton">
+      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+    </div>
+    <div v-if="refreshing">
+      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+    </div>
+
+    <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
+      <v-btn @click="refreshIps">Ping Offline</v-btn>
+    </v-row>
   </div>
 </template>
 
@@ -36,15 +43,16 @@ export default {
     /*if (process.client) {
       if (this.debugTimer == null) {
         this.debugTimer = setInterval(() => {
-          let yidx = this.clients.findIndex((c) => c.HostName == "ASDF");
-          if (this.clients[yidx].Encoder.Progress > 90) {
-            this.clients[yidx].Encoder.Progress = 0;
+          let yidx = this.clientInfos.findIndex((c) => c.HostName == "ASDF");
+          if (this.clientInfos[yidx].Encoder.Progress > 90) {
+            this.clientInfos[yidx].Encoder.Progress = 0;
           } else {
-            this.clients[yidx].Encoder.Progress += 5;
+            this.clientInfos[yidx].Encoder.Progress += 5;
           }
         }, 1000);
       }
     }*/
+    /*
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
@@ -53,18 +61,21 @@ export default {
       setTimeout(() => {
         this.timer = setInterval(this.getClients, 2000);
         this.refreshBtn = "Disable Auto-Refresh";
-      }, 1000);
-    }
+      }, 5000);
+    }*/
   },
   async fetch() {
     console.log("fetching");
-    this.bestIps = await this.getReachableIps();
-    await this.getClients();
+    this.bestIps = await this.getBestIps();
+    await this.getClients(this.bestIps);
     this.init = false;
     this.noSkeleton = true;
+    this.autoRefresh();
   },
+  fetchOnServer: false,
   data() {
     return {
+      refreshing: false,
       bestIps: [],
       init: true,
       debugTimer: null,
@@ -72,12 +83,36 @@ export default {
       totalLoadedLeft: 0,
       refreshBtn: "Enable Auto-Refresh",
       timer: null,
-      clients: [],
+      clientInfos: [],
       //clients: this.testClients()
     };
   },
   methods: {
-    async getReachableIps() {
+    async refreshIps() {
+      const reloadCount = 0;
+      this.refreshing = true;
+      const reenableAutoRefresh = this.timer ? true : false;
+      if (this.timer) {
+        this.autoRefresh();
+      }
+      const offlineClients = [];
+      this.clientInfos = this.clientInfos.filter((c) => {
+        if (c.Status == "offline") {
+          this.totalLoadedLeft++;
+          console.log(c);
+          offlineClients.push({ ip: c.Ip, HostName: c.HostName });
+        } else {
+          return c;
+        }
+      });
+      if (reenableAutoRefresh) {
+        await this.getClients(offlineClients);
+        //this.autoRefresh(this.bestIps);
+      } else {
+        await this.getClients(offlineClients);
+      }
+    },
+    async getBestIps() {
       const clients = await this.getIpAddresses();
       let grouped = [[clients[0]]];
       let lastSeenName = "";
@@ -120,8 +155,6 @@ export default {
           bestClientIps.push(err);
         }
       }
-      console.log(bestClientIps);
-      this.totalLoadedLeft = bestClientIps.length;
       return bestClientIps;
     },
     autoRefresh() {
@@ -130,15 +163,19 @@ export default {
         this.timer = null;
         this.refreshBtn = "Enable Auto-Refresh";
       } else if (process.client) {
-        this.timer = setInterval(this.getClients, 2000);
-        this.refreshBtn = "Disable Auto-Refresh";
+        setTimeout(() => {
+          this.timer = setInterval(() => {
+            this.getClients(this.bestIps);
+          }, 2000);
+          this.refreshBtn = "Disable Auto-Refresh";
+        }, 1000);
       }
     },
     getIpAddresses: async function () {
-      const clientInfos = await this.$http.$get("api/clients");
+      const clientIps = await this.$http.$get("api/clients");
       const clients = [];
-      for (const client of clientInfos) {
-        clients.unshift({ ip: client.Address, HostName: client.Name });
+      for (const client of clientIps) {
+        clients.push({ ip: client.Address, HostName: client.Name });
       }
       if (this.init) {
         //enable when not using getbestips
@@ -147,12 +184,13 @@ export default {
       }
       return clients;
     },
-    getClients: async function () {
+    getClients: async function (clients) {
       const promises = [];
       // enable when not using getbestips
       //const clients = await this.getIpAddresses();
-      const clients = this.bestIps;
-
+      if (!this.refreshing) {
+        this.totalLoadedLeft = clients.length;
+      }
       for (const client of clients) {
         try {
           const clientInfo = await this.$http.$get(client.ip);
@@ -160,37 +198,45 @@ export default {
           clientInfo.EncoderLineOut = await this.$http.$get(
             client.ip + "/encoder/"
           );
-          const idx = this.clients.findIndex(
+          const idx = this.clientInfos.findIndex(
             (c) =>
               c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
           );
-          let temp = this.clients;
+          // replace or unshift, online clients should show up on top
+          let temp = this.clientInfos;
           if (idx !== -1) {
-            this.clients.splice(idx, 1, clientInfo);
+            this.clientInfos.splice(idx, 1, clientInfo);
           } else {
-            this.clients.unshift(clientInfo);
+            this.clientInfos.unshift(clientInfo);
           }
         } catch (err) {
-          const idx = this.clients.findIndex(
+          // push clients once if they are offline. Replace them or push.
+          const idx = this.clientInfos.findIndex(
             (c) => c.HostName.toLowerCase() === client.HostName.toLowerCase()
           );
-          let temp = this.clients;
+          let temp = this.clientInfos;
           if (idx == -1) {
-            this.clients.unshift({
+            this.clientInfos.push({
               HostName: client.HostName,
+              Ip: client.ip,
               Status: "offline",
             });
           } else {
-            this.clients.splice(idx, 1, {
+            this.clientInfos.splice(idx, 1, {
               HostName: client.HostName,
+              Ip: client.ip,
               Status: "offline",
             });
           }
+          this.bestIps = this.bestIps.filter(
+            (c) => c.HostName != client.HostName
+          );
         }
         if (this.totalLoadedLeft > 0) {
           this.totalLoadedLeft--;
         }
       }
+      this.refreshing = false;
     },
     testClients() {
       return [
