@@ -99,7 +99,6 @@ export default {
       this.clientInfos = this.clientInfos.filter((c) => {
         if (c.Status == "offline") {
           this.totalLoadedLeft++;
-          console.log(c);
           offlineClients.push({ ip: c.Ip, HostName: c.HostName });
         } else {
           return c;

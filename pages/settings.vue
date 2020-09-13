@@ -109,7 +109,7 @@ export default {
       const deleteUser = {
         _id: client._id,
       };
-      let result = await this.$axios.$post("/api/clients/delete", deleteUser);
+      let result = await this.$http.$post("/api/clients/delete", deleteUser);
       console.log(result);
       /*
       this.loader = await fetch("http://localhost:3000/api/clients", {
