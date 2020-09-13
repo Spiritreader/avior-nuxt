@@ -24,8 +24,9 @@ You can start, pause and stop clients and view its log files
 ### Client settings
 You can configure all available options there. Documentation is available in avior-go. These settings are individual to each client
 
-### Global settings: You can add and remove clients that are eligible for receiving jobs here. 
+### Global settings: 
 
+You can add and remove clients that are eligible for receiving jobs here. 
 **Clients**
 - Priority determines which client will be filled wit jobs first, up to the maximum. After that, the next client will be chosen for new jobs
 - Start and end time configure during which times a client can *encode files*. It does not influence the assignment rules
