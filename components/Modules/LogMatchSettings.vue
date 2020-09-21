@@ -58,15 +58,16 @@ export default {
     },
   },
   mounted() {
-    this.settingsInternal = this.settings;
     this.selected = this.steps.indexOf(this.settingsInternal.Mode);
   },
-  data: () => ({
-    expand: false,
-    selected: 0,
-    settingsInternal: {},
-    steps: ["include", "neutral", "exclude"],
-  }),
+  data() {
+    return {
+      expand: false,
+      selected: 0,
+      settingsInternal: this.settings,
+      steps: ["include", "neutral", "exclude"],
+    };
+  },
   props: {
     settings: Object,
     name: String,

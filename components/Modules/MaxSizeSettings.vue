@@ -27,13 +27,13 @@
 <script>
 export default {
   methods: {},
-  mounted() {
-    this.settingsInternal = this.settings;
+  mounted() {},
+  data() {
+    return {
+      expand: false,
+      settingsInternal: this.settings,
+    };
   },
-  data: () => ({
-    expand: false,
-    settingsInternal: {},
-  }),
   props: {
     settings: Object,
     name: String,

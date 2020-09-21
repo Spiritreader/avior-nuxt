@@ -30,12 +30,13 @@
 export default {
   methods: {},
   mounted() {
-    this.settingsInternal = this.settings;
   },
-  data: () => ({
-    expand: false,
-    settingsInternal: {},
-  }),
+  data() {
+    return {
+      expand: false,
+      settingsInternal: this.settings,
+    };
+  },
   props: {
     settings: Object,
     name: String,

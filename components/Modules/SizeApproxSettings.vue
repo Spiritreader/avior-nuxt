@@ -87,7 +87,13 @@
           hide-details
           outlined
         ></v-text-field>
-        <v-btn icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
+        <v-btn
+          icon
+          class="mt-3 mb-2"
+          style="width: 60px"
+          color="primary"
+          @click="expand3 = !expand3"
+        >
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
       </div>
@@ -108,17 +114,17 @@
 <script>
 export default {
   methods: {},
-  mounted() {
-    this.settingsInternal = this.settings;
+  mounted() {},
+  data() {
+    return {
+      min: 0,
+      max: 100,
+      expand: false,
+      expand2: false,
+      expand3: false,
+      settingsInternal: this.settings,
+    };
   },
-  data: () => ({
-    min: 0,
-    max: 100,
-    expand: false,
-    expand2: false,
-    expand3: false,
-    settingsInternal: {},
-  }),
   props: {
     settings: Object,
     name: String,
@@ -144,5 +150,4 @@ export default {
 .maxout {
   width: 100%;
 }
-
 </style>>

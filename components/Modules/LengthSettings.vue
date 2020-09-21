@@ -13,7 +13,14 @@
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider color="red darken-3" v-model="threshold" class="align-center" :max="max" :min="min" hide-details>
+    <v-slider
+      color="red darken-3"
+      v-model="threshold"
+      class="align-center"
+      :max="max"
+      :min="min"
+      hide-details
+    >
       <template v-slot:append>
         <v-text-field
           v-model="threshold"
@@ -33,19 +40,16 @@
 
 <script>
 export default {
-  methods: {
+  methods: {},
+  data() {
+    return {
+      min: 0,
+      max: 100,
+      expand: false,
+      threshold: this.settings.Threshold,
+      settingsInternal: this.settings,
+    };
   },
-  mounted() {
-    this.settingsInternal = this.settings;
-    this.threshold = this.settingsInternal.Threshold
-  },
-  data: () => ({
-    min: 0,
-    max: 100,
-    expand: false,
-    threshold: 0,
-    settingsInternal: {},
-  }),
   props: {
     settings: Object,
     name: String,

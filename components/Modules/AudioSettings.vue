@@ -60,15 +60,16 @@ export default {
     },
   },
   mounted() {
-    this.settingsInternal = this.settings;
     this.selectedFormat = this.steps.indexOf(this.settingsInternal.Accuracy);
   },
-  data: () => ({
-    expand: false,
-    selectedFormat: 0,
-    settingsInternal: {},
-    steps: ["low", "med", "high"],
-  }),
+  data() {
+    return {
+      expand: false,
+      selectedFormat: 0,
+      settingsInternal: this.settings,
+      steps: ["low", "med", "high"],
+    };
+  },
   props: {
     settings: Object,
     name: String,
