@@ -600,7 +600,10 @@ export default {
       }
     },
     getJobs: async function () {
-      this.jobs = await this.$http.$get(this.url + "/jobs/");
+      const jobs = await this.$http.$get(this.url + "/jobs/");
+      if (jobs != "null\n") {
+        this.jobs = jobs;
+      }
     },
     getClients: async function () {
       let promises = [];
@@ -625,6 +628,7 @@ export default {
       }
 
       let resolution = await Promise.race(promises);
+      console.log(resolution);
       if (resolution.address != "none") {
         this.url = resolution.address;
         let clients = await this.$http.$get(this.url + "/clients/");
