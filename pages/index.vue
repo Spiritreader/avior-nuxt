@@ -198,7 +198,6 @@ export default {
       return clients;
     },
     getClients: async function (clients) {
-      console.log(clients);
       const promises = [];
       // enable when not using getbestips
       //const clients = await this.getIpAddresses();
