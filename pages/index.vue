@@ -18,12 +18,26 @@
     <v-row v-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
-    <Client v-for="client in clientInfos" :key="client.Name" :client="client"></Client>
+    <Client
+      v-for="client in clientInfos"
+      :key="client.Name"
+      :client="client"
+    ></Client>
     <div v-if="$fetchState.pending && totalLoadedLeft > 0 && !noSkeleton">
-      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+      <v-skeleton-loader
+        v-for="n in totalLoadedLeft"
+        :key="n"
+        type="image"
+        class="ma-2"
+      ></v-skeleton-loader>
     </div>
     <div v-if="refreshing">
-      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
+      <v-skeleton-loader
+        v-for="n in totalLoadedLeft"
+        :key="n"
+        type="image"
+        class="ma-2"
+      ></v-skeleton-loader>
     </div>
 
     <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
@@ -106,7 +120,7 @@ export default {
       });
       if (reenableAutoRefresh) {
         await this.getClients(offlineClients);
-        //this.autoRefresh(this.bestIps);
+        this.autoRefresh(this.bestIps);
       } else {
         await this.getClients(offlineClients);
       }
@@ -184,6 +198,7 @@ export default {
       return clients;
     },
     getClients: async function (clients) {
+      console.log(clients);
       const promises = [];
       // enable when not using getbestips
       //const clients = await this.getIpAddresses();
@@ -197,6 +212,12 @@ export default {
           clientInfo.EncoderLineOut = await this.$http.$get(
             client.ip + "/encoder/"
           );
+          // if getClients is called from refreshIps, we need to re-add 
+          // the client to the reachable ip address array if a connection
+          // could be re-established.
+          if (!this.bestIps.includes(client)) {
+            this.bestIps.push(client);
+          }
           const idx = this.clientInfos.findIndex(
             (c) =>
               c.HostName.toLowerCase() === clientInfo.HostName.toLowerCase()
