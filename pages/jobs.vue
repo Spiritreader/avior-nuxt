@@ -184,16 +184,10 @@
           <!-- End Buttons -->
 
           <!-- Begin Reassign Error -->
-          <v-list v-if="reassignError.length > 0">
+          <v-list v-if="reassignError > 0">
             <v-list-item>
               <v-list-item-content>
-                <v-list-item-title>Following jobs could not be reassigned:</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item v-for="(err, i) in reassignError" :key="`error-${i}`">
-              <v-list-item-content>
-                <v-list-item-title>{{ err.Path }}</v-list-item-title>
-                <v-list-item-subtitle>{{ err.Error }}</v-list-item-subtitle>
+                <v-list-item-title class="error pa-2">{{ reassignError }} job{{ reassignError > 1 ? "s" : "" }} could not be reassigned</v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -343,7 +337,7 @@
 export default {
   data: () => ({
     reassigning: false,
-    reassignError: [],
+    reassignError: 0,
     reassignDialog: false,
     reassignToClient: null,
     deletingSelectedJobs: false,
@@ -522,16 +516,19 @@ export default {
     },
     reassignJobs: async function () {
       this.reassigning = true;
-      let timeout;
+      const promises = [];
       this.selectedJobs.forEach((j) => {
         j.AssignedClient.ID = this.reassignToClient.ID;
         j.AssignedClient.DB = "undefined";
-        this.$http.$put(this.url + "/jobs/", j).catch((error) => {
-          clearTimeout(timeout);
-          this.reassignError.push({ Path: j.Path, Error: error });
-          timeout = setTimeout(() => (this.reassignError = []), 5000);
-        });
+        promises.push(this.$http.$put(this.url + "/jobs/", j));
       });
+      const response = await Promise.allSettled(promises);
+      response.forEach(r => {
+        if (r.status === "rejected") {
+          this.reassignError++;
+        }
+      });
+      setTimeout(() => (this.reassignError = 0), 5000);
       await this.getClients();
       this.reassigning = false;
       this.reassignToClient = null;
