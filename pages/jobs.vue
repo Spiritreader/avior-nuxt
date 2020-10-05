@@ -517,17 +517,22 @@ export default {
     reassignJobs: async function () {
       this.reassigning = true;
       const promises = [];
-      this.selectedJobs.forEach((j) => {
+      let errorCount = 0;
+      for (const [idx, j] of this.selectedJobs.entries()) {
         j.AssignedClient.ID = this.reassignToClient.ID;
         j.AssignedClient.DB = "undefined";
         promises.push(this.$http.$put(this.url + "/jobs/", j));
-      });
-      const response = await Promise.allSettled(promises);
-      response.forEach(r => {
-        if (r.status === "rejected") {
-          this.reassignError++;
+        if (idx % 5 == 0 || idx === this.selectedJobs.length - 1) {
+          let res = await Promise.allSettled(promises);
+          res.forEach(r => {
+            if (r.status === "rejected") {
+              errorCount++;
+            }
+          });
+          promises.length = 0;
         }
-      });
+      }
+      this.reassignError = errorCount;
       setTimeout(() => (this.reassignError = 0), 5000);
       await this.getClients();
       this.reassigning = false;
