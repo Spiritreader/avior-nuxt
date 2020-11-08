@@ -131,6 +131,7 @@ export default {
         this.content.PreArguments = this.preArgumentsString.split("\n");
         this.content.PostArguments = this.postArgumentsString.split("\n");
         this.content.Stash = this.stashString.split("\n");
+        this.content.OutDirectory = this.outDirectory;
         console.log(this.content.PreArguments);
         this.$emit("newdata", {
           tag: this.tagInternal,
