@@ -27,11 +27,11 @@
           <v-select
             :items="items"
             :item-text="'Name'"
-            :item-value="'Address'"
-            v-model="selectedClient"
+            v-model=selectedClient
             @change="configLoad"
             label="Client"
             outlined
+            return-object
           ></v-select>
         </v-col>
       </v-row>
@@ -569,13 +569,13 @@ export default {
       this.loading = true;
       this.err = false;
       try {
-        console.log("getting config for " + client);
+        console.log("getting config for " + client.Address);
         //this.config = await fetch(`${client}/config`).then(res => res.json());
-        this.config = await this.$http.$get(`${client}/config/`);
+        this.config = await this.$http.$get(`${client.Address}/config/`);
       } catch (err) {
         this.err = err;
         console.log(
-          `couldn't load config for client ${client}, err: ${this.err}`
+          `couldn't load config for client ${client.Address}, err: ${this.err}`
         );
       }
       this.loading = false;
