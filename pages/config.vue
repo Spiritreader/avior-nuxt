@@ -248,6 +248,16 @@
                     :name="'SizeApproxModule'"
                   ></SizeApproxSettings>
                 </Module>
+                <Module
+                  :name="'DuplicateLengthCheckModule'"
+                  :module="config.Modules.DuplicateLengthCheckModule"
+                >
+                  <DuplicateLengthCheckSettings
+                    @newdata="handleModuleSettings($event)"
+                    :settings="config.Modules.DuplicateLengthCheckModule.Settings"
+                    :name="'DuplicateLengthCheckModule'"
+                  ></DuplicateLengthCheckSettings>
+                </Module>
               </div>
             </div>
           </v-tab-item>
