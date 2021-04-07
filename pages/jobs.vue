@@ -528,7 +528,6 @@ export default {
       } catch (err) {
         console.error(err);
       }
-      this.closeDeleteJobDialog(job);
     },
     reassignJobs: async function () {
       this.reassigning = true;
