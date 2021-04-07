@@ -13,6 +13,7 @@
         indeterminate
       ></v-progress-circular>
     </v-row>
+    <!--
     <v-row
       v-else-if="$fetchState.error"
       class="mb-6"
@@ -20,7 +21,7 @@
       no-gutters
     >
       <p>No one seems to be online. {{ err }}</p>
-    </v-row>
+    </v-row>-->
     <v-container class="px-0" v-else>
       <v-row class="mb-2" justify="start" no-gutters>
         <v-col class="client-dropdown">
@@ -151,7 +152,7 @@
 
           <!--modules-->
           <!--first column-->
-          <v-tab-item :key="configHeaders[3]" class="mt-2">
+          <v-tab-item :eager="true" :key="configHeaders[3]" class="mt-2">
             <div class="d-flex flex-wrap">
               <div class="module-col">
                 <Module
