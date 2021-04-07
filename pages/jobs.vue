@@ -127,7 +127,7 @@
                         :loading="addingJobs"
                         :disabled="addingJobs"
                         color="green"
-                        @click="addJobs()"
+                        @click="addJobsFromJson()"
                         >Add Jobs</v-btn
                       >
                       <v-btn
@@ -242,9 +242,11 @@
                     >Do you really want to delete the following
                     jobs?</v-card-text
                   >
-                  <v-card-text>
+                  <v-card-text v-if="Object.keys(selectedJobs).length > 0">
                     <v-list-item
-                      v-for="(value, idx) in selectedJobs"
+                      v-for="(value, idx) in Object.values(
+                        selectedJobs
+                      ).reduce((flat, ary) => flat.concat(ary))"
                       :key="`job-${idx}`"
                       two-line
                     >
@@ -403,7 +405,7 @@ export default {
   },
   fetchOnServer: false,
   methods: {
-     calculateHowManyJobsAreSelectedQuestionmark() {
+    calculateHowManyJobsAreSelectedQuestionmark() {
       let amount = 0;
       for (const selectedRows of Object.values(this.selectedJobs)) {
         amount += selectedRows.length;
@@ -457,7 +459,7 @@ export default {
   }
 ]`;
     },
-    addJobs: async function () {
+    addJobsFromJson: async function () {
       this.addingJobs = true;
       const promises = [];
       try {
@@ -500,7 +502,7 @@ export default {
       }
       this.addingJob = false;
       this.addJobDialog = false;
-      this.selectedJobs = [];
+      this.selectedJobs = {};
     },
     updateJob: async function (job) {
       this.$set(job, "EditingJob", true);
@@ -532,11 +534,11 @@ export default {
       this.reassigning = true;
       const promises = [];
       let errorCount = 0;
-      for (const [idx, c] of Object.entries(this.selectedJobs)) {
-        for (const j of c) {
-          j.AssignedClient.ID = this.reassignToClient.ID;
-          j.AssignedClient.DB = "undefined";
-          promises.push(this.$http.$put(this.url + "/jobs/", j));
+      for (const [idx, client] of Object.entries(this.selectedJobs)) {
+        for (const job of client) {
+          job.AssignedClient.ID = this.reassignToClient.ID;
+          job.AssignedClient.DB = "undefined";
+          promises.push(this.$http.$put(this.url + "/jobs/", job));
           if (idx % 5 == 0 || idx === this.selectedJobs.length - 1) {
             let res = await Promise.allSettled(promises);
             res.forEach((r) => {
@@ -558,9 +560,11 @@ export default {
     deleteSelectedJobs: async function () {
       this.deletingSelectedJobs = true;
       const promises = [];
-      this.selectedJobs.forEach((j) => {
-        promises.push(this.deleteJob(j));
-      });
+      for (const client of Object.values(this.selectedJobs)) {
+        for (const job of client) {
+          promises.push(this.deleteJob(job));
+        }
+      }
       await Promise.all(promises);
       await this.getClients();
       this.deletingSelectedJobs = false;
@@ -584,6 +588,7 @@ export default {
       });
     },
     getJobName: function (job) {
+      console.log(job);
       let jobName = job.Name;
       if (job.Subtitle !== "") {
         jobName += " - " + job.Subtitle;
