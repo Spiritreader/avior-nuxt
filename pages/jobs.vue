@@ -607,29 +607,33 @@ export default {
         this.jobs = jobs;
       }
     },
-    getClients: async function () {
+
+    resolveClients: async function () {
+      const unresolvedClients = await this.$http.$get("api/clients");
       let promises = [];
-      const registeredClients = await this.$http.$get("api/clients/");
-      let onlineClient;
-      for (let c of registeredClients) {
-        try {
-          let promise = new Promise(async (resolve, reject) => {
-            let response;
-            try {
-              response = await this.$http.$get(c.Address);
-            } catch (err) {
-              reject({ address: "none", response: {} });
-              return;
-            }
-            resolve({ address: c.Address, response: response });
-          });
-          promises.push(promise);
-        } catch (error) {
-          console.log(`$failed to create promises: ${error}`);
+      for (let client of unresolvedClients) {
+        for (let address of client.Addresses) {
+          try {
+            let promise = new Promise(async (resolve, reject) => {
+              let response;
+              try {
+                response = await this.$http.$get(address + "/alive");
+              } catch (err) {
+                reject({ address: "none", response: {} });
+                return;
+              }
+              resolve({ address: address, response: response });
+            });
+            promises.push(promise);
+          } catch (error) {
+            console.log(`$failed to create promises: ${error}`);
+          }
         }
       }
-
-      let resolution = await Promise.race(promises);
+      return await Promise.race(promises);
+    },
+    getClients: async function () {
+      let resolution = await this.resolveClients();
       console.log(resolution);
       if (resolution.address != "none") {
         this.url = resolution.address;

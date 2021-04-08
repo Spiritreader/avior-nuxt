@@ -25,15 +25,15 @@ db.once('open', function () {
 });
 const clientSchema = new mongoose.Schema({
     Name: { type: String, required: true },
-    Address: { type: String, required: true }
+    Addresses: { type: Array, required: true }
 });
 const Client = mongoose.model(clientDocument, clientSchema, "registered_client")
 
-function createClient(name, address) {
+function createClient(name, addresses) {
     const client = new Client({
         _id: new mongoose.Types.ObjectId(),
         Name: name,
-        Address: address
+        Addresses: addresses
     });
     client.save(function (err) {
         if (err) {
@@ -46,8 +46,8 @@ function createClient(name, address) {
 async function addClient(req, res) {
     const body = req.body;
     console.log(body);
-    if (body.Name && body.Address) {
-        const client = await createClient(body.Name, body.Address)
+    if (body.Name && body.Addresses) {
+        const client = await createClient(body.Name, body.Addresses)
         if (client) {
             res.json(client);
             return

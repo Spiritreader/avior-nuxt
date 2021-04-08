@@ -1,6 +1,6 @@
 <template>
   <v-list flat>
-    <v-subheader>{{type}}s</v-subheader>
+    <v-subheader v-if="!noheader">{{type}}s</v-subheader>
     <!-- <v-list-item-group v-model="selectedMediaPath" color="primary">-->
     <v-list-item v-for="(item, i) in list" :key="i">
       <v-list-item-icon>
@@ -56,7 +56,8 @@ export default {
   props: {
     list: Array,
     icon: String,
-    type: String
+    type: String,
+    noheader: Boolean
   },
   watch: {
     list: {
