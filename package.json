@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "current-git-sha nuxt",
-    "build": "current-git-sha nuxt build",
-    "start": "current-git-sha nuxt start",
-    "generate": "current-git-sha nuxt generate",
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
-    "lint": "npm run lint:js",
-    "current-git-sha": "NUXT_ENV_CURRENT_GIT_SHA=`git rev-parse --short HEAD`"
+    "lint": "npm run lint:js"
   },
   "dependencies": {
     "@nuxt/http": "^0.5.13",
