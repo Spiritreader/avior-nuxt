@@ -14,7 +14,7 @@
     disable-pagination
     disable-filtering
     hide-default-footer
-    :mobile-breakpoint="0"
+    :mobile-breakpoint="460"
     v-if="currentClient.Jobs.length > 0"
   >
     <template v-slot:[`item.Name`]="{ item, value }">

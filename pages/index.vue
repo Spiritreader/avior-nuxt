@@ -1,11 +1,5 @@
 <template>
   <div>
-    <v-row v-if="!$fetchState.error" class="d-flex pt-1 pb-2 justify-center">
-      <v-btn @click="autoRefresh" :disabled="$fetchState.pending">
-        <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
-        <v-icon v-else>mdi-cached</v-icon>
-      </v-btn>
-    </v-row>
     <!--
     <div v-if="!$fetchState.error && totalLoadedLeft > 0 && !noSkeleton">
       <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
@@ -36,8 +30,22 @@
         class="ma-2"
       ></v-skeleton-loader>
     </div>
-    <v-row v-if="!$fetchState.pending" class="d-flex pt-3 justify-center">
-      <v-btn :disabled="refreshing" @click="pingOffline">Ping Offline</v-btn>
+    <v-row class="d-flex pt-3 pb-2 justify-center">
+      <v-btn
+        v-if="!$fetchState.error"
+        @click="autoRefresh"
+        :disabled="$fetchState.pending"
+        class="mx-2"
+      >
+        <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
+        <v-icon v-else>mdi-cached</v-icon>
+      </v-btn>
+      <v-btn
+        v-if="!$fetchState.pending"
+        :disabled="refreshing"
+        @click="pingOffline"
+        >Ping Offline</v-btn
+      >
     </v-row>
   </div>
 </template>
@@ -75,10 +83,10 @@ export default {
      * it will be either pre-filled and added to the clientInfosOnline array
      * before the update loop, or added to the clientInfosOffline array if unreachable
      */
-    resolvedClient: function () {
+    resolvedClient: async function () {
       const resolvedClient = this.resolvedClient;
       if (resolvedClient.Reachable) {
-        this.fillClientInfoArrays(resolvedClient);
+        await this.fillClientInfoArrays(resolvedClient);
       } else {
         const idx = this.clientInfosOffline.findIndex(
           (cio) =>
@@ -184,7 +192,9 @@ export default {
           }
         }.bind(this)
       );
-      this.refreshing = this.clientInfosOffline.map(cio => cio.Refreshing).reduce((a, v) => a || v, false);
+      this.refreshing = this.clientInfosOffline
+        .map((cio) => cio.Refreshing)
+        .reduce((a, v) => a || v, false);
     },
     /**
      * Fetches all client metadata given the provided client Address
