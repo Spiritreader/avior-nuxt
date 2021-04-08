@@ -43,13 +43,17 @@
     </v-main>
     <v-footer :absolute="!fixed" app>
       <span>&copy; {{ new Date().getFullYear() }} Walzen Group</span>
-      <span class="ml-4">
+      <span class="mx-2">
         <a href="https://dryicons.com/icon/love-file-icon-6200"
-          >Icon by Dryicons</a
+          >Icon</a
         >
       </span>
-      <a :href="`https://github.com/[username]/[reponame]/commit/${commitSha}`">
-        {{ commitSha }}
+      <v-icon color="grey lighten-1" size="20">mdi-git</v-icon>
+      <a
+        class="code-font ml-1"
+        :href="`https://github.com/spiritreader/avior-nuxt/commit/${commitHash}`"
+      >
+        {{ commitHash }}
       </a>
     </v-footer>
   </v-app>
@@ -57,9 +61,18 @@
 
 <script>
 export default {
+  computed: {
+    commitHash() {
+      if (this.commitSha) {
+        return this.commitSha;
+      } else {
+        return "dev";
+      }
+    },
+  },
   data() {
     return {
-      commitSha: process.env.NUXT_ENV_CURRENT_GIT_SHA,
+      commitSha: process.env.commitSha,
       clipped: false,
       drawer: false,
       fixed: false,
@@ -125,5 +138,9 @@ export default {
 
 .max-container-width {
   max-width: 1200px;
+}
+
+.code-font {
+  font-family: "Fira Code", Fira Code, monospace;
 }
 </style>
