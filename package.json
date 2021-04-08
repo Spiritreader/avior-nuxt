@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "current-git-sha nuxt",
-    "build": "current-git-sha uxt build",
+    "build": "current-git-sha nuxt build",
     "start": "current-git-sha nuxt start",
     "generate": "current-git-sha nuxt generate",
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
