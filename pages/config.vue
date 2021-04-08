@@ -53,6 +53,7 @@
       <v-row justify="center" class="mb-6" no-gutters v-else-if="err != ''">
         <v-icon size="150">mdi-lan-disconnect</v-icon>
       </v-row>
+      <v-row v-else-if="!clientIsSelected"> </v-row>
       <v-card v-else>
         <v-tabs
           v-model="selectedTab"
@@ -311,6 +312,7 @@
       <div class="d-flex flex-wrap">
         <v-btn
           :loading="saving"
+          v-if="clientIsSelected && !loading && !err != ''"
           @click="saveConfig()"
           color="red darken-2"
           class="mt-6 mr-6"
@@ -320,12 +322,14 @@
           <v-btn
             @click="configImportConfirm = true"
             color="gray darken-3"
+            v-if="clientIsSelected && !loading && !err != ''"
             class="mt-6"
             >Import</v-btn
           >
           <v-btn
             @click="configExportDialog = true"
             color="gray darken-3"
+            v-if="clientIsSelected && !loading && !err != ''"
             class="mt-6"
             >Export</v-btn
           >
@@ -435,6 +439,11 @@ export default {
     mediaPathEditButtons: false,
   }),
   computed: {
+    clientIsSelected() {
+      return (
+        this.selectedClient && Object.keys(this.selectedClient).length !== 0
+      );
+    },
     resolutionArray() {
       let ary = [];
       let idx = 0;
@@ -471,7 +480,10 @@ export default {
   async fetch() {
     this.loading = true;
     this.items = await this.$http.$get("api/clients");
+    this.loading = false;
+    /* //load first available client
     if (this.items.length > 0) {
+
       this.selectedClient = this.items[0];
       try {
         const resolvedClient = await this.tryResolveClient(this.selectedClient);
@@ -486,7 +498,8 @@ export default {
         this.err = err;
         this.loading = false;
       }
-    }
+      
+    }*/
   },
   methods: {
     /**

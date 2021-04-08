@@ -37,7 +37,7 @@
       ></v-skeleton-loader>
     </div>
     <v-row v-if="!$fetchState.pending" class="d-flex pt-3 justify-center">
-      <v-btn @click="pingOffline">Ping Offline</v-btn>
+      <v-btn :disabled="refreshing" @click="pingOffline">Ping Offline</v-btn>
     </v-row>
   </div>
 </template>
@@ -184,6 +184,7 @@ export default {
           }
         }.bind(this)
       );
+      this.refreshing = this.clientInfosOffline.map(cio => cio.Refreshing).reduce((a, v) => a || v, false);
     },
     /**
      * Fetches all client metadata given the provided client Address
@@ -263,6 +264,7 @@ export default {
       this.resolvedClient = resolvedClient;
     },
     pingOffline: async function () {
+      this.refreshing = true;
       this.clientInfosOffline.forEach((client) =>
         this.$set(client, "Refreshing", true)
       );
