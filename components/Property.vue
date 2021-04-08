@@ -8,7 +8,7 @@
     </div>
     <v-container>
       <v-row>
-        <v-col class="py-0" xs="6" sm="4" md="3" lg="2" xl="2">
+        <v-col class="py-2" xs="6" sm="4" md="3" lg="2" xl="2">
           <v-text-field
             :disabled="disabledTag"
             label="Tag"
@@ -18,7 +18,7 @@
             outlined
           ></v-text-field>
         </v-col>
-        <v-col class="py-0 pr-1" xs="6" sm="8" md="9" lg="10" xl="10">
+        <v-col class="py-2 pr-1" xs="6" sm="8" md="9" lg="10" xl="10">
           <v-text-field
             label="Resolution"
             v-model="contentInternal"

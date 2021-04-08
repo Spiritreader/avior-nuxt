@@ -48,7 +48,7 @@
             <p class="px-4 pt-4 mb-0 pb-4">
               How much of the new file should be encoded for the estimation.
               More is better, but takes more
-              <v-icon>mdi-clock-time-four-outline</v-icon>to process
+              <v-icon class="pr-1">mdi-clock-time-four-outline</v-icon>to process
             </p>
           </div>
         </v-card>
