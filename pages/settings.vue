@@ -18,16 +18,23 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field v-model="clientAddress" :rules="[rules.address]" label="Address" required></v-text-field>
+            <SimpleList
+              @newdata="handleAddressData($event)"
+              :icon="'mdi-access-point-network'"
+              :list="clientAddresses"
+              :type="'Address'"
+              noheader
+            ></SimpleList>
           </v-col>
 
           <v-btn
             class="mb-2"
             :loading="submitLoad"
-            :disabled="submitLoad || clientName === '' || clientAddress === ''"
+            :disabled="submitLoad || clientName === '' || clientAddresses === ''"
             color="blue"
             @click="addClient()"
-          >Submit</v-btn>
+            >Submit</v-btn
+          >
         </v-row>
       </v-form>
     </v-card>
@@ -38,7 +45,7 @@
         <v-list-item v-for="(user, i) in users" :key="i">
           <v-list-item-content>
             <v-list-item-title v-text="user.Name"></v-list-item-title>
-            <v-list-item-subtitle v-text="user.Address"></v-list-item-subtitle>
+            <v-list-item-subtitle v-text="user.Addresses.join(', ')"></v-list-item-subtitle>
           </v-list-item-content>
 
           <v-btn
@@ -70,7 +77,7 @@ export default {
     return {
       users: [],
       clientName: "",
-      clientAddress: "",
+      clientAddresses: [],
       rules: {
         name: (v) => !!v || "Name is required",
         nameLen: (v) => v.length <= 30 || "Name must be at most 30 characters",
@@ -81,6 +88,9 @@ export default {
     };
   },
   methods: {
+    handleAddressData(data) {
+      this.clientAddresses = data;
+    },
     setLoader(i) {
       console.log(i);
       this.loader = i;
@@ -90,7 +100,7 @@ export default {
         this.submitLoad = true;
         const newUser = {
           Name: this.clientName,
-          Address: this.clientAddress,
+          Addresses: this.clientAddresses,
         };
         /*
         this.loader = await fetch("/api/clients", {
@@ -126,7 +136,7 @@ export default {
     const users = await this.$http.$get("/api/clients");
     users.forEach((user) => {
       user.removeLoad = false;
-    })
+    });
     this.users = users;
   },
 };

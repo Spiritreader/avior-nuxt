@@ -28,7 +28,7 @@
           <v-select
             :items="items"
             :item-text="'Name'"
-            v-model=selectedClient
+            v-model="selectedClient"
             @change="configLoad"
             label="Client"
             outlined
@@ -207,7 +207,7 @@
                   ></ErrorReplaceSettings>
                 </Module>
               </div>
-               <!--second column-->
+              <!--second column-->
               <div class="module-col">
                 <Module
                   :name="'LogMatchModule'"
@@ -255,7 +255,9 @@
                 >
                   <DuplicateLengthCheckSettings
                     @newdata="handleModuleSettings($event)"
-                    :settings="config.Modules.DuplicateLengthCheckModule.Settings"
+                    :settings="
+                      config.Modules.DuplicateLengthCheckModule.Settings
+                    "
                     :name="'DuplicateLengthCheckModule'"
                   ></DuplicateLengthCheckSettings>
                 </Module>
@@ -468,14 +470,13 @@ export default {
   },
   async fetch() {
     this.loading = true;
-    //this.items = await fetch("api/clients").then(res => res.json());
-    this.items = await this.getBestIps();
+    this.items = await this.$http.$get("api/clients");
     if (this.items.length > 0) {
       this.selectedClient = this.items[0];
       try {
-        //this.config = await fetch(`${this.selectedClient.Address}/config`).then(res => res.json());
+        const resolvedClient = await this.tryResolveClient(this.selectedClient);
         this.config = await this.$http.$get(
-          `${this.selectedClient.Address}/config/`
+          `${resolvedClient.Address}/config/`
         );
         this.loading = false;
       } catch (err) {
@@ -488,50 +489,43 @@ export default {
     }
   },
   methods: {
-    async getBestIps() {
-      const clients = await this.$http.$get("api/clients/");
-      let grouped = [[clients[0]]];
-      let lastSeenName = "";
-      outer: for (let client of clients.slice(1)) {
-        for (let subArray of grouped) {
-          if (subArray[0].Name == client.Name) {
-            subArray.push(client);
-            continue outer;
-          } else if (lastSeenName == client.Name) {
-            lastSeenName = client.HostName;
-            continue outer;
-          }
-        }
-        grouped.push([client]);
-      }
-      let bestClientIps = [];
-      for (let clientGroup of grouped) {
-        let promises = [];
-        for (let client of clientGroup) {
-          try {
-            let promise = new Promise(async (resolve, reject) => {
-              let response;
-              try {
-                response = await this.$http.$get(client.Address);
-              } catch (err) {
-                reject(client);
-                return;
-              }
-              resolve(client);
-            });
-            promises.push(promise);
-          } catch (error) {
-            console.log(`$failed to create promises: ${error}`);
-          }
-        }
+    /**
+     * Tries to resolve the first available IP address from all clients returned by the api.
+     * @returns a list of resolved client objects with a HostName, Address and Reachable property.
+     * The address provided when Reachable is false is not a correct resolve!
+     */
+    tryResolveClient: async function (client) {
+      let promises = [];
+      for (let address of client.Addresses) {
         try {
-          let raceResult = await Promise.race(promises);
-          bestClientIps.push(raceResult);
-        } catch (err) {
-          bestClientIps.push(err);
+          let promise = new Promise(async (resolve, reject) => {
+            let response;
+            try {
+              response = await this.$http.$get(address + "/alive");
+            } catch (err) {
+              reject({ address: "none", response: {} });
+              return;
+            }
+            resolve({ address: address, response: response });
+          });
+          promises.push(promise);
+        } catch (error) {
+          console.log(`$failed to create promises: ${error}`);
         }
       }
-      return bestClientIps;
+      let resolution;
+      const resolvedClient = {
+        HostName: client.Name,
+      };
+      try {
+        resolution = await Promise.race(promises);
+        resolvedClient.Reachable = true;
+        resolvedClient.Address = resolution.address;
+      } catch {
+        resolvedClient.Reachable = false;
+        resolvedClient.Address = client.Addresses[0];
+      }
+      return resolvedClient;
     },
     importConfig() {
       try {
@@ -569,14 +563,25 @@ export default {
     async configLoad(client) {
       this.loading = true;
       this.err = false;
+      const resolvedClient = await this.tryResolveClient(client);
+      console.log(
+        `Trying to get result for ${
+          resolvedClient.Reachable ? "reachable" : "previously unreachable"
+        } with ip ${resolvedClient.Address}`
+      );
       try {
-        console.log("getting config for " + client.Address);
+        this.config = await this.$http.$get(
+          `${resolvedClient.Address}/config/`
+        );
+
         //this.config = await fetch(`${client}/config`).then(res => res.json());
-        this.config = await this.$http.$get(`${client.Address}/config/`);
+        this.config = await this.$http.$get(
+          `${resolvedClient.Address}/config/`
+        );
       } catch (err) {
         this.err = err;
         console.log(
-          `couldn't load config for client ${client.Address}, err: ${this.err}`
+          `couldn't load config for client ${resolvedClient.Address}, err: ${this.err}`
         );
       }
       this.loading = false;

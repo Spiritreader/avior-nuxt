@@ -1,9 +1,24 @@
 <template>
   <div>
-    <v-row class="mb-6 mt-10" justify="center" no-gutters v-if="$fetchState.pending">
-      <v-progress-circular :size="150" :width="20" color="indigo lighten-2" indeterminate></v-progress-circular>
+    <v-row
+      class="mb-6 mt-10"
+      justify="center"
+      no-gutters
+      v-if="$fetchState.pending"
+    >
+      <v-progress-circular
+        :size="150"
+        :width="20"
+        color="indigo lighten-2"
+        indeterminate
+      ></v-progress-circular>
     </v-row>
-    <v-row class="mb-6" justify="start" no-gutters v-else-if="$fetchState.error">
+    <v-row
+      class="mb-6"
+      justify="start"
+      no-gutters
+      v-else-if="$fetchState.error"
+    >
       <p>No client reachable to marshal database operations</p>
     </v-row>
     <v-card v-else>
@@ -36,7 +51,13 @@
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <v-container class="pt-4 pb-0">
-            <v-btn @click="clientAdd = true" class="pl-2" color="orange lighten-2" outlined text>
+            <v-btn
+              @click="clientAdd = true"
+              class="pl-2"
+              color="orange lighten-2"
+              outlined
+              text
+            >
               <v-icon class="mr-2">mdi-plus</v-icon>New
             </v-btn>
           </v-container>
@@ -47,18 +68,32 @@
                 <v-card-title>Add client</v-card-title>
                 <v-container class="px-7">
                   <v-form>
-                    <v-text-field label="Name" outlined required v-model="newClient.Name"></v-text-field>
+                    <v-text-field
+                      label="Name"
+                      outlined
+                      required
+                      v-model="newClient.Name"
+                    ></v-text-field>
                   </v-form>
                 </v-container>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn @click="clientAdd = false; err = null;" color="darken-1" text>Cancel</v-btn>
+                  <v-btn
+                    @click="
+                      clientAdd = false;
+                      err = null;
+                    "
+                    color="darken-1"
+                    text
+                    >Cancel</v-btn
+                  >
                   <v-btn
                     :loading="clientLoader"
-                    @click="addClient();"
+                    @click="addClient()"
                     color="indigo lighten-3"
                     text
-                  >Add</v-btn>
+                    >Add</v-btn
+                  >
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -73,15 +108,37 @@
                 v-model="client.active"
                 value="true"
               >
-                <v-dialog max-width="500" v-if="client.Selected" v-model="client.Selected">
+                <v-dialog
+                  max-width="500"
+                  v-if="client.Selected"
+                  v-model="client.Selected"
+                >
                   <v-card>
                     <v-card-title>Delete confirm</v-card-title>
-                    <v-card-subtitle>Do you really want to delete {{ client.Name }}?</v-card-subtitle>
-                    <v-alert class="mx-5" v-if="err" type="error">{{err}}</v-alert>
+                    <v-card-subtitle
+                      >Do you really want to delete
+                      {{ client.Name }}?</v-card-subtitle
+                    >
+                    <v-alert class="mx-5" v-if="err" type="error">{{
+                      err
+                    }}</v-alert>
                     <v-card-actions>
                       <v-spacer></v-spacer>
-                      <v-btn @click="client.Selected = false; err = null" color="darken-1" text>Cancel</v-btn>
-                      <v-btn @click="deleteClient(client);" color="red darken-1" text>Delete</v-btn>
+                      <v-btn
+                        @click="
+                          client.Selected = false;
+                          err = null;
+                        "
+                        color="darken-1"
+                        text
+                        >Cancel</v-btn
+                      >
+                      <v-btn
+                        @click="deleteClient(client)"
+                        color="red darken-1"
+                        text
+                        >Delete</v-btn
+                      >
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
@@ -89,7 +146,7 @@
                 <!-- client list element -->
                 <template v-slot:activator>
                   <v-list-item-content>
-                    <v-list-item-title>{{client.Name}}</v-list-item-title>
+                    <v-list-item-title>{{ client.Name }}</v-list-item-title>
                   </v-list-item-content>
                 </template>
                 <v-list-item class="pl-6">
@@ -105,7 +162,12 @@
                     <v-layout class="pt-4 d-flex flex-wrap" row wrap>
                       <v-flex class="px-2" md4 sm6 xs12>
                         <v-text-field
-                          :rules="[v => (v || '').indexOf(' ') < 0 || 'No spaces are allowed', v => !!v || 'Name is required']"
+                          :rules="[
+                            (v) =>
+                              (v || '').indexOf(' ') < 0 ||
+                              'No spaces are allowed',
+                            (v) => !!v || 'Name is required',
+                          ]"
                           label="Name"
                           outlined
                           v-model="client.Name"
@@ -113,7 +175,10 @@
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
                         <v-text-field
-                          :rules="[v => !!v && v >= 0 || 'Must be set and positive']"
+                          :rules="[
+                            (v) =>
+                              (!!v && v >= 0) || 'Must be set and positive',
+                          ]"
                           label="Priority"
                           outlined
                           type="number"
@@ -122,7 +187,10 @@
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
                         <v-text-field
-                          :rules="[v => !!v && v >= 0 || 'Must be set and positive']"
+                          :rules="[
+                            (v) =>
+                              (!!v && v >= 0) || 'Must be set and positive',
+                          ]"
                           label="Maximum Jobs"
                           outlined
                           type="number"
@@ -185,11 +253,25 @@
                       </v-flex>
                     </v-layout>
                     <v-row justify="center">
-                      <v-btn :loading="clientLoader" class="ml-2" color="indigo lighten-2" icon>
-                        <v-icon @click="editClient(client)" size="30">mdi-content-save</v-icon>
+                      <v-btn
+                        :loading="clientLoader"
+                        class="ml-2"
+                        color="indigo lighten-2"
+                        icon
+                      >
+                        <v-icon @click="editClient(client)" size="30"
+                          >mdi-content-save</v-icon
+                        >
                       </v-btn>
-                      <v-btn :loading="clientLoader" class="ml-2" color="red lighten-2" icon>
-                        <v-icon @click="client.Selected = true;" size="30">mdi-delete</v-icon>
+                      <v-btn
+                        :loading="clientLoader"
+                        class="ml-2"
+                        color="red lighten-2"
+                        icon
+                      >
+                        <v-icon @click="client.Selected = true" size="30"
+                          >mdi-delete</v-icon
+                        >
                       </v-btn>
                     </v-row>
                   </v-container>
@@ -205,37 +287,59 @@
             <v-btn
               outlined
               text
-              @click="importDialog = true; importType='name_exclude'"
+              @click="
+                importDialog = true;
+                importType = 'name_exclude';
+              "
               color="orange lighten-2"
               class="ml-4 mt-3"
-            >Import</v-btn>
+              >Import</v-btn
+            >
             <v-btn
               outlined
               text
-              @click="exportType='name_exclude'; exportConfig()"
+              @click="
+                exportType = 'name_exclude';
+                exportConfig();
+              "
               color="orange lighten-2"
               class="mt-3"
-            >Export</v-btn>
-            <TextDataTable @newdata="modifyFields($event, 'name_exclude')" v-model="nameExcludes"></TextDataTable>
+              >Export</v-btn
+            >
+            <TextDataTable
+              @newdata="modifyFields($event, 'name_exclude')"
+              v-model="nameExcludes"
+            ></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-3">
           <v-btn
             outlined
             text
-            @click="importDialog = true; importType='sub_exclude'"
+            @click="
+              importDialog = true;
+              importType = 'sub_exclude';
+            "
             color="orange lighten-2"
             class="ml-4 mt-3"
-          >Import</v-btn>
+            >Import</v-btn
+          >
           <v-btn
             outlined
             text
-            @click="exportType='sub_exclude'; exportConfig()"
+            @click="
+              exportType = 'sub_exclude';
+              exportConfig();
+            "
             color="orange lighten-2"
             class="mt-3"
-          >Export</v-btn>
+            >Export</v-btn
+          >
           <v-card flat>
-            <TextDataTable @newdata="modifyFields($event, 'sub_exclude')" v-model="subExcludes"></TextDataTable>
+            <TextDataTable
+              @newdata="modifyFields($event, 'sub_exclude')"
+              v-model="subExcludes"
+            ></TextDataTable>
           </v-card>
         </v-tab-item>
 
@@ -244,18 +348,29 @@
             <v-btn
               outlined
               text
-              @click="importDialog = true; importType='log_include'"
+              @click="
+                importDialog = true;
+                importType = 'log_include';
+              "
               color="orange lighten-2"
               class="ml-4 mt-3"
-            >Import</v-btn>
+              >Import</v-btn
+            >
             <v-btn
               outlined
               text
-              @click="exportType='log_include'; exportConfig();"
+              @click="
+                exportType = 'log_include';
+                exportConfig();
+              "
               color="orange lighten-2"
               class="mt-3"
-            >Export</v-btn>
-            <TextDataTable @newdata="modifyFields($event, 'log_include')" v-model="logIncludes"></TextDataTable>
+              >Export</v-btn
+            >
+            <TextDataTable
+              @newdata="modifyFields($event, 'log_include')"
+              v-model="logIncludes"
+            ></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-5">
@@ -263,18 +378,29 @@
             <v-btn
               outlined
               text
-              @click="importDialog = true; importType='log_exclude'"
+              @click="
+                importDialog = true;
+                importType = 'log_exclude';
+              "
               color="orange lighten-2"
               class="ml-4 mt-3"
-            >Import</v-btn>
+              >Import</v-btn
+            >
             <v-btn
               outlined
               text
-              @click=" exportType='log_exclude'; exportConfig();"
+              @click="
+                exportType = 'log_exclude';
+                exportConfig();
+              "
               color="orange lighten-2"
               class="mt-3"
-            >Export</v-btn>
-            <TextDataTable @newdata="modifyFields($event, 'log_exclude')" v-model="logExcludes"></TextDataTable>
+              >Export</v-btn
+            >
+            <TextDataTable
+              @newdata="modifyFields($event, 'log_exclude')"
+              v-model="logExcludes"
+            ></TextDataTable>
           </v-card>
         </v-tab-item>
       </v-tabs-items>
@@ -286,7 +412,9 @@
           Paste your fields here!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle>Your changes are saved as soon as you hit Import</v-card-subtitle>
+        <v-card-subtitle
+          >Your changes are saved as soon as you hit Import</v-card-subtitle
+        >
         <v-container>
           <v-textarea
             outlined
@@ -299,14 +427,23 @@
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" text @click="importDialog = false; importContent = ''">Cancel</v-btn>
+          <v-btn
+            color="darken-1"
+            text
+            @click="
+              importDialog = false;
+              importContent = '';
+            "
+            >Cancel</v-btn
+          >
           <v-btn
             color="green"
             :loading="importLoader"
             :disabled="importLoader"
             text
             @click="importConfig"
-          >Import</v-btn>
+            >Import</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -316,18 +453,39 @@
           Here's your configuration in a json format!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
+        <v-card-subtitle
+          >DatabaseURL is omitted and can only be set from the client
+          machine</v-card-subtitle
+        >
         <v-container>
-          <v-textarea outlined label="Export" rows="12" v-model="exportContent" name="Export"></v-textarea>
+          <v-textarea
+            outlined
+            label="Export"
+            rows="12"
+            v-model="exportContent"
+            name="Export"
+          ></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" text @click="exportDialog = false; exportType=''">Close</v-btn>
+          <v-btn
+            color="darken-1"
+            text
+            @click="
+              exportDialog = false;
+              exportType = '';
+            "
+            >Close</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
     <v-overlay :value="deleting">
-      <v-progress-circular :value="deleteProgress" width="15" size="150"></v-progress-circular>
+      <v-progress-circular
+        :value="deleteProgress"
+        width="15"
+        size="150"
+      ></v-progress-circular>
     </v-overlay>
   </div>
 </template>
@@ -606,28 +764,32 @@ export default {
       this.clientLoader = false;
       client.Selected = false;
     },
-    getClients: async function () {
+    resolveClients: async function () {
+      const unresolvedClients = await this.$http.$get("api/clients");
       let promises = [];
-      const registeredClients = await this.$http.$get("api/clients/");
-      let onlineClient;
-      for (let c of registeredClients) {
-        try {
-          let promise = new Promise(async (resolve, reject) => {
-            let response;
-            try {
-              response = await this.$http.$get(c.Address);
-            } catch (err) {
-              reject({ address: "none", response: {} });
-              return;
-            }
-            resolve({ address: c.Address, response: response });
-          });
-          promises.push(promise);
-        } catch (error) {
-          console.log(`$failed to create promises: ${error}`);
+      for (let client of unresolvedClients) {
+        for (let address of client.Addresses) {
+          try {
+            let promise = new Promise(async (resolve, reject) => {
+              let response;
+              try {
+                response = await this.$http.$get(address + "/alive");
+              } catch (err) {
+                reject({ address: "none", response: {} });
+                return;
+              }
+              resolve({ address: address, response: response });
+            });
+            promises.push(promise);
+          } catch (error) {
+            console.log(`$failed to create promises: ${error}`);
+          }
         }
       }
-      let resolution = await Promise.race(promises);
+      return await Promise.race(promises);
+    },
+    getClients: async function () {
+      let resolution = await this.resolveClients();
       if (resolution.address != "none") {
         this.url = resolution.address;
         let clients = await this.$http.$get(this.url + "/clients/");
