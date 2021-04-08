@@ -149,7 +149,7 @@ export default {
             HostName: client.HostName,
             Ip: client.Address,
             Status: "offline",
-            Refreshing: false
+            Refreshing: false,
           });
         } else {
           this.$set(this.clientInfosOffline[idy], "Refreshing", false);
@@ -165,15 +165,22 @@ export default {
       this.clientInfosOnline.forEach(
         async function (client, idx) {
           try {
-            this.clientInfosOnline[idx] = await this.fetchClientData({
+            const modData = await this.fetchClientData({
               HostName: client.HostName,
               Address: client.Ip,
             });
+            this.clientInfosOnline.splice(idx, 1, modData);
           } catch (err) {
-            console.log(`Client ${client.HostName} went offline: ${err}`);
-            this.clientInfosOnline.splice(idx, 1);
-            client.Status = "offline";
-            this.clientInfosOffline.push(client);
+            const idy = this.clientInfosOnline.findIndex(
+              (cio) =>
+                cio.HostName.toLowerCase() == client.HostName.toLowerCase()
+            );
+            if (idy != -1) {
+              console.log(`Client ${client.HostName} went offline: ${err}`);
+              this.clientInfosOnline.splice(idx, 1);
+              client.Status = "offline";
+              this.clientInfosOffline.push(client);
+            }
           }
         }.bind(this)
       );
@@ -219,38 +226,41 @@ export default {
         this.totalLoadedLeft = unresolvedClients.length;
       }
       for (let client of unresolvedClients) {
-        let promises = [];
-        for (let address of client.Addresses) {
-          try {
-            let promise = new Promise(async (resolve, reject) => {
-              let response;
-              try {
-                response = await this.$http.$get(address + "/alive");
-              } catch (err) {
-                reject({ address: "none", response: {} });
-                return;
-              }
-              resolve({ address: address, response: response });
-            });
-            promises.push(promise);
-          } catch (error) {
-            console.log(`$failed to create promises: ${error}`);
-          }
-        }
-        let resolution;
-        const resolvedClient = {
-          HostName: client.Name,
-        };
-        try {
-          resolution = await Promise.race(promises);
-          resolvedClient.Reachable = true;
-          resolvedClient.Address = resolution.address;
-        } catch {
-          resolvedClient.Reachable = false;
-          resolvedClient.Address = client.Addresses[0];
-        }
-        this.resolvedClient = resolvedClient;
+        this.resolveAsync(client);
       }
+    },
+    resolveAsync: async function (client) {
+      let promises = [];
+      for (let address of client.Addresses) {
+        try {
+          let promise = new Promise(async (resolve, reject) => {
+            let response;
+            try {
+              response = await this.$http.$get(address + "/alive");
+            } catch (err) {
+              reject({ address: "none", response: {} });
+              return;
+            }
+            resolve({ address: address, response: response });
+          });
+          promises.push(promise);
+        } catch (error) {
+          console.log(`$failed to create promises: ${error}`);
+        }
+      }
+      let resolution;
+      const resolvedClient = {
+        HostName: client.Name,
+      };
+      try {
+        resolution = await Promise.race(promises);
+        resolvedClient.Reachable = true;
+        resolvedClient.Address = resolution.address;
+      } catch {
+        resolvedClient.Reachable = false;
+        resolvedClient.Address = client.Addresses[0];
+      }
+      this.resolvedClient = resolvedClient;
     },
     pingOffline: async function () {
       this.clientInfosOffline.forEach((client) =>
