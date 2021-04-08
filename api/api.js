@@ -5,29 +5,24 @@ const http = require('http');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 import config from '../api/config.json';
+const Client = require('../api/schema.js');
+
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 //Create MongoDB Database with Name MongooseTest
-mongoose.connect(config.url)
-const clientDocument = "RegisteredClient"
+mongoose.connect(config.url);
 
 var corsOptions = {
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }
-  
+}
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'error:'))
 db.once('open', function () {
     console.log("connection established");
 });
-const clientSchema = new mongoose.Schema({
-    Name: { type: String, required: true },
-    Addresses: { type: Array, required: true }
-});
-const Client = mongoose.model(clientDocument, clientSchema, "registered_client")
 
 function createClient(name, addresses) {
     const client = new Client({

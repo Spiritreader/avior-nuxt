@@ -66,7 +66,6 @@ export default {
   data() {
     return {
       refreshing: false,
-      resolvedClient: {},
       init: true,
       debugTimer: null,
       noSkeleton: false,
@@ -77,14 +76,14 @@ export default {
       clientInfosOffline: [],
     };
   },
-  watch: {
+  methods: {
     /**
      * Whenever the resolvedClient datapoint is updated by tryResolveClients,
      * it will be either pre-filled and added to the clientInfosOnline array
      * before the update loop, or added to the clientInfosOffline array if unreachable
      */
-    resolvedClient: async function () {
-      const resolvedClient = this.resolvedClient;
+    async processClient(resolvedClient) {
+      console.log(resolvedClient.HostName);
       if (resolvedClient.Reachable) {
         await this.fillClientInfoArrays(resolvedClient);
       } else {
@@ -108,8 +107,6 @@ export default {
         this.init = false;
       }
     },
-  },
-  methods: {
     /**
      * Fills the clientInfosOnline and clientInfosOffline array
      * Initializes data for all clients in the Online list
@@ -192,6 +189,8 @@ export default {
           }
         }.bind(this)
       );
+      // determine if there are offline clients being refreshed
+      // used for disabling ping offline button
       this.refreshing = this.clientInfosOffline
         .map((cio) => cio.Refreshing)
         .reduce((a, v) => a || v, false);
@@ -226,8 +225,6 @@ export default {
     },
     /**
      * Tries to resolve the first available IP address from all clients returned by the api.
-     * Will update this.resolvedClient for dynamic updates
-     * A watcher for this component is required to process resolved clients
      * @returns a resolved client object with a HostName, Address and Reachable property.
      * The address provided when Reachable is false is not a correct resolve!
      */
@@ -240,6 +237,10 @@ export default {
         this.resolveAsync(client);
       }
     },
+    /**
+     * Determine which address response first for any given client
+     * with a promise race
+     */
     resolveAsync: async function (client) {
       let promises = [];
       for (let address of client.Addresses) {
@@ -271,7 +272,7 @@ export default {
         resolvedClient.Reachable = false;
         resolvedClient.Address = client.Addresses[0];
       }
-      this.resolvedClient = resolvedClient;
+      await this.processClient(resolvedClient);
     },
     pingOffline: async function () {
       this.refreshing = true;
