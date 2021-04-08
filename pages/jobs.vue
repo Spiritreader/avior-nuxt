@@ -555,6 +555,7 @@ export default {
       this.reassigning = false;
       this.reassignToClient = null;
       this.selectedJobs = {};
+      this.howManyJobsAreSelectedQuestionmark = 0;
     },
     deleteSelectedJobs: async function () {
       this.deletingSelectedJobs = true;
@@ -569,6 +570,7 @@ export default {
       this.deletingSelectedJobs = false;
       this.deleteSelectedJobsDialog = false;
       this.selectedJobs = {};
+      this.howManyJobsAreSelectedQuestionmark = 0;
     },
     updateJobSelection: function (updateObject) {
       this.$set(this.selectedJobs, updateObject.client, updateObject.selected);
