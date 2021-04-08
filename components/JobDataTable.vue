@@ -32,8 +32,10 @@
     </template>
     <!-- eslint-disable -->
     <template v-slot:item.actions="{ item }">
-      <v-icon size="30" @click="item.EditJobDialog = true" color="blue">mdi-circle-edit-outline</v-icon>
-      <v-icon size="30" @click="item.DeleteJobDialog = true" color="blue" >mdi-delete-circle-outline</v-icon>
+      <div class="d-flex">
+      <v-icon size="32" @click="item.EditJobDialog = true" color="blue">mdi-circle-edit-outline</v-icon>
+      <v-icon size="32" @click="item.DeleteJobDialog = true" color="blue" >mdi-delete-circle-outline</v-icon>
+      </div>
         <!-- Begin Update -->
         <v-dialog max-width="1000" v-model="item.EditJobDialog">
           <v-card>
