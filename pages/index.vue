@@ -183,8 +183,12 @@ export default {
             if (idy != -1) {
               console.log(`Client ${client.HostName} went offline: ${err}`);
               this.clientInfosOnline.splice(idx, 1);
-              client.Status = "offline";
-              this.clientInfosOffline.push(client);
+              this.clientInfosOffline.push({
+                HostName: client.HostName,
+                Ip: client.Address,
+                Status: "offline",
+                Refreshing: false,
+              });
             }
           }
         }.bind(this)
