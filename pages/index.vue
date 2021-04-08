@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-row v-if="!$fetchState.error" class="d-flex justify-center">
+    <v-row v-if="!$fetchState.error" class="d-flex pt-1 pb-2 justify-center">
       <v-btn @click="autoRefresh" :disabled="$fetchState.pending">
         <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
         <v-icon v-else>mdi-cached</v-icon>
@@ -36,7 +36,7 @@
         class="ma-2"
       ></v-skeleton-loader>
     </div>
-    <v-row v-if="!$fetchState.pending" class="d-flex justify-center">
+    <v-row v-if="!$fetchState.pending" class="d-flex pt-3 justify-center">
       <v-btn @click="pingOffline">Ping Offline</v-btn>
     </v-row>
   </div>
