@@ -789,7 +789,8 @@ export default {
           }
         }
       }
-      return await any(promises);
+      any.shim();
+      return await Promise.any(promises);
     },
     getClients: async function () {
       let resolution = await this.resolveClients();

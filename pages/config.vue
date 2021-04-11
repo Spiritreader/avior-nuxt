@@ -533,7 +533,8 @@ export default {
         HostName: client.Name,
       };
       try {
-        resolution = await any(promises);
+        any.shim();
+        resolution = await Promise.any(promises);
         resolvedClient.Reachable = true;
         resolvedClient.Address = resolution.address;
       } catch {
