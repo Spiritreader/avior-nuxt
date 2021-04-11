@@ -1,6 +1,6 @@
 <template>
   <v-list flat>
-    <v-subheader v-if="!noheader">{{type}}s</v-subheader>
+    <v-subheader v-if="!noheader">{{ type }}s</v-subheader>
     <!-- <v-list-item-group v-model="selectedMediaPath" color="primary">-->
     <v-list-item v-for="(item, i) in list" :key="i">
       <v-list-item-icon>
@@ -48,7 +48,7 @@ export default {
     },
     removeElement(index) {
       this.list.splice(index, 1);
-    }
+    },
   },
   data: () => ({
     newElement: "",
@@ -57,15 +57,15 @@ export default {
     list: Array,
     icon: String,
     type: String,
-    noheader: Boolean
+    noheader: Boolean,
   },
   watch: {
     list: {
-        handler: function() {
-          this.$emit('newdata', this.list);
-        },
-        deep: true
-    }
-  }
+      handler: function () {
+        this.$emit("newdata", this.list);
+      },
+      deep: true,
+    },
+  },
 };
 </script>

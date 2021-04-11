@@ -7,21 +7,14 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div class="px-4 pt-4 mb-0 pb-1">
-          <p
-            
-          >This setting configures how much the duplicate file and the replacement file are allowed to differ in length</p>
-          <p class="pb-0 mb-1">Setting the threshold to a value greater than 0 allows the new file to be {{settingsInternal.threshold}}% shorter </p>
+          <p>This setting configures how much the duplicate file and the replacement file are allowed to differ in length</p>
+          <p class="pb-0 mb-1">
+            Setting the threshold to a value greater than 0 allows the new file to be {{ settingsInternal.threshold }}% shorter
+          </p>
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider
-      color="red darken-3"
-      v-model="threshold"
-      class="align-center"
-      :max="max"
-      :min="min"
-      hide-details
-    >
+    <v-slider color="red darken-3" v-model="threshold" class="align-center" :max="max" :min="min" hide-details>
       <template v-slot:append>
         <v-text-field
           v-model="threshold"

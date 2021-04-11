@@ -10,12 +10,7 @@
         hide-details
         outlined
       ></v-text-field>
-      <v-btn
-        icon
-        class="mb-2 ml-2 mt-3"
-        color="primary"
-        @click="expand = !expand"
-      >
+      <v-btn icon class="mb-2 ml-2 mt-3" color="primary" @click="expand = !expand">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
     </div>

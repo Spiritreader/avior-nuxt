@@ -12,46 +12,23 @@
     <v-row v-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
-    <Client
-      v-for="client in clientInfosOnline"
-      :key="client.Name"
-      :client="client"
-    ></Client>
-    <Client
-      v-for="client in clientInfosOffline"
-      :key="client.Name"
-      :client="client"
-    ></Client>
+    <Client v-for="client in clientInfosOnline" :key="client.Name" :client="client"></Client>
+    <Client v-for="client in clientInfosOffline" :key="client.Name" :client="client"></Client>
     <div v-if="totalLoadedLeft > 0">
-      <v-skeleton-loader
-        v-for="n in totalLoadedLeft"
-        :key="n"
-        type="image"
-        class="ma-2"
-      ></v-skeleton-loader>
+      <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
     </div>
     <v-row class="d-flex pt-3 pb-2 justify-center">
-      <v-btn
-        v-if="!$fetchState.error"
-        @click="autoRefresh"
-        :disabled="$fetchState.pending"
-        class="mx-2"
-      >
+      <v-btn v-if="!$fetchState.error" @click="autoRefresh" :disabled="$fetchState.pending" class="mx-2">
         <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
         <v-icon v-else>mdi-cached</v-icon>
       </v-btn>
-      <v-btn
-        v-if="!$fetchState.pending"
-        :disabled="refreshing"
-        @click="pingOffline"
-        >Ping Offline</v-btn
-      >
+      <v-btn v-if="!$fetchState.pending" :disabled="refreshing" @click="pingOffline">Ping Offline</v-btn>
     </v-row>
   </div>
 </template>
 
 <script>
-import any from 'promise.any';
+import any from "promise.any";
 
 export default {
   inject: ["theme"],
@@ -90,8 +67,7 @@ export default {
         await this.fillClientInfoArrays(resolvedClient);
       } else {
         const idx = this.clientInfosOffline.findIndex(
-          (cio) =>
-            cio.HostName.toLowerCase() == resolvedClient.HostName.toLowerCase()
+          (cio) => cio.HostName.toLowerCase() == resolvedClient.HostName.toLowerCase()
         );
         if (idx == -1) {
           this.clientInfosOffline.push({
@@ -120,16 +96,12 @@ export default {
         // IDX
         // check if object already exists in the online list. If so, don't update it.
         // Subsequent updating should be handled automatically by updateClientData
-        const idx = this.clientInfosOnline.findIndex(
-          (cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase()
-        );
+        const idx = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
 
         // IDY
         // check if object already existss in the offline list.
         // If so, mark for removal from the offline list
-        const idy = this.clientInfosOffline.findIndex(
-          (cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase()
-        );
+        const idy = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
 
         // execute IDX
         // update initially
@@ -148,9 +120,7 @@ export default {
 
         // check if object already existss in the offline list.
         // If not, add it.
-        const idy = this.clientInfosOffline.findIndex(
-          (cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase()
-        );
+        const idy = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
         if (idy == -1) {
           this.clientInfosOffline.push({
             HostName: client.HostName,
@@ -178,9 +148,7 @@ export default {
           });
           this.clientInfosOnline.splice(idx, 1, modData);
         } catch (err) {
-          const idy = this.clientInfosOnline.findIndex(
-            (cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase()
-          );
+          const idy = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
           if (idy != -1) {
             console.log(`Client ${client.HostName} went offline: ${err}`);
             this.clientInfosOnline.splice(idx, 1);
@@ -196,9 +164,7 @@ export default {
       }
       // determine if there are offline clients being refreshed
       // used for disabling ping offline button
-      this.refreshing = this.clientInfosOffline
-        .map((cio) => cio.Refreshing)
-        .reduce((a, v) => a || v, false);
+      this.refreshing = this.clientInfosOffline.map((cio) => cio.Refreshing).reduce((a, v) => a || v, false);
     },
     /**
      * Fetches all client metadata given the provided client Address
@@ -207,9 +173,7 @@ export default {
       const clientInfo = await this.$http.$get(client.Address);
       clientInfo.Ip = client.Address;
       clientInfo.HostName = client.HostName;
-      clientInfo.EncoderLineOut = await this.$http.$get(
-        client.Address + "/encoder/"
-      );
+      clientInfo.EncoderLineOut = await this.$http.$get(client.Address + "/encoder/");
       clientInfo.Refreshing = false;
       return clientInfo;
     },
@@ -282,9 +246,7 @@ export default {
     },
     pingOffline: async function () {
       this.refreshing = true;
-      this.clientInfosOffline.forEach((client) =>
-        this.$set(client, "Refreshing", true)
-      );
+      this.clientInfosOffline.forEach((client) => this.$set(client, "Refreshing", true));
       this.tryResolveClients();
     },
   },

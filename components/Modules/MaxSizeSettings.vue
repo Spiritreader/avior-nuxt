@@ -16,9 +16,9 @@
     </div>
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2 mt-4">
-        <p
-          class="px-4 pt-4 pb-3"
-        >Maximum unencoded allowed file size in Gigabytes. Files beyond this threshold will be ignored</p>
+        <p class="px-4 pt-4 pb-3">
+          Maximum unencoded allowed file size in Gigabytes. Files beyond this threshold will be ignored
+        </p>
       </v-card>
     </v-expand-transition>
   </div>

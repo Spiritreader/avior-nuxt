@@ -1,17 +1,7 @@
 <template>
   <div>
-    <v-row
-      v-if="$fetchState.pending"
-      class="mb-6 mt-10"
-      justify="center"
-      no-gutters
-    >
-      <v-progress-circular
-        :size="150"
-        :width="20"
-        color="red darken-3"
-        indeterminate
-      ></v-progress-circular>
+    <v-row v-if="$fetchState.pending" class="mb-6 mt-10" justify="center" no-gutters>
+      <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
     </v-row>
     <!--
     <v-row
@@ -37,36 +27,17 @@
         </v-col>
       </v-row>
       <!-- Config Card -->
-      <v-row
-        v-if="config == null || config == {} || loading"
-        justify="center"
-        class="mb-6"
-        no-gutters
-      >
-        <v-progress-circular
-          :size="150"
-          :width="20"
-          color="red darken-3"
-          indeterminate
-        ></v-progress-circular>
+      <v-row v-if="config == null || config == {} || loading" justify="center" class="mb-6" no-gutters>
+        <v-progress-circular :size="150" :width="20" color="red darken-3" indeterminate></v-progress-circular>
       </v-row>
       <v-row justify="center" class="mb-6" no-gutters v-else-if="err != ''">
         <v-icon size="150">mdi-lan-disconnect</v-icon>
       </v-row>
       <v-row v-else-if="!clientIsSelected"> </v-row>
       <v-card v-else>
-        <v-tabs
-          v-model="selectedTab"
-          color="white"
-          background-color="red darken-3"
-          show-arrows
-          dark
-          centered
-        >
+        <v-tabs v-model="selectedTab" color="white" background-color="red darken-3" show-arrows dark centered>
           <v-tabs-slider color="white"></v-tabs-slider>
-          <v-tab v-for="configOption in configHeaders" :key="configOption">{{
-            configOption
-          }}</v-tab>
+          <v-tab v-for="configOption in configHeaders" :key="configOption">{{ configOption }}</v-tab>
         </v-tabs>
         <v-tabs-items v-model="selectedTab">
           <!--general settings -->
@@ -156,10 +127,7 @@
           <v-tab-item :eager="true" :key="configHeaders[3]" class="mt-2">
             <div class="d-flex flex-wrap">
               <div class="module-col">
-                <Module
-                  :name="'AudioModule'"
-                  :module="config.Modules.AudioModule"
-                >
+                <Module :name="'AudioModule'" :module="config.Modules.AudioModule">
                   <AudioSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.AudioModule.Settings"
@@ -173,34 +141,22 @@
                     :name="'AgeModule'"
                   ></AgeSettings>
                 </Module>
-                <Module
-                  :name="'LegacyModule'"
-                  :module="config.Modules.LegacyModule"
-                ></Module>
-                <Module
-                  :name="'LengthModule'"
-                  :module="config.Modules.LengthModule"
-                >
+                <Module :name="'LegacyModule'" :module="config.Modules.LegacyModule"></Module>
+                <Module :name="'LengthModule'" :module="config.Modules.LengthModule">
                   <LengthSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.LengthModule.Settings"
                     :name="'LengthModule'"
                   ></LengthSettings>
                 </Module>
-                <Module
-                  :name="'ErrorSkipModule'"
-                  :module="config.Modules.ErrorSkipModule"
-                >
+                <Module :name="'ErrorSkipModule'" :module="config.Modules.ErrorSkipModule">
                   <ErrorSkipSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.ErrorSkipModule.Settings"
                     :name="'ErrorSkipModule'"
                   ></ErrorSkipSettings>
                 </Module>
-                <Module
-                  :name="'ErrorReplaceModule'"
-                  :module="config.Modules.ErrorReplaceModule"
-                >
+                <Module :name="'ErrorReplaceModule'" :module="config.Modules.ErrorReplaceModule">
                   <ErrorReplaceSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.ErrorReplaceModule.Settings"
@@ -210,55 +166,38 @@
               </div>
               <!--second column-->
               <div class="module-col">
-                <Module
-                  :name="'LogMatchModule'"
-                  :module="config.Modules.LogMatchModule"
-                >
+                <Module :name="'LogMatchModule'" :module="config.Modules.LogMatchModule">
                   <LogMatchSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.LogMatchModule.Settings"
                     :name="'LogMatchModule'"
                   ></LogMatchSettings>
                 </Module>
-                <Module
-                  :name="'MaxSizeModule'"
-                  :module="config.Modules.MaxSizeModule"
-                >
+                <Module :name="'MaxSizeModule'" :module="config.Modules.MaxSizeModule">
                   <MaxSizeSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.MaxSizeModule.Settings"
                     :name="'MaxSizeModule'"
                   ></MaxSizeSettings>
                 </Module>
-                <Module
-                  :name="'ResolutionModule'"
-                  :module="config.Modules.ResolutionModule"
-                >
+                <Module :name="'ResolutionModule'" :module="config.Modules.ResolutionModule">
                   <ResolutionSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.ResolutionModule.Settings"
                     :name="'ResolutionModule'"
                   ></ResolutionSettings>
                 </Module>
-                <Module
-                  :name="'SizeApproxModule'"
-                  :module="config.Modules.SizeApproxModule"
-                >
+                <Module :name="'SizeApproxModule'" :module="config.Modules.SizeApproxModule">
                   <SizeApproxSettings
                     @newdata="handleModuleSettings($event)"
                     :settings="config.Modules.SizeApproxModule.Settings"
                     :name="'SizeApproxModule'"
                   ></SizeApproxSettings>
                 </Module>
-                <Module
-                  :name="'DuplicateLengthCheckModule'"
-                  :module="config.Modules.DuplicateLengthCheckModule"
-                >
+                <Module :name="'DuplicateLengthCheckModule'" :module="config.Modules.DuplicateLengthCheckModule">
                   <DuplicateLengthCheckSettings
                     @newdata="handleModuleSettings($event)"
-                    :settings="
-                      config.Modules.DuplicateLengthCheckModule.Settings
-                    "
+                    :settings="config.Modules.DuplicateLengthCheckModule.Settings"
                     :name="'DuplicateLengthCheckModule'"
                   ></DuplicateLengthCheckSettings>
                 </Module>
@@ -338,20 +277,13 @@
     </v-container>
 
     <!--import dialog-->
-    <v-dialog
-      v-if="configImportConfirm"
-      v-model="configImportConfirm"
-      max-width="500"
-    >
+    <v-dialog v-if="configImportConfirm" v-model="configImportConfirm" max-width="500">
       <v-card>
         <v-card-title>
           Paste your json configuration here!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle
-          >Make sure to hit opslaan afterwards. DatabaseURL is omitted for
-          security reasons.</v-card-subtitle
-        >
+        <v-card-subtitle>Make sure to hit opslaan afterwards. DatabaseURL is omitted for security reasons.</v-card-subtitle>
         <v-container>
           <v-textarea
             outlined
@@ -376,34 +308,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-if="configExportDialog"
-      v-model="configExportDialog"
-      max-width="500"
-    >
+    <v-dialog v-if="configExportDialog" v-model="configExportDialog" max-width="500">
       <v-card>
         <v-card-title>
           Here's your configuration in a json format!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle
-          >DatabaseURL is omitted and can only be set from the client
-          machine</v-card-subtitle
-        >
+        <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
         <v-container>
-          <v-textarea
-            outlined
-            label="Config"
-            rows="12"
-            v-model="configExportString"
-            name="Export Config"
-          ></v-textarea>
+          <v-textarea outlined label="Config" rows="12" v-model="configExportString" name="Export Config"></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="darken-1" text @click="configExportDialog = false"
-            >Close</v-btn
-          >
+          <v-btn color="darken-1" text @click="configExportDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -411,7 +328,7 @@
 </template>
 
 <script>
-import any from 'promise.any';
+import any from "promise.any";
 
 export default {
   data: () => ({
@@ -430,21 +347,13 @@ export default {
     selectedClient: {},
     selectedTab: "General",
     selectedMediaPath: {},
-    configHeaders: [
-      "General",
-      "Audio Formats",
-      "Resolutions",
-      "Modules",
-      "Encoder",
-    ],
+    configHeaders: ["General", "Audio Formats", "Resolutions", "Modules", "Encoder"],
     newMediaPath: "",
     mediaPathEditButtons: false,
   }),
   computed: {
     clientIsSelected() {
-      return (
-        this.selectedClient && Object.keys(this.selectedClient).length !== 0
-      );
+      return this.selectedClient && Object.keys(this.selectedClient).length !== 0;
     },
     resolutionArray() {
       let ary = [];
@@ -558,10 +467,7 @@ export default {
       this.saving = true;
       console.log(this.selectedClient.Address);
       try {
-        let result = await this.$http.$put(
-          `${this.selectedClient.Address.trim()}/config`,
-          this.config
-        );
+        let result = await this.$http.$put(`${this.selectedClient.Address.trim()}/config`, this.config);
         setTimeout(() => {
           this.saving = false;
         }, 500);
@@ -572,33 +478,25 @@ export default {
       }
     },
     loadEncoderConfig() {
-      this.selectedEncoderConfig = this.encoderConfigArray.find(
-        (cfg) => cfg.tag == this.selectedEncoderConfigTag
-      );
+      this.selectedEncoderConfig = this.encoderConfigArray.find((cfg) => cfg.tag == this.selectedEncoderConfigTag);
     },
     async configLoad(client) {
       this.loading = true;
       this.err = false;
       const resolvedClient = await this.tryResolveClient(client);
       console.log(
-        `Trying to get result for ${
-          resolvedClient.Reachable ? "reachable" : "previously unreachable"
-        } with ip ${resolvedClient.Address}`
+        `Trying to get result for ${resolvedClient.Reachable ? "reachable" : "previously unreachable"} with ip ${
+          resolvedClient.Address
+        }`
       );
       try {
-        this.config = await this.$http.$get(
-          `${resolvedClient.Address}/config/`
-        );
+        this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
 
         //this.config = await fetch(`${client}/config`).then(res => res.json());
-        this.config = await this.$http.$get(
-          `${resolvedClient.Address}/config/`
-        );
+        this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
       } catch (err) {
         this.err = err;
-        console.log(
-          `couldn't load config for client ${resolvedClient.Address}, err: ${this.err}`
-        );
+        console.log(`couldn't load config for client ${resolvedClient.Address}, err: ${this.err}`);
       }
       this.loading = false;
     },

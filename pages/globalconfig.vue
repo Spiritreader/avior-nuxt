@@ -493,7 +493,7 @@
 
 
 <script>
-import any from 'promise.any';
+import any from "promise.any";
 
 export default {
   data: () => ({

@@ -48,14 +48,7 @@
             <v-list-item-subtitle v-text="user.Addresses.join(', ')"></v-list-item-subtitle>
           </v-list-item-content>
 
-          <v-btn
-            :loading="user.removeLoad"
-            :disabled="user.removeLoad"
-            text
-            small
-            color="red"
-            @click="deleteClient(user)"
-          >
+          <v-btn :loading="user.removeLoad" :disabled="user.removeLoad" text small color="red" @click="deleteClient(user)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-list-item>

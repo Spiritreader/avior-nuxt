@@ -17,9 +17,7 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2 mt-4">
         <div>
-          <p
-            class="px-4 pt-4 pb-3"
-          >The maximum allowed amount of errors before a re-encode is prohibited</p>
+          <p class="px-4 pt-4 pb-3">The maximum allowed amount of errors before a re-encode is prohibited</p>
         </div>
       </v-card>
     </v-expand-transition>
@@ -29,8 +27,7 @@
 <script>
 export default {
   methods: {},
-  mounted() {
-  },
+  mounted() {},
   data() {
     return {
       expand: false,

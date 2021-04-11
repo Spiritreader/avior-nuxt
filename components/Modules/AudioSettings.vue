@@ -7,38 +7,30 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div>
-          <p
-            class="px-4 pt-4 mb-0 pb-0"
-          >Determines how lenient or strict the encoder should be with the audio format detection.</p>
+          <p class="px-4 pt-4 mb-0 pb-0">
+            Determines how lenient or strict the encoder should be with the audio format detection.
+          </p>
           <v-list>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
-                <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>low will detect audio if tuner log includes a reference
+                <v-icon>mdi-circle-small</v-icon> </v-list-item-icon
+              >low will detect audio if tuner log includes a reference
             </v-list-item>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
-                <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>med will detect audio if tuner log includes a reference and the metadata log has a tag
+                <v-icon>mdi-circle-small</v-icon> </v-list-item-icon
+              >med will detect audio if tuner log includes a reference and the metadata log has a tag
             </v-list-item>
             <v-list-item>
               <v-list-item-icon class="pr-0 mr-1">
-                <v-icon>mdi-circle-small</v-icon>
-              </v-list-item-icon>high will detect audio if tuner log exclusively lists it
+                <v-icon>mdi-circle-small</v-icon> </v-list-item-icon
+              >high will detect audio if tuner log exclusively lists it
             </v-list-item>
           </v-list>
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider
-      v-model="selectedFormat"
-      :tick-labels="steps"
-      :max="2"
-      ticks="always"
-      tick-size="4"
-      step="1"
-      color="red darken-3"
-    >
+    <v-slider v-model="selectedFormat" :tick-labels="steps" :max="2" ticks="always" tick-size="4" step="1" color="red darken-3">
       <template v-slot:thumb-label="props">
         <v-icon dark>{{ accIcon(props.value) }}</v-icon>
       </template>
