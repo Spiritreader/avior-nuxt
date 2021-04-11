@@ -1,4 +1,4 @@
-FROM node:12.18.3-buster
+FROM node:14.16.1-alpine3.13
 
 ARG COMMIT=""
 LABEL commit=${COMMIT}
