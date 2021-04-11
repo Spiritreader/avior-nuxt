@@ -411,6 +411,8 @@
 </template>
 
 <script>
+import any from 'promise.any';
+
 export default {
   data: () => ({
     configExportDialog: false,
@@ -531,7 +533,7 @@ export default {
         HostName: client.Name,
       };
       try {
-        resolution = await Promise.race(promises);
+        resolution = await any(promises);
         resolvedClient.Reachable = true;
         resolvedClient.Address = resolution.address;
       } catch {

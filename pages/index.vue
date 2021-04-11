@@ -51,6 +51,8 @@
 </template>
 
 <script>
+import any from 'promise.any';
+
 export default {
   inject: ["theme"],
   beforeDestroy() {
@@ -167,32 +169,31 @@ export default {
      * It will then no longer be updateed unless manually pinged.
      */
     async updateClientData() {
-      this.clientInfosOnline.forEach(
-        async function (client, idx) {
-          try {
-            const modData = await this.fetchClientData({
+      let idx = 0;
+      for (let client of this.clientInfosOnline) {
+        try {
+          const modData = await this.fetchClientData({
+            HostName: client.HostName,
+            Address: client.Ip,
+          });
+          this.clientInfosOnline.splice(idx, 1, modData);
+        } catch (err) {
+          const idy = this.clientInfosOnline.findIndex(
+            (cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase()
+          );
+          if (idy != -1) {
+            console.log(`Client ${client.HostName} went offline: ${err}`);
+            this.clientInfosOnline.splice(idx, 1);
+            this.clientInfosOffline.push({
               HostName: client.HostName,
-              Address: client.Ip,
+              Ip: client.Address,
+              Status: "offline",
+              Refreshing: false,
             });
-            this.clientInfosOnline.splice(idx, 1, modData);
-          } catch (err) {
-            const idy = this.clientInfosOnline.findIndex(
-              (cio) =>
-                cio.HostName.toLowerCase() == client.HostName.toLowerCase()
-            );
-            if (idy != -1) {
-              console.log(`Client ${client.HostName} went offline: ${err}`);
-              this.clientInfosOnline.splice(idx, 1);
-              this.clientInfosOffline.push({
-                HostName: client.HostName,
-                Ip: client.Address,
-                Status: "offline",
-                Refreshing: false,
-              });
-            }
           }
-        }.bind(this)
-      );
+        }
+        idx++;
+      }
       // determine if there are offline clients being refreshed
       // used for disabling ping offline button
       this.refreshing = this.clientInfosOffline
@@ -269,7 +270,7 @@ export default {
         HostName: client.Name,
       };
       try {
-        resolution = await Promise.race(promises);
+        resolution = await any(promises);
         resolvedClient.Reachable = true;
         resolvedClient.Address = resolution.address;
       } catch {

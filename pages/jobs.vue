@@ -340,6 +340,8 @@
 
 
 <script>
+import any from 'promise.any';
+
 export default {
   data: () => ({
     reassigning: false,
@@ -632,7 +634,7 @@ export default {
           }
         }
       }
-      return await Promise.race(promises);
+      return await any(promises);
     },
     getClients: async function () {
       let resolution = await this.resolveClients();

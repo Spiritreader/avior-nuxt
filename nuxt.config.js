@@ -106,7 +106,8 @@ export default {
       if (ctx.isDev) {
         config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
       }
-    }
+    },
+    transpile: ['promise.any', 'es-abstract']
   },
   server: {
     host: '0.0.0.0'
