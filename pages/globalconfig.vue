@@ -493,6 +493,8 @@
 
 
 <script>
+import any from 'promise.any';
+
 export default {
   data: () => ({
     deleting: false,
@@ -769,6 +771,7 @@ export default {
       let promises = [];
       for (let client of unresolvedClients) {
         for (let address of client.Addresses) {
+          console.log(address);
           try {
             let promise = new Promise(async (resolve, reject) => {
               let response;
@@ -786,7 +789,7 @@ export default {
           }
         }
       }
-      return await Promise.race(promises);
+      return await any(promises);
     },
     getClients: async function () {
       let resolution = await this.resolveClients();
