@@ -8,9 +8,10 @@
       <v-expand-transition>
         <v-card v-show="expand" class="mx-1 mb-2">
           <div>
-            <p
-              class="px-4 pt-4 mb-0 pb-4"
-            >If the estimated file size is {{settingsInternal.Difference}}% smaller than the duplicate, a file is eligible for replacement</p>
+            <p class="px-4 pt-4 mb-0 pb-4">
+              If the estimated file size is {{ settingsInternal.Difference }}% smaller than the duplicate, a file is eligible for
+              replacement
+            </p>
           </div>
         </v-card>
       </v-expand-transition>
@@ -46,21 +47,13 @@
         <v-card v-show="expand2" class="mx-1 mb-2">
           <div>
             <p class="px-4 pt-4 mb-0 pb-4">
-              How much of the new file should be encoded for the estimation.
-              More is better, but takes more
+              How much of the new file should be encoded for the estimation. More is better, but takes more
               <v-icon class="pr-1">mdi-clock-time-four-outline</v-icon>to process
             </p>
           </div>
         </v-card>
       </v-expand-transition>
-      <v-slider
-        color="red darken-3"
-        v-model="settingsInternal.Fraction"
-        class="align-center"
-        :max="max"
-        :min="min"
-        hide-details
-      >
+      <v-slider color="red darken-3" v-model="settingsInternal.Fraction" class="align-center" :max="max" :min="min" hide-details>
         <template v-slot:append>
           <v-text-field
             v-model="settingsInternal.Fraction"
@@ -87,13 +80,7 @@
           hide-details
           outlined
         ></v-text-field>
-        <v-btn
-          icon
-          class="mt-3 mb-2"
-          style="width: 60px"
-          color="primary"
-          @click="expand3 = !expand3"
-        >
+        <v-btn icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
       </div>
@@ -101,8 +88,8 @@
         <v-card v-show="expand3" class="mx-1 mt-4 mb-2">
           <div>
             <p class="px-4 pt-4 pb-3">
-              This sets the amount of slices that are encoded. More slices generally mean a more uniform representation of the estimated bitrate,
-              but if the configured fraction is too small, approximation may become inaccurate.
+              This sets the amount of slices that are encoded. More slices generally mean a more uniform representation of the
+              estimated bitrate, but if the configured fraction is too small, approximation may become inaccurate.
             </p>
           </div>
         </v-card>

@@ -17,9 +17,7 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2 mt-4">
         <div>
-          <p
-            class="px-4 pt-4 pb-3"
-          >Maximum duplicate file age in days before it is no longer protected from replacement</p>
+          <p class="px-4 pt-4 pb-3">Maximum duplicate file age in days before it is no longer protected from replacement</p>
         </div>
       </v-card>
     </v-expand-transition>
@@ -29,8 +27,7 @@
 <script>
 export default {
   methods: {},
-  mounted() {
-  },
+  mounted() {},
   data() {
     return {
       expand: false,

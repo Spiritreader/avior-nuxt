@@ -78,7 +78,15 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="darken-1" text @click="deleteConfirm = false">Cancel</v-btn>
-          <v-btn color="red darken-1" text @click="deleteConfirm = false; remove();">Delete</v-btn>
+          <v-btn
+            color="red darken-1"
+            text
+            @click="
+              deleteConfirm = false;
+              remove();
+            "
+            >Delete</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -102,15 +110,11 @@ export default {
       console.log(this.content);
       this.tagInternal = this.tag;
       if (this.content.PreArguments) {
-        this.content.PreArguments.forEach(
-          (l) => (this.preArgumentsString += l + "\n")
-        );
+        this.content.PreArguments.forEach((l) => (this.preArgumentsString += l + "\n"));
       }
 
       if (this.content.PostArguments) {
-        this.content.PostArguments.forEach(
-          (l) => (this.postArgumentsString += l + "\n")
-        );
+        this.content.PostArguments.forEach((l) => (this.postArgumentsString += l + "\n"));
       }
       if (this.content.Stash) {
         this.content.Stash.forEach((l) => (this.stashString += l + "\n"));

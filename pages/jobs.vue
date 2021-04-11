@@ -1,24 +1,9 @@
 <template>
   <v-container fluid>
-    <v-row
-      class="mb-6 mt-10"
-      justify="center"
-      no-gutters
-      v-if="$fetchState.pending"
-    >
-      <v-progress-circular
-        :size="150"
-        :width="20"
-        color="light-green darken-3"
-        indeterminate
-      ></v-progress-circular>
+    <v-row class="mb-6 mt-10" justify="center" no-gutters v-if="$fetchState.pending">
+      <v-progress-circular :size="150" :width="20" color="light-green darken-3" indeterminate></v-progress-circular>
     </v-row>
-    <v-row
-      class="mb-6"
-      justify="start"
-      no-gutters
-      v-else-if="$fetchState.error"
-    >
+    <v-row class="mb-6" justify="start" no-gutters v-else-if="$fetchState.error">
       <p>No client reachable to marshal database operations</p>
     </v-row>
     <v-row v-else>
@@ -52,25 +37,10 @@
                 <v-card>
                   <v-container>
                     <v-form v-if="!addJobsDialog">
-                      <v-text-field
-                        label="Path"
-                        v-model="newJob.Path"
-                        required
-                      ></v-text-field>
-                      <v-text-field
-                        label="Name"
-                        v-model="newJob.Name"
-                        required
-                      ></v-text-field>
-                      <v-text-field
-                        label="Subtitle"
-                        v-model="newJob.Subtitle"
-                        required
-                      ></v-text-field>
-                      <v-textarea
-                        label="Custom Parameters"
-                        v-model="newJob.CustomParameters"
-                      ></v-textarea>
+                      <v-text-field label="Path" v-model="newJob.Path" required></v-text-field>
+                      <v-text-field label="Name" v-model="newJob.Name" required></v-text-field>
+                      <v-text-field label="Subtitle" v-model="newJob.Subtitle" required></v-text-field>
+                      <v-textarea label="Custom Parameters" v-model="newJob.CustomParameters"></v-textarea>
                       <v-select
                         :items="clients"
                         :item-text="'Name'"
@@ -87,31 +57,14 @@
                         "
                         >Cancel</v-btn
                       >
-                      <v-btn
-                        class="mr-6"
-                        :loading="addingJob"
-                        :disabled="addingJob"
-                        outlined
-                        color="green"
-                        @click="addJob()"
+                      <v-btn class="mr-6" :loading="addingJob" :disabled="addingJob" outlined color="green" @click="addJob()"
                         >Add Job</v-btn
                       >
-                      <v-btn
-                        outlined
-                        color="blue darken-1"
-                        class="mr-6 my-2"
-                        @click="addJobsDialog = true"
-                        >JSON</v-btn
-                      >
+                      <v-btn outlined color="blue darken-1" class="mr-6 my-2" @click="addJobsDialog = true">JSON</v-btn>
                     </v-form>
                     <!-- Begin Add Multiple Jobs -->
                     <v-form v-else>
-                      <v-textarea
-                        label="JSON"
-                        :error-messages="newJobsError"
-                        v-model="newJobs"
-                        rows="12"
-                      ></v-textarea>
+                      <v-textarea label="JSON" :error-messages="newJobsError" v-model="newJobs" rows="12"></v-textarea>
                       <v-btn
                         class="mr-4"
                         @click="
@@ -130,13 +83,7 @@
                         @click="addJobsFromJson()"
                         >Add Jobs</v-btn
                       >
-                      <v-btn
-                        outlined
-                        color="blue darken-1"
-                        class="mr-6 my-2"
-                        @click="addJobsDialog = false"
-                        >Job Form</v-btn
-                      >
+                      <v-btn outlined color="blue darken-1" class="mr-6 my-2" @click="addJobsDialog = false">Job Form</v-btn>
                     </v-form>
                     <!-- End Add Multiple Jobs-->
                   </v-container>
@@ -148,37 +95,22 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     :loading="reassigning"
-                    :disabled="
-                      reassigning || howManyJobsAreSelectedQuestionmark === 0
-                    "
+                    :disabled="reassigning || howManyJobsAreSelectedQuestionmark === 0"
                     v-bind="attrs"
                     outlined
                     color="blue"
                     v-on="on"
                     class="ma-2"
                     >Reassign
-                    {{
-                      howManyJobsAreSelectedQuestionmark > 0
-                        ? howManyJobsAreSelectedQuestionmark + " Job" + s
-                        : ""
-                    }}</v-btn
+                    {{ howManyJobsAreSelectedQuestionmark > 0 ? howManyJobsAreSelectedQuestionmark + " Job" + s : "" }}</v-btn
                   >
                 </template>
                 <v-card>
                   <v-list>
-                    <v-list-item-group
-                      v-model="reassignToClient"
-                      color="primary"
-                    >
-                      <v-list-item
-                        v-for="(client, i) in clients"
-                        :key="i"
-                        :value="client"
-                      >
+                    <v-list-item-group v-model="reassignToClient" color="primary">
+                      <v-list-item v-for="(client, i) in clients" :key="i" :value="client">
                         <v-list-item-content>
-                          <v-list-item-title>{{
-                            client.Name
-                          }}</v-list-item-title>
+                          <v-list-item-title>{{ client.Name }}</v-list-item-title>
                         </v-list-item-content>
                       </v-list-item>
                     </v-list-item-group>
@@ -202,11 +134,7 @@
                         reassignDialog = false;
                         reassignJobs();
                       "
-                      >{{
-                        reassignToClient
-                          ? `Reassign to ${reassignToClient.Name}`
-                          : "Select Client"
-                      }}</v-btn
+                      >{{ reassignToClient ? `Reassign to ${reassignToClient.Name}` : "Select Client" }}</v-btn
                     >
                   </v-card-actions>
                 </v-card>
@@ -217,10 +145,7 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     :loading="deletingSelectedJobs"
-                    :disabled="
-                      deletingSelectedJobs ||
-                      howManyJobsAreSelectedQuestionmark === 0
-                    "
+                    :disabled="deletingSelectedJobs || howManyJobsAreSelectedQuestionmark === 0"
                     v-bind="attrs"
                     color="red"
                     v-on="on"
@@ -229,44 +154,27 @@
                   >
                     <v-icon class="mr-2">mdi-delete</v-icon>
                     Delete
-                    {{
-                      selectedJobs.length > 0
-                        ? selectedJobs.length + " Jobs"
-                        : ""
-                    }}
+                    {{ selectedJobs.length > 0 ? selectedJobs.length + " Jobs" : "" }}
                   </v-btn>
                 </template>
                 <v-card>
                   <v-card-title>Delete Selected Jobs</v-card-title>
-                  <v-card-text
-                    >Do you really want to delete the following
-                    jobs?</v-card-text
-                  >
+                  <v-card-text>Do you really want to delete the following jobs?</v-card-text>
                   <v-card-text v-if="Object.keys(selectedJobs).length > 0">
                     <v-list-item
-                      v-for="(value, idx) in Object.values(
-                        selectedJobs
-                      ).reduce((flat, ary) => flat.concat(ary))"
+                      v-for="(value, idx) in Object.values(selectedJobs).reduce((flat, ary) => flat.concat(ary))"
                       :key="`job-${idx}`"
                       two-line
                     >
                       <v-list-item-content>
-                        <v-list-item-title class="text-wrap">{{
-                          getJobName(value)
-                        }}</v-list-item-title>
-                        <v-list-item-subtitle class="text-wrap">{{
-                          value.Path
-                        }}</v-list-item-subtitle>
+                        <v-list-item-title class="text-wrap">{{ getJobName(value) }}</v-list-item-title>
+                        <v-list-item-subtitle class="text-wrap">{{ value.Path }}</v-list-item-subtitle>
                       </v-list-item-content>
                     </v-list-item>
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn
-                      class="mr-4"
-                      @click="deleteSelectedJobsDialog = false"
-                      >Cancel</v-btn
-                    >
+                    <v-btn class="mr-4" @click="deleteSelectedJobsDialog = false">Cancel</v-btn>
                     <v-btn
                       outlined
                       class="mr-4"
@@ -289,10 +197,7 @@
             <v-list-item>
               <v-list-item-content>
                 <v-list-item-title class="error pa-2"
-                  >{{ reassignError }} job{{
-                    reassignError > 1 ? "s" : ""
-                  }}
-                  could not be reassigned</v-list-item-title
+                  >{{ reassignError }} job{{ reassignError > 1 ? "s" : "" }} could not be reassigned</v-list-item-title
                 >
               </v-list-item-content>
             </v-list-item>
@@ -300,25 +205,15 @@
           <!-- End Reassign Error -->
 
           <!-- Begin Client List -->
-          <v-list-group
-            v-for="(client, i) in clients"
-            :key="`client-${i}`"
-            sub-group
-          >
+          <v-list-group v-for="(client, i) in clients" :key="`client-${i}`" sub-group>
             <template v-slot:activator>
               <v-list-item-content>
                 <v-list-item-title>
-                  <v-icon class="pb-1" :color="client.Online ? 'green' : 'red'"
-                    >mdi-power</v-icon
-                  >
+                  <v-icon class="pb-1" :color="client.Online ? 'green' : 'red'">mdi-power</v-icon>
                   {{ client.Name }}
                 </v-list-item-title>
                 <v-list-item-subtitle
-                  v-text="
-                    client.Jobs
-                      ? `${client.Jobs.length} assigned`
-                      : '${client.Jobs.length} assigned'
-                  "
+                  v-text="client.Jobs ? `${client.Jobs.length} assigned` : '${client.Jobs.length} assigned'"
                 ></v-list-item-subtitle>
               </v-list-item-content>
             </template>
@@ -340,7 +235,7 @@
 
 
 <script>
-import any from 'promise.any';
+import any from "promise.any";
 
 export default {
   data: () => ({
@@ -418,12 +313,7 @@ export default {
      * Removes all object keys within the filter, such that a job object only contains relevant keys to be displayed for rendering
      */
     filteredJob: function (job) {
-      const filter = [
-        "EditJobDialog",
-        "EditingJob",
-        "DeleteJobDialog",
-        "DeleteJob",
-      ];
+      const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeleteJob"];
       const filtered = Object.keys(job)
         .filter((key) => !filter.includes(key))
         .reduce((obj, key) => {

@@ -1,18 +1,9 @@
 <template>
   <div>
-    <v-skeleton-loader
-      v-if=client.Refreshing
-      type="image"
-      class="ma-2"
-    ></v-skeleton-loader>
+    <v-skeleton-loader v-if="client.Refreshing" type="image" class="ma-2"></v-skeleton-loader>
     <v-card
       v-else
-      :loading="
-        client.Encoder &&
-        (client.Encoder.Active ||
-          client.Mover.Active ||
-          client.FileWalker.Active)
-      "
+      :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)"
       class="ma-2"
     >
       <!-- Begin Progress Bar -->
@@ -43,12 +34,8 @@
           <div class="mr-auto">
             {{ client.HostName }}
             <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
-            <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'"
-              >mdi-lan-disconnect</v-icon
-            >
-            <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'"
-              >mdi-timer-outline</v-icon
-            >
+            <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
+            <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
           </div>
           <!-- Begin Card Buttons -->
           <div v-if="isOnline()">
@@ -83,19 +70,13 @@
             >
               <v-tooltip bottom>
                 <template v-slot:activator="{ on, attrs }">
-                  <v-icon v-bind="attrs" v-on="on"
-                    >mdi-play-circle-outline</v-icon
-                  >
+                  <v-icon v-bind="attrs" v-on="on">mdi-play-circle-outline</v-icon>
                 </template>
                 <span>Resume</span>
               </v-tooltip>
             </v-btn>
             <!-- Begin Shutdown Dialog -->
-            <v-dialog
-              v-if="isOnline()"
-              v-model="shutdownConfirm"
-              max-width="500"
-            >
+            <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   class="mb-2"
@@ -118,16 +99,13 @@
               <v-card>
                 <v-card-title>Shut down service</v-card-title>
                 <v-card-text>
-                  Do you really want to shut down {{ client.HostName }}'s
-                  service? This action is irreversible with the web-gui. You'll
-                  have to restart it physically on the client machine.
+                  Do you really want to shut down {{ client.HostName }}'s service? This action is irreversible with the web-gui.
+                  You'll have to restart it physically on the client machine.
                 </v-card-text>
 
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="darken-1" text @click="shutdownConfirm = false"
-                    >Cancel</v-btn
-                  >
+                  <v-btn color="darken-1" text @click="shutdownConfirm = false">Cancel</v-btn>
                   <v-btn
                     color="red darken-1"
                     text
@@ -156,14 +134,7 @@
           }"
         >
           Status: {{ activeProcess.text }}
-          <span
-            v-if="
-              client.Encoder &&
-              client.Encoder.Active &&
-              client.Encoder.OfSlices !== 0
-            "
-            >Estimating</span
-          >
+          <span v-if="client.Encoder && client.Encoder.Active && client.Encoder.OfSlices !== 0">Estimating</span>
         </p>
         <p v-if="client.InFile" class="body-2">{{ client.InFile }}</p>
         <!-- End Card Info -->
@@ -188,10 +159,7 @@
             </v-list>
             <!-- End Dense Card Content -->
             <!-- Begin Encoder Card Content -->
-            <v-list
-              v-else-if="activeProcess.process === 'encoder' && isActive()"
-              dense
-            >
+            <v-list v-else-if="activeProcess.process === 'encoder' && isActive()" dense>
               <v-list-item v-if="remaining && remaining !== '00:00:00'">
                 <v-row>
                   <v-col class="pa-0" md="2" sm="4" xs="6">
@@ -208,25 +176,17 @@
                     <v-list-item-content>Speed</v-list-item-content>
                   </v-col>
                   <v-col class="pa-0" md="10" sm="8" xs="6">
-                    <v-list-item-content>{{
-                      client.Encoder.Speed
-                    }}</v-list-item-content>
+                    <v-list-item-content>{{ client.Encoder.Speed }}</v-list-item-content>
                   </v-col>
                 </v-row>
               </v-list-item>
-              <v-list-item
-                v-if="client.Encoder.Slice && client.Encoder.OfSlices !== 0"
-              >
+              <v-list-item v-if="client.Encoder.Slice && client.Encoder.OfSlices !== 0">
                 <v-row>
                   <v-col class="pa-0" md="2" sm="4" xs="6">
                     <v-list-item-content>Slice</v-list-item-content>
                   </v-col>
                   <v-col class="pa-0" md="10" sm="8" xs="6">
-                    <v-list-item-content
-                      >{{ client.Encoder.Slice }}/{{
-                        client.Encoder.OfSlices
-                      }}</v-list-item-content
-                    >
+                    <v-list-item-content>{{ client.Encoder.Slice }}/{{ client.Encoder.OfSlices }}</v-list-item-content>
                   </v-col>
                 </v-row>
               </v-list-item>
@@ -236,9 +196,7 @@
                     <v-list-item-content>FPS</v-list-item-content>
                   </v-col>
                   <v-col class="pa-0" md="10" sm="8" xs="6">
-                    <v-list-item-content>{{
-                      client.Encoder.Fps
-                    }}</v-list-item-content>
+                    <v-list-item-content>{{ client.Encoder.Fps }}</v-list-item-content>
                   </v-col>
                 </v-row>
               </v-list-item>
@@ -246,10 +204,7 @@
             <!-- End Encoder Card Content -->
           </div>
           <!-- Begin Progress Circle -->
-          <div
-            v-if="isActive() && activeProcess.process !== 'working'"
-            class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'"
-          >
+          <div v-if="isActive() && activeProcess.process !== 'working'" class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'">
             <v-progress-circular
               transition="slide-x-transition"
               class="text-h5"
@@ -260,9 +215,7 @@
               :color="'yellow darken-3'"
               :indeterminate="determineIndeterminate()"
             >
-              <span v-if="!determineIndeterminate()"
-                >{{ activeProcessProgress }}%</span
-              >
+              <span v-if="!determineIndeterminate()">{{ activeProcessProgress }}%</span>
             </v-progress-circular>
           </div>
           <!-- End Progress Circle -->
@@ -272,30 +225,17 @@
       <!-- End Card Main -->
       <!-- Begin Card Actions -->
       <v-card-actions>
-        <v-btn
-          v-if="activeProcessInfoLength >= 5"
-          icon
-          @click="showProcessInfo = !showProcessInfo"
-        >
+        <v-btn v-if="activeProcessInfoLength >= 5" icon @click="showProcessInfo = !showProcessInfo">
           <v-icon>mdi-format-list-bulleted</v-icon>
         </v-btn>
         <v-btn
-          v-if="
-            client.EncoderLineOut && !client.EncoderLineOut.includes('null')
-          "
+          v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')"
           icon
           @click="showEncoderLog = !showEncoderLog"
         >
           <v-icon>mdi-console</v-icon>
         </v-btn>
-        <v-btn-toggle
-          v-if="isOnline()"
-          v-model="toggle_exclusive"
-          class="ml-auto"
-          dense
-          borderless
-          exclusive
-        >
+        <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" dense borderless exclusive>
           <v-btn icon @click="getMainLog()">
             <v-icon>mdi-text-box-outline</v-icon>
           </v-btn>
@@ -332,25 +272,14 @@
       </v-expand-transition>
       <!-- End Extended Info -->
       <!-- Begin Encoder Log -->
-      <v-expand-transition
-        v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')"
-      >
+      <v-expand-transition v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')">
         <div v-show="showEncoderLog">
-          <v-virtual-scroll
-            :items="client.EncoderLineOut"
-            :item-height="20"
-            height="300"
-            class="mb-2"
-          >
+          <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
-                  <v-list-item-content
-                    class="pa-0 pr-2 virtual-scroller-content-wrapper"
-                  >
-                    <v-list-item-subtitle class="virtual-scroller-content">{{
-                      item
-                    }}</v-list-item-subtitle>
+                  <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                    <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </div>
@@ -363,21 +292,12 @@
       <v-expand-transition>
         <div v-show="showMainLog">
           <v-card-title class="mb-0 pb-0">Main Log</v-card-title>
-          <v-virtual-scroll
-            :items="mainLog"
-            :item-height="20"
-            height="300"
-            class="mb-2"
-          >
+          <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
-                  <v-list-item-content
-                    class="pa-0 pr-2 virtual-scroller-content-wrapper"
-                  >
-                    <v-list-item-subtitle class="virtual-scroller-content">{{
-                      item
-                    }}</v-list-item-subtitle>
+                  <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                    <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </div>
@@ -391,21 +311,12 @@
         <div v-show="showErrorLog">
           <v-card-title class="mb-0 pb-0">Error Log</v-card-title>
 
-          <v-virtual-scroll
-            :items="errorLog"
-            :item-height="20"
-            height="300"
-            class="mb-2"
-          >
+          <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
-                  <v-list-item-content
-                    class="pa-0 pr-2 virtual-scroller-content-wrapper"
-                  >
-                    <v-list-item-subtitle class="virtual-scroller-content">{{
-                      item
-                    }}</v-list-item-subtitle>
+                  <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                    <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </div>
@@ -418,21 +329,12 @@
       <v-expand-transition>
         <div v-show="showProcessedLog">
           <v-card-title class="mb-0 pb-0">Processed Log</v-card-title>
-          <v-virtual-scroll
-            :items="processedLog"
-            :item-height="20"
-            height="300"
-            class="mb-2"
-          >
+          <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
-                  <v-list-item-content
-                    class="pa-0 pr-2 virtual-scroller-content-wrapper"
-                  >
-                    <v-list-item-subtitle class="virtual-scroller-content">{{
-                      item
-                    }}</v-list-item-subtitle>
+                  <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                    <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </div>
@@ -445,21 +347,12 @@
       <v-expand-transition>
         <div v-show="showSkippedLog">
           <v-card-title class="mb-0 pb-0">Skipped Log</v-card-title>
-          <v-virtual-scroll
-            :items="skippedLog"
-            :item-height="20"
-            height="300"
-            class="mb-2"
-          >
+          <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
-                  <v-list-item-content
-                    class="pa-0 pr-2 virtual-scroller-content-wrapper"
-                  >
-                    <v-list-item-subtitle class="virtual-scroller-content">{{
-                      item
-                    }}</v-list-item-subtitle>
+                  <v-list-item-content class="pa-0 pr-2 virtual-scroller-content-wrapper">
+                    <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
               </div>
@@ -504,7 +397,7 @@ export default {
     errorMessageTimeout: null,
   }),
   props: {
-    client: Object
+    client: Object,
   },
   computed: {
     bufferValue: function () {
@@ -632,8 +525,7 @@ export default {
     determineIndeterminate: function () {
       return (
         (this.client.Encoder.Active && this.client.Encoder.Remaining === 0) ||
-        (this.client.FileWalker.Active &&
-          this.client.FileWalker.LibSize === 0) ||
+        (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0) ||
         this.client.InFile == ""
       );
     },
@@ -675,13 +567,7 @@ export default {
           try {
             //todo: BUGGED!!!!! reponse never comes
             const refreshResponse = await this.$http.$get(url);
-            if (
-              !(
-                refreshResponse.Encoder.Active ||
-                refreshResponse.FileWalker.Active ||
-                refreshResponse.Mover.Active
-              )
-            ) {
+            if (!(refreshResponse.Encoder.Active || refreshResponse.FileWalker.Active || refreshResponse.Mover.Active)) {
               this.setClientPaused();
             }
           } catch (err) {
@@ -741,10 +627,7 @@ export default {
       }
     },
     getDurationFromDate: function (date) {
-      return `${date
-        .getUTCHours()
-        .toString()
-        .padStart(2, "0")}:${date
+      return `${date.getUTCHours().toString().padStart(2, "0")}:${date
         .getUTCMinutes()
         .toString()
         .padStart(2, "0")}:${date.getUTCSeconds().toString().padStart(2, "0")}`;
@@ -758,22 +641,11 @@ export default {
       client.Position = this.getDurationFromDate(position);
       client.Remaining = this.getDurationFromDate(remaining);
       this.remaining = client.Remaining;
-      client = this.filterObject(client, [
-        "Active",
-        "Remaining",
-        "Speed",
-        "Slice",
-        "OfSlices",
-        "Fps",
-        "Progress",
-      ]);
+      client = this.filterObject(client, ["Active", "Remaining", "Speed", "Slice", "OfSlices", "Fps", "Progress"]);
       return client;
     },
     getFileWalkerInfo: function () {
-      let client = this.filterObject(this.client.FileWalker, [
-        "Active",
-        "Progress",
-      ]);
+      let client = this.filterObject(this.client.FileWalker, ["Active", "Progress"]);
       this.remaining = null;
       return client;
     },
@@ -788,11 +660,7 @@ export default {
       if (encoder.OfSlices == 0) {
         progress = encoder.Progress.toFixed(2);
       } else {
-        progress = (
-          ((encoder.Slice - 1) / encoder.OfSlices +
-            encoder.Progress / 100 / encoder.OfSlices) *
-          100
-        ).toFixed(2);
+        progress = (((encoder.Slice - 1) / encoder.OfSlices + encoder.Progress / 100 / encoder.OfSlices) * 100).toFixed(2);
       }
       return progress;
     },

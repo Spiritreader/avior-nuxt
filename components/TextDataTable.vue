@@ -23,14 +23,7 @@
         <v-spacer></v-spacer>
         <v-dialog v-model="dialogDeleteSelected" max-width="500px">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="red darken-2"
-              outlined
-              :disabled="selected.length === 0"
-              class="ml-2"
-              v-bind="attrs"
-              v-on="on"
-            >
+            <v-btn color="red darken-2" outlined :disabled="selected.length === 0" class="ml-2" v-bind="attrs" v-on="on">
               <v-icon>mdi-delete</v-icon>
               {{ selected.length > 0 ? selected.length : "" }}
             </v-btn>
@@ -40,26 +33,17 @@
               <span class="headline">Delete {{ selected.length }} Fields</span>
             </v-card-title>
 
-            <v-card-text
-              >Do you really want to delete the following fields?</v-card-text
-            >
+            <v-card-text>Do you really want to delete the following fields?</v-card-text>
             <v-card-text>
-              <v-list-item
-                v-for="(field, idx) in selected"
-                :key="`field-${idx}`"
-              >
+              <v-list-item v-for="(field, idx) in selected" :key="`field-${idx}`">
                 <v-list-item-content>
-                  <v-list-item-title class="text-wrap">{{
-                    field.Value
-                  }}</v-list-item-title>
+                  <v-list-item-title class="text-wrap">{{ field.Value }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="darken-1" text @click="dialogDeleteSelected = false"
-                >Cancel</v-btn
-              >
+              <v-btn color="darken-1" text @click="dialogDeleteSelected = false">Cancel</v-btn>
               <v-btn
                 color="red darken-1"
                 text
@@ -74,13 +58,7 @@
         </v-dialog>
         <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              outlined
-              color="indigo lighten-3"
-              class="mx-2"
-              v-bind="attrs"
-              v-on="on"
-            >
+            <v-btn outlined color="indigo lighten-3" class="mx-2" v-bind="attrs" v-on="on">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
           </template>
@@ -92,10 +70,7 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-text-field
-                    v-model="editedItem.Value"
-                    label="Field name"
-                  ></v-text-field>
+                  <v-text-field v-model="editedItem.Value" label="Field name"></v-text-field>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -103,9 +78,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="add">{{
-                actionButton
-              }}</v-btn>
+              <v-btn color="blue darken-1" text @click="add">{{ actionButton }}</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -121,15 +94,11 @@
         </template>
         <v-card>
           <v-card-title>Delete {{ item.Value }}</v-card-title>
-          <v-card-text
-            >Do you really want to delete {{ item.Value }}?</v-card-text
-          >
+          <v-card-text>Do you really want to delete {{ item.Value }}?</v-card-text>
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="darken-1" text @click="item.deleteDialog = false"
-              >Cancel</v-btn
-            >
+            <v-btn color="darken-1" text @click="item.deleteDialog = false">Cancel</v-btn>
             <v-btn
               color="red darken-1"
               text

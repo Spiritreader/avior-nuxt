@@ -7,20 +7,14 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div>
-          <p
-            class="px-4 pt-4 mb-0 pb-4"
-          >This setting configures how much difference in the recorded length vs the broadcasted length of a video file is allowed.</p>
+          <p class="px-4 pt-4 mb-0 pb-4">
+            This setting configures how much difference in the recorded length vs the broadcasted length of a video file is
+            allowed.
+          </p>
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider
-      color="red darken-3"
-      v-model="threshold"
-      class="align-center"
-      :max="max"
-      :min="min"
-      hide-details
-    >
+    <v-slider color="red darken-3" v-model="threshold" class="align-center" :max="max" :min="min" hide-details>
       <template v-slot:append>
         <v-text-field
           v-model="threshold"

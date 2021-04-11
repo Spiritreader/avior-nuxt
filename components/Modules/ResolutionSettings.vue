@@ -8,20 +8,14 @@
       <v-card v-show="expand" class="mx-1 mb-2">
         <div>
           <p class="px-4 pt-4 mb-0 pb-4">
-            This setting configures how large the difference between two files' resolutions in percent is allowed.
-            This goes both ways. The new file is eligible if the resolution is {{minResolution}}% higher, but will be rejected if it's {{minResolution}}% lower.
+            This setting configures how large the difference between two files' resolutions in percent is allowed. This goes both
+            ways. The new file is eligible if the resolution is {{ minResolution }}% higher, but will be rejected if it's
+            {{ minResolution }}% lower.
           </p>
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider
-      color="red darken-3"
-      v-model="minResolution"
-      class="align-center"
-      :max="max"
-      :min="min"
-      hide-details
-    >
+    <v-slider color="red darken-3" v-model="minResolution" class="align-center" :max="max" :min="min" hide-details>
       <template v-slot:append>
         <v-text-field
           v-model="minResolution"
