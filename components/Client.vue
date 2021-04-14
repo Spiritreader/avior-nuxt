@@ -1,11 +1,7 @@
 <template>
   <div>
     <v-skeleton-loader v-if="client.Refreshing" type="image" class="ma-2"></v-skeleton-loader>
-    <v-card
-      v-else
-      :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)"
-      class="ma-2"
-    >
+    <v-card v-else :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)" class="ma-2">
       <!-- Begin Progress Bar -->
       <template style="min-height: 4px" v-slot:progress>
         <v-progress-linear
@@ -78,16 +74,7 @@
             <!-- Begin Shutdown Dialog -->
             <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
               <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  class="mb-2"
-                  :loading="shutdownMachine"
-                  :disabled="shutdownMachine"
-                  large
-                  icon
-                  color="red"
-                  v-bind="attrs"
-                  v-on="on"
-                >
+                <v-btn class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" large icon color="red" v-bind="attrs" v-on="on">
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-icon v-bind="attrs" v-on="on">mdi-power</v-icon>
@@ -99,8 +86,8 @@
               <v-card>
                 <v-card-title>Shut down service</v-card-title>
                 <v-card-text>
-                  Do you really want to shut down {{ client.HostName }}'s service? This action is irreversible with the web-gui.
-                  You'll have to restart it physically on the client machine.
+                  Do you really want to shut down {{ client.HostName }}'s service? This action is irreversible with the web-gui. You'll have
+                  to restart it physically on the client machine.
                 </v-card-text>
 
                 <v-card-actions>
@@ -225,29 +212,60 @@
       <!-- End Card Main -->
       <!-- Begin Card Actions -->
       <v-card-actions>
-        <v-btn v-if="activeProcessInfoLength >= 5" icon @click="showProcessInfo = !showProcessInfo">
-          <v-icon>mdi-format-list-bulleted</v-icon>
-        </v-btn>
-        <v-btn
-          v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')"
-          icon
-          @click="showEncoderLog = !showEncoderLog"
-        >
-          <v-icon>mdi-console</v-icon>
-        </v-btn>
+        <v-tooltip top v-if="activeProcessInfoLength >= 5">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon v-bind="attrs" v-on="on" @click="showProcessInfo = !showProcessInfo">
+              <v-icon>mdi-format-list-bulleted</v-icon>
+            </v-btn>
+          </template>
+          <span>Process Info</span>
+        </v-tooltip>
+
+        
+        <v-tooltip top v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')" >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon v-bind="attrs" v-on="on" @click="showEncoderLog = !showEncoderLog">
+              <v-icon>mdi-console</v-icon>
+            </v-btn>
+          </template>
+          <span>Encoder Log</span>
+        </v-tooltip>
         <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" dense borderless exclusive>
-          <v-btn icon @click="getMainLog()">
-            <v-icon>mdi-text-box-outline</v-icon>
-          </v-btn>
-          <v-btn icon @click="getErrorLog()">
-            <v-icon>mdi-text-box-remove-outline</v-icon>
-          </v-btn>
-          <v-btn icon @click="getProcessedLog()">
-            <v-icon>mdi-text-box-plus-outline</v-icon>
-          </v-btn>
-          <v-btn icon @click="getSkippedLog()">
-            <v-icon>mdi-text-box-minus-outline</v-icon>
-          </v-btn>
+          <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" @click="getMainLog()">
+                <v-icon>mdi-text-box-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Main Log</span>
+          </v-tooltip>
+
+          <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" @click="getErrorLog()">
+                <v-icon>mdi-text-box-remove-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Error Log</span>
+          </v-tooltip>
+
+          <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" @click="getProcessedLog()">
+                <v-icon>mdi-text-box-plus-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Processed Log</span>
+          </v-tooltip>
+
+          <v-tooltip top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" @click="getSkippedLog()">
+                <v-icon>mdi-text-box-minus-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Skipped Log</span>
+          </v-tooltip>
         </v-btn-toggle>
       </v-card-actions>
       <!-- End Card Actions -->

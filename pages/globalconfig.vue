@@ -1,63 +1,25 @@
 <template>
   <div>
-    <v-row
-      class="mb-6 mt-10"
-      justify="center"
-      no-gutters
-      v-if="$fetchState.pending"
-    >
-      <v-progress-circular
-        :size="150"
-        :width="20"
-        color="indigo lighten-2"
-        indeterminate
-      ></v-progress-circular>
+    <v-row class="mb-6 mt-10" justify="center" no-gutters v-if="$fetchState.pending">
+      <v-progress-circular :size="150" :width="20" color="indigo lighten-2" indeterminate></v-progress-circular>
     </v-row>
-    <v-row
-      class="mb-6"
-      justify="start"
-      no-gutters
-      v-else-if="$fetchState.error"
-    >
+    <v-row class="mb-6" justify="start" no-gutters v-else-if="$fetchState.error">
       <p>No client reachable to marshal database operations</p>
     </v-row>
     <v-card v-else>
-      <v-tabs
-        background-color="indigo lighten-2"
-        centered
-        color="white"
-        dark
-        show-arrows
-        v-model="tab"
-      >
+      <v-tabs background-color="indigo lighten-2" centered color="white" dark show-arrows v-model="tab">
         <v-tabs-slider color="white"></v-tabs-slider>
-        <v-tab href="#tab-1">
-          <v-icon class="mr-1">mdi-laptop</v-icon>Clients
-        </v-tab>
-        <v-tab href="#tab-2">
-          <v-icon class="mr-1">mdi-alphabetical-variant-off</v-icon>Name Exclude
-        </v-tab>
-        <v-tab href="#tab-3">
-          <v-icon class="mr-1">mdi-alphabetical-off</v-icon>Sub Exclude
-        </v-tab>
-        <v-tab href="#tab-4">
-          <v-icon class="mr-1">mdi-playlist-check</v-icon>Log Include
-        </v-tab>
-        <v-tab href="#tab-5">
-          <v-icon class="mr-1">mdi-playlist-remove</v-icon>Log Exclude
-        </v-tab>
+        <v-tab href="#tab-1"> <v-icon class="mr-1">mdi-laptop</v-icon>Clients </v-tab>
+        <v-tab href="#tab-2"> <v-icon class="mr-1">mdi-alphabetical-variant-off</v-icon>Name Exclude </v-tab>
+        <v-tab href="#tab-3"> <v-icon class="mr-1">mdi-alphabetical-off</v-icon>Sub Exclude </v-tab>
+        <v-tab href="#tab-4"> <v-icon class="mr-1">mdi-playlist-check</v-icon>Log Include </v-tab>
+        <v-tab href="#tab-5"> <v-icon class="mr-1">mdi-playlist-remove</v-icon>Log Exclude </v-tab>
       </v-tabs>
 
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <v-container class="pt-4 pb-0">
-            <v-btn
-              @click="clientAdd = true"
-              class="pl-2"
-              color="orange lighten-2"
-              outlined
-              text
-            >
+            <v-btn @click="clientAdd = true" class="pl-2" color="orange lighten-2" outlined text>
               <v-icon class="mr-2">mdi-plus</v-icon>New
             </v-btn>
           </v-container>
@@ -68,12 +30,7 @@
                 <v-card-title>Add client</v-card-title>
                 <v-container class="px-7">
                   <v-form>
-                    <v-text-field
-                      label="Name"
-                      outlined
-                      required
-                      v-model="newClient.Name"
-                    ></v-text-field>
+                    <v-text-field label="Name" outlined required v-model="newClient.Name"></v-text-field>
                   </v-form>
                 </v-container>
                 <v-card-actions>
@@ -87,41 +44,19 @@
                     text
                     >Cancel</v-btn
                   >
-                  <v-btn
-                    :loading="clientLoader"
-                    @click="addClient()"
-                    color="indigo lighten-3"
-                    text
-                    >Add</v-btn
-                  >
+                  <v-btn :loading="clientLoader" @click="addClient()" color="indigo lighten-3" text>Add</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
 
             <!-- client list -->
             <v-list>
-              <v-list-group
-                :key="client.id"
-                no-action
-                sub-group
-                v-for="client in clients"
-                v-model="client.active"
-                value="true"
-              >
-                <v-dialog
-                  max-width="500"
-                  v-if="client.Selected"
-                  v-model="client.Selected"
-                >
+              <v-list-group :key="client.id" no-action sub-group v-for="client in clients" v-model="client.active" value="true">
+                <v-dialog max-width="500" v-if="client.Selected" v-model="client.Selected">
                   <v-card>
                     <v-card-title>Delete confirm</v-card-title>
-                    <v-card-subtitle
-                      >Do you really want to delete
-                      {{ client.Name }}?</v-card-subtitle
-                    >
-                    <v-alert class="mx-5" v-if="err" type="error">{{
-                      err
-                    }}</v-alert>
+                    <v-card-subtitle>Do you really want to delete {{ client.Name }}?</v-card-subtitle>
+                    <v-alert class="mx-5" v-if="err" type="error">{{ err }}</v-alert>
                     <v-card-actions>
                       <v-spacer></v-spacer>
                       <v-btn
@@ -133,12 +68,7 @@
                         text
                         >Cancel</v-btn
                       >
-                      <v-btn
-                        @click="deleteClient(client)"
-                        color="red darken-1"
-                        text
-                        >Delete</v-btn
-                      >
+                      <v-btn @click="deleteClient(client)" color="red darken-1" text>Delete</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
@@ -162,12 +92,7 @@
                     <v-layout class="pt-4 d-flex flex-wrap" row wrap>
                       <v-flex class="px-2" md4 sm6 xs12>
                         <v-text-field
-                          :rules="[
-                            (v) =>
-                              (v || '').indexOf(' ') < 0 ||
-                              'No spaces are allowed',
-                            (v) => !!v || 'Name is required',
-                          ]"
+                          :rules="[(v) => (v || '').indexOf(' ') < 0 || 'No spaces are allowed', (v) => !!v || 'Name is required']"
                           label="Name"
                           outlined
                           v-model="client.Name"
@@ -175,10 +100,7 @@
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
                         <v-text-field
-                          :rules="[
-                            (v) =>
-                              (!!v && v >= 0) || 'Must be set and positive',
-                          ]"
+                          :rules="[(v) => (!!v && v >= 0) || 'Must be set and positive']"
                           label="Priority"
                           outlined
                           type="number"
@@ -187,10 +109,7 @@
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
                         <v-text-field
-                          :rules="[
-                            (v) =>
-                              (!!v && v >= 0) || 'Must be set and positive',
-                          ]"
+                          :rules="[(v) => (!!v && v >= 0) || 'Must be set and positive']"
                           label="Maximum Jobs"
                           outlined
                           type="number"
@@ -207,21 +126,9 @@
                           transition="scale-transition"
                         >
                           <template v-slot:activator="{ on }">
-                            <v-text-field
-                              :value="client.AvailabilityStart"
-                              label="Start Time"
-                              outlined
-                              readonly
-                              v-on="on"
-                            />
+                            <v-text-field :value="client.AvailabilityStart" label="Start Time" outlined readonly v-on="on" />
                           </template>
-                          <v-time-picker
-                            class="mt-4"
-                            format="24hr"
-                            min="0:00"
-                            scrollable
-                            v-model="client.AvailabilityStart"
-                          />
+                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityStart" />
                         </v-menu>
                       </v-flex>
                       <v-flex class="px-2" md2>
@@ -234,44 +141,18 @@
                           transition="scale-transition"
                         >
                           <template v-slot:activator="{ on }">
-                            <v-text-field
-                              :value="client.AvailabilityEnd"
-                              label="End Time"
-                              outlined
-                              readonly
-                              v-on="on"
-                            />
+                            <v-text-field :value="client.AvailabilityEnd" label="End Time" outlined readonly v-on="on" />
                           </template>
-                          <v-time-picker
-                            class="mt-4"
-                            format="24hr"
-                            min="0:00"
-                            scrollable
-                            v-model="client.AvailabilityEnd"
-                          />
+                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityEnd" />
                         </v-menu>
                       </v-flex>
                     </v-layout>
                     <v-row justify="center">
-                      <v-btn
-                        :loading="clientLoader"
-                        class="ml-2"
-                        color="indigo lighten-2"
-                        icon
-                      >
-                        <v-icon @click="editClient(client)" size="30"
-                          >mdi-content-save</v-icon
-                        >
+                      <v-btn :loading="clientLoader" class="ml-2" color="indigo lighten-2" icon>
+                        <v-icon @click="editClient(client)" size="30">mdi-content-save</v-icon>
                       </v-btn>
-                      <v-btn
-                        :loading="clientLoader"
-                        class="ml-2"
-                        color="red lighten-2"
-                        icon
-                      >
-                        <v-icon @click="client.Selected = true" size="30"
-                          >mdi-delete</v-icon
-                        >
+                      <v-btn :loading="clientLoader" class="ml-2" color="red lighten-2" icon>
+                        <v-icon @click="client.Selected = true" size="30">mdi-delete</v-icon>
                       </v-btn>
                     </v-row>
                   </v-container>
@@ -306,10 +187,7 @@
               class="mt-3"
               >Export</v-btn
             >
-            <TextDataTable
-              @newdata="modifyFields($event, 'name_exclude')"
-              v-model="nameExcludes"
-            ></TextDataTable>
+            <TextDataTable @newdata="modifyFields($event, 'name_exclude')" v-model="nameExcludes"></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-3">
@@ -336,10 +214,7 @@
             >Export</v-btn
           >
           <v-card flat>
-            <TextDataTable
-              @newdata="modifyFields($event, 'sub_exclude')"
-              v-model="subExcludes"
-            ></TextDataTable>
+            <TextDataTable @newdata="modifyFields($event, 'sub_exclude')" v-model="subExcludes"></TextDataTable>
           </v-card>
         </v-tab-item>
 
@@ -367,10 +242,7 @@
               class="mt-3"
               >Export</v-btn
             >
-            <TextDataTable
-              @newdata="modifyFields($event, 'log_include')"
-              v-model="logIncludes"
-            ></TextDataTable>
+            <TextDataTable @newdata="modifyFields($event, 'log_include')" v-model="logIncludes"></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-5">
@@ -397,10 +269,7 @@
               class="mt-3"
               >Export</v-btn
             >
-            <TextDataTable
-              @newdata="modifyFields($event, 'log_exclude')"
-              v-model="logExcludes"
-            ></TextDataTable>
+            <TextDataTable @newdata="modifyFields($event, 'log_exclude')" v-model="logExcludes"></TextDataTable>
           </v-card>
         </v-tab-item>
       </v-tabs-items>
@@ -412,9 +281,7 @@
           Paste your fields here!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle
-          >Your changes are saved as soon as you hit Import</v-card-subtitle
-        >
+        <v-card-subtitle>Your changes are saved as soon as you hit Import</v-card-subtitle>
         <v-container>
           <v-textarea
             outlined
@@ -436,14 +303,7 @@
             "
             >Cancel</v-btn
           >
-          <v-btn
-            color="green"
-            :loading="importLoader"
-            :disabled="importLoader"
-            text
-            @click="importConfig"
-            >Import</v-btn
-          >
+          <v-btn color="green" :loading="importLoader" :disabled="importLoader" text @click="importConfig">Import</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -453,18 +313,9 @@
           Here's your configuration in a json format!
           <v-icon class="ml-2">mdi-emoticon-wink-outline</v-icon>
         </v-card-title>
-        <v-card-subtitle
-          >DatabaseURL is omitted and can only be set from the client
-          machine</v-card-subtitle
-        >
+        <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
         <v-container>
-          <v-textarea
-            outlined
-            label="Export"
-            rows="12"
-            v-model="exportContent"
-            name="Export"
-          ></v-textarea>
+          <v-textarea outlined label="Export" rows="12" v-model="exportContent" name="Export"></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -481,11 +332,7 @@
       </v-card>
     </v-dialog>
     <v-overlay :value="deleting">
-      <v-progress-circular
-        :value="deleteProgress"
-        width="15"
-        size="150"
-      ></v-progress-circular>
+      <v-progress-circular :value="deleteProgress" width="15" size="150"></v-progress-circular>
     </v-overlay>
   </div>
 </template>
@@ -559,10 +406,7 @@ export default {
         content = content.map((f) => ({ Value: f }));
         console.log(content);
         this.importError = "";
-        await this.$http.$post(
-          `${this.url}/fields/${this.importType}/`,
-          content
-        );
+        await this.$http.$post(`${this.url}/fields/${this.importType}/`, content);
         this.reloadData(this.importType);
         this.importType = "";
         this.importDialog = false;
@@ -594,9 +438,7 @@ export default {
       switch (event.mode) {
         case "create":
           try {
-            await this.$http.$post(`${this.url}/fields/${fieldType}/`, [
-              event.obj,
-            ]);
+            await this.$http.$post(`${this.url}/fields/${fieldType}/`, [event.obj]);
             await this.reloadData(fieldType);
           } catch (err) {
             console.error(err);
@@ -604,9 +446,7 @@ export default {
           break;
         case "update":
           try {
-            await this.$http.$put(`${this.url}/fields/${fieldType}/`, [
-              event.obj,
-            ]);
+            await this.$http.$put(`${this.url}/fields/${fieldType}/`, [event.obj]);
           } catch (err) {
             console.error(err);
           }
@@ -614,9 +454,7 @@ export default {
         case "delete":
           console.log(event);
           try {
-            await this.$http.$delete(
-              `${this.url}/fields/${fieldType}/${event.obj.ID}/`
-            );
+            await this.$http.$delete(`${this.url}/fields/${fieldType}/${event.obj.ID}/`);
             await this.reloadData(fieldType);
           } catch (err) {
             console.error(err);
@@ -628,13 +466,9 @@ export default {
           console.log(event);
           try {
             for (const [idx, obj] of event.ary.entries()) {
-              await this.$http.$delete(
-                `${this.url}/fields/${fieldType}/${obj.ID}/`
-              );
+              await this.$http.$delete(`${this.url}/fields/${fieldType}/${obj.ID}/`);
               if (idx % 5 == 0) {
-                this.deleteProgress = Math.round(
-                  (idx / event.ary.length) * 100
-                );
+                this.deleteProgress = Math.round((idx / event.ary.length) * 100);
               }
             }
             this.deleteProgress = 100;
@@ -650,18 +484,10 @@ export default {
     },
     async getFields() {
       try {
-        this.nameExcludes = await this.$http.$get(
-          `${this.url}/fields/name_exclude/`
-        );
-        this.subExcludes = await this.$http.$get(
-          `${this.url}/fields/sub_exclude/`
-        );
-        this.logExcludes = await this.$http.$get(
-          `${this.url}/fields/log_exclude/`
-        );
-        this.logIncludes = await this.$http.$get(
-          `${this.url}/fields/log_include/`
-        );
+        this.nameExcludes = await this.$http.$get(`${this.url}/fields/name_exclude/`);
+        this.subExcludes = await this.$http.$get(`${this.url}/fields/sub_exclude/`);
+        this.logExcludes = await this.$http.$get(`${this.url}/fields/log_exclude/`);
+        this.logIncludes = await this.$http.$get(`${this.url}/fields/log_include/`);
       } catch (err) {
         console.error(err);
       }
@@ -671,9 +497,7 @@ export default {
       switch (type) {
         case "name_exclude":
           try {
-            this.nameExcludes = await this.$http.$get(
-              `${this.url}/fields/${type}/`
-            );
+            this.nameExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
             console.log("name excludes: ", this.nameExcludes);
           } catch (err) {
             console.error(err);
@@ -681,27 +505,21 @@ export default {
           break;
         case "sub_exclude":
           try {
-            this.subExcludes = await this.$http.$get(
-              `${this.url}/fields/${type}/`
-            );
+            this.subExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
           } catch (err) {
             console.error(err);
           }
           break;
         case "log_exclude":
           try {
-            this.logExcludes = await this.$http.$get(
-              `${this.url}/fields/${type}/`
-            );
+            this.logExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
           } catch (err) {
             console.error(err);
           }
           break;
         case "log_include":
           try {
-            this.logIncludes = await this.$http.$get(
-              `${this.url}/fields/${type}/`
-            );
+            this.logIncludes = await this.$http.$get(`${this.url}/fields/${type}/`);
           } catch (err) {
             console.error(err);
           }
@@ -729,10 +547,7 @@ export default {
       console.log("helloooouuuuuu???!!");
       try {
         this.clientLoader = true;
-        let result = await this.$http.$post(
-          `${this.url}/clients/`,
-          this.newClient
-        );
+        let result = await this.$http.$post(`${this.url}/clients/`, this.newClient);
         await this.timeout(300);
         this.newClient.Name = "";
         this.clientAdd = false;
@@ -756,9 +571,7 @@ export default {
       delete client.Selected;
       delete client.active;
       try {
-        let result = await this.$http.$delete(
-          `${this.url}/clients/${client.ID}`
-        );
+        let result = await this.$http.$delete(`${this.url}/clients/${client.ID}`);
       } catch (err) {
         console.log(err);
       }
