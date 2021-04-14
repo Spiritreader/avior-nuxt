@@ -234,7 +234,7 @@ export default {
         HostName: client.Name,
       };
       try {
-        any.shim();
+        any.shim(); // shimmy shim shim
         resolution = await Promise.any(promises);
         resolvedClient.Reachable = true;
         resolvedClient.Address = resolution.address;
