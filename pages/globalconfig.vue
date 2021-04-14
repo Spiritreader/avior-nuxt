@@ -529,17 +529,27 @@ export default {
     timeout(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
+    sortClients() {
+      this.clients.sort(function(x,y) {
+        if (x.Priority < y.Priority) {
+          return -1;
+        } else if (x.Priority > y.Priority) {
+          return 1;
+        } else {
+          return 0;
+        }
+      })
+    },
     async editClient(client) {
       this.clientLoader = true;
       await this.timeout(300);
-      delete client.Selected;
-      delete client.active;
       try {
         let result = await this.$http.$put(`${this.url}/clients/`, client);
       } catch (err) {
         console.log(err);
       }
-      await this.getClients();
+      this.sortClients();
+      // await this.getClients();
       this.clientLoader = false;
     },
     async addClient() {
@@ -555,7 +565,8 @@ export default {
         console.log(err);
         this.err = err;
       }
-      await this.getClients();
+      this.sortClients();
+      // await this.getClients();
       this.clientLoader = false;
     },
     async deleteClient(client) {
@@ -575,7 +586,7 @@ export default {
       } catch (err) {
         console.log(err);
       }
-      await this.getClients();
+      // await this.getClients();
       this.clientLoader = false;
       client.Selected = false;
     },
