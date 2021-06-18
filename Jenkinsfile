@@ -24,7 +24,7 @@ pipeline {
           if (env.GIT_LOCAL_BRANCH == 'master') {
             sh "echo 'prod environment, pushing to latest'"
             docker.withRegistry('', registryCredentials) {
-              dockerImage.push('test')
+              dockerImage.push('latest')
             }
         }
           else {
