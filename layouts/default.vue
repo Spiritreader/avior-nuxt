@@ -64,7 +64,7 @@ export default {
   computed: {
     commitHash() {
       if (this.commitSha) {
-        return this.commitSha;
+        return this.commitSha.substring(0, 7);
       } else {
         return "dev";
       }
