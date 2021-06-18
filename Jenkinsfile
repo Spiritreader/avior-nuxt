@@ -12,39 +12,33 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          dockerImage = docker.build(registry + ":${BUILD_ID}-${GIT_LOCAL_BRANCH}",
+          dockerImage = docker.build(registry + ":${GIT_LOCAL_BRANCH}-${BUILD_ID}",
                                      "--build-arg=COMMIT=${GIT_COMMIT}"
                                      + ' .')
         }
       }
     }
     stage('Publish') {
-      when { branch defaultBranch }
       steps {
-          script {
+        script {
+          if (env.GIT_LOCAL_BRANCH == 'master') {
+            sh echo "'prod environment, pushing to latest'"
             docker.withRegistry('', registryCredentials) {
-              dockerImage.push('latest')
+              dockerImage.push('test')
             }
-          }
-      }
-    }
-    stage('Publish Dev') {
-      when {
-        not {
-          branch defaultBranch
         }
-      }
-      steps {
-          script {
+          else {
+            sh "echo 'dev environment, pushing to $GIT_LOCAL_BRANCH-$BUILD_ID-'"
             docker.withRegistry('', registryCredentials) {
-              dockerImage.push()
+              dockerImage.push('${GIT_LOCAL_BRANCH}-${BUILD_ID}')
             }
           }
       }
     }
+  }
     stage('CleanUp') {
       steps {
-        sh "docker rmi $registry:$BUILD_ID-$GIT_LOCAL_BRANCH"
+        sh "docker rmi $registry:$GIT_LOCAL_BRANCH-$BUILD_ID"
       }
     }
   }
