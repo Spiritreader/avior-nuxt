@@ -30,4 +30,4 @@ jobs:
         with:
           build-args: "COMMIT=${{ github.sha }}}"
           push: true
-          tags: spiritreader/avior-nuxt:github-actions-test
+          tags: spiritreader/avior-nuxt:latest
