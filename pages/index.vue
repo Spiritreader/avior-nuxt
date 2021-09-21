@@ -66,9 +66,7 @@ export default {
       if (resolvedClient.Reachable) {
         await this.fillClientInfoArrays(resolvedClient);
       } else {
-        const idx = this.clientInfosOffline.findIndex(
-          (cio) => cio.HostName.toLowerCase() == resolvedClient.HostName.toLowerCase()
-        );
+        const idx = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == resolvedClient.HostName.toLowerCase());
         if (idx == -1) {
           this.clientInfosOffline.push({
             HostName: resolvedClient.HostName,
@@ -150,14 +148,17 @@ export default {
         } catch (err) {
           const idy = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
           if (idy != -1) {
-            console.log(`Client ${client.HostName} went offline: ${err}`);
             this.clientInfosOnline.splice(idx, 1);
-            this.clientInfosOffline.push({
-              HostName: client.HostName,
-              Ip: client.Address,
-              Status: "offline",
-              Refreshing: false,
-            });
+            const offlineClient = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
+            console.log(`Client ${client.HostName} went offline and is ${offlineClient}: ${err}`);
+            if (idx == -1) {
+              this.clientInfosOffline.push({
+                HostName: client.HostName,
+                Ip: client.Address,
+                Status: "offline",
+                Refreshing: false,
+              });
+            }
           }
         }
         idx++;
