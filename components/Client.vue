@@ -221,7 +221,7 @@
           <span>Process Info</span>
         </v-tooltip>
 
-        
+
         <v-tooltip top v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')" >
           <template v-slot:activator="{ on, attrs }">
             <v-btn icon v-bind="attrs" v-on="on" @click="showEncoderLog = !showEncoderLog">
@@ -402,8 +402,6 @@ export default {
     errorLog: [],
     processedLog: [],
     skippedLog: [],
-    encoderInterpolation: 0,
-    interpolationHandle: null,
     showProcessInfo: false,
     showEncoderLog: false,
     remaining: null,

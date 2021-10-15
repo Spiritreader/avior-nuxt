@@ -7,10 +7,6 @@ var mongoose = require('mongoose');
 import config from '../api/config.json';
 const Client = require('../api/schema.js');
 
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
 //Create MongoDB Database with Name MongooseTest
 mongoose.connect(config.url);
 

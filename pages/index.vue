@@ -151,7 +151,7 @@ export default {
             this.clientInfosOnline.splice(idx, 1);
             const offlineClient = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
             console.log(`Client ${client.HostName} went offline and is ${offlineClient}: ${err}`);
-            if (idx == -1) {
+            if (offlineClient == -1) {
               this.clientInfosOffline.push({
                 HostName: client.HostName,
                 Ip: client.Address,
@@ -243,7 +243,31 @@ export default {
         resolvedClient.Reachable = false;
         resolvedClient.Address = client.Addresses[0];
       }
+      //await this.connectToWebSocket(resolvedClient);
       await this.processClient(resolvedClient);
+    },
+    connectToWebSocket: async function (client) {
+      try {
+        const ws = new WebSocket(`ws://${client.Address.replace("http://", "")}/ws/status`);
+        ws.onopen = () => {
+          console.log(`Connected to ${client.Address}`);
+        };
+        ws.onmessage = (event) => {};
+        ws.onclose = () => {
+          console.log(`Disconnected from ${client.Address}`);
+          setTimeout(() => {
+            this.connectToWebSocket(client);
+          }, 1000);
+        };
+        ws.onerror = (error) => {
+          console.log(`Error connecting to ${client.Address}: ${error}`);
+          setTimeout(() => {
+            this.connectToWebSocket(client);
+          }, 1000);
+        };
+      } catch (error) {
+        console.log(`Error connecting to ${client.Address}: ${error}`);
+      }
     },
     pingOffline: async function () {
       this.refreshing = true;
@@ -255,7 +279,7 @@ export default {
 </script>
 
 <style>
-.custom-loader {
+.custom .custom-loader {
   animation: loader 3.5s infinite;
   display: flex;
 }
