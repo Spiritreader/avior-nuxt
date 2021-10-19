@@ -12,14 +12,14 @@
     <v-row v-if="$fetchState.error" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
-    <Client v-for="client in clientInfosOnline" :key="client.Name" :client="client"></Client>
-    <Client v-for="client in clientInfosOffline" :key="client.Name" :client="client"></Client>
+    <Client v-for="client in clientInfosOnline" :key="client.HostName" @offlineClient="moveClientToOfflineList" :clientInit="client"></Client>
+    <Client v-for="client in clientInfosOffline" :key="client.HostName + '_offline'" :clientInit="client"></Client>
     <div v-if="totalLoadedLeft > 0">
       <v-skeleton-loader v-for="n in totalLoadedLeft" :key="n" type="image" class="ma-2"></v-skeleton-loader>
     </div>
     <v-row class="d-flex pt-3 pb-2 justify-center">
-      <v-btn v-if="!$fetchState.error" @click="autoRefresh" :disabled="$fetchState.pending" class="mx-2">
-        <v-icon class="custom-loader" v-if="timer">mdi-cached</v-icon>
+      <v-btn v-if="!$fetchState.error" :disabled="$fetchState.pending" class="mx-2">
+        <v-icon class="custom-loader" v-if="!refreshing">mdi-cached</v-icon>
         <v-icon v-else>mdi-cached</v-icon>
       </v-btn>
       <v-btn v-if="!$fetchState.pending" :disabled="refreshing" @click="pingOffline">Ping Offline</v-btn>
@@ -32,30 +32,37 @@ import any from "promise.any";
 
 export default {
   inject: ["theme"],
-  beforeDestroy() {
-    clearInterval(this.timer);
-    clearInterval(this.debugTimer);
-  },
   async fetch() {
     console.log("fetching");
     this.tryResolveClients();
-    this.autoRefresh();
   },
   fetchOnServer: false,
   data() {
     return {
       refreshing: false,
       init: true,
-      debugTimer: null,
       noSkeleton: false,
       totalLoadedLeft: -1,
       refreshBtn: "Enable Auto-Refresh",
-      timer: null,
+      ws: null,
       clientInfosOnline: [],
       clientInfosOffline: [],
     };
   },
   methods: {
+    /**
+     * Moves client from online to offline list when their websocket connection is closed or terminated
+     */
+    moveClientToOfflineList(offlineClientHostName) {
+      console.log(`moving ${offlineClientHostName} to offline list`);
+      let idx = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == offlineClientHostName.toLowerCase());
+      if (idx != -1) {
+        let pushToOffline = this.clientInfosOnline[idx];
+        console.log(pushToOffline);
+        this.clientInfosOnline.splice(idx, 1);
+        this.clientInfosOffline.push(pushToOffline);
+      }
+    },
     /**
      * Whenever the resolvedClient datapoint is updated by tryResolveClients,
      * it will be either pre-filled and added to the clientInfosOnline array
@@ -77,9 +84,11 @@ export default {
           this.$set(this.clientInfosOffline[idx], "Refreshing", false);
         }
       }
-      this.totalLoadedLeft--;
+      if (this.init) {
+        this.totalLoadedLeft--;
+      }
+
       if (this.totalLoadedLeft == 0) {
-        console.log("setting");
         this.init = false;
       }
     },
@@ -93,7 +102,7 @@ export default {
       try {
         // IDX
         // check if object already exists in the online list. If so, don't update it.
-        // Subsequent updating should be handled automatically by updateClientData
+        // Subsequent updating should be handled automatically by clients themselves
         const idx = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
 
         // IDY
@@ -132,42 +141,6 @@ export default {
       }
     },
     /**
-     * Handles updating online clients that have been resolved by tryResolveClients
-     * If a client drops out, updateClientData will move it to the clientInfosOffline array.
-     * It will then no longer be updateed unless manually pinged.
-     */
-    async updateClientData() {
-      let idx = 0;
-      for (let client of this.clientInfosOnline) {
-        try {
-          const modData = await this.fetchClientData({
-            HostName: client.HostName,
-            Address: client.Ip,
-          });
-          this.clientInfosOnline.splice(idx, 1, modData);
-        } catch (err) {
-          const idy = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
-          if (idy != -1) {
-            this.clientInfosOnline.splice(idx, 1);
-            const offlineClient = this.clientInfosOffline.findIndex((cio) => cio.HostName.toLowerCase() == client.HostName.toLowerCase());
-            console.log(`Client ${client.HostName} went offline and is ${offlineClient}: ${err}`);
-            if (offlineClient == -1) {
-              this.clientInfosOffline.push({
-                HostName: client.HostName,
-                Ip: client.Address,
-                Status: "offline",
-                Refreshing: false,
-              });
-            }
-          }
-        }
-        idx++;
-      }
-      // determine if there are offline clients being refreshed
-      // used for disabling ping offline button
-      this.refreshing = this.clientInfosOffline.map((cio) => cio.Refreshing).reduce((a, v) => a || v, false);
-    },
-    /**
      * Fetches all client metadata given the provided client Address
      */
     async fetchClientData(client) {
@@ -177,21 +150,6 @@ export default {
       clientInfo.EncoderLineOut = await this.$http.$get(client.Address + "/encoder/");
       clientInfo.Refreshing = false;
       return clientInfo;
-    },
-    autoRefresh() {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-        this.refreshBtn = "Enable Auto-Refresh";
-      } else if (process.client) {
-        setTimeout(() => {
-          this.timer = setInterval(() => {
-            // call update in an interval to ensure that online clients are being refreshed
-            this.updateClientData();
-          }, 2000);
-          this.refreshBtn = "Disable Auto-Refresh";
-        }, 1000);
-      }
     },
     /**
      * Tries to resolve the first available IP address from all clients returned by the api.
@@ -246,40 +204,20 @@ export default {
       //await this.connectToWebSocket(resolvedClient);
       await this.processClient(resolvedClient);
     },
-    connectToWebSocket: async function (client) {
-      try {
-        const ws = new WebSocket(`ws://${client.Address.replace("http://", "")}/ws/status`);
-        ws.onopen = () => {
-          console.log(`Connected to ${client.Address}`);
-        };
-        ws.onmessage = (event) => {};
-        ws.onclose = () => {
-          console.log(`Disconnected from ${client.Address}`);
-          setTimeout(() => {
-            this.connectToWebSocket(client);
-          }, 1000);
-        };
-        ws.onerror = (error) => {
-          console.log(`Error connecting to ${client.Address}: ${error}`);
-          setTimeout(() => {
-            this.connectToWebSocket(client);
-          }, 1000);
-        };
-      } catch (error) {
-        console.log(`Error connecting to ${client.Address}: ${error}`);
-      }
-    },
     pingOffline: async function () {
       this.refreshing = true;
       this.clientInfosOffline.forEach((client) => this.$set(client, "Refreshing", true));
       this.tryResolveClients();
+      setTimeout(() => {
+        this.refreshing = false;
+      }, 1000);
     },
   },
 };
 </script>
 
 <style>
-.custom .custom-loader {
+.custom-loader {
   animation: loader 3.5s infinite;
   display: flex;
 }
