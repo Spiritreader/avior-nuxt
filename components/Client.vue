@@ -609,7 +609,8 @@ export default {
       return this.getActiveProcess().process !== OFFLINE;
     },
     clearClient: function () {
-      (this.noReconnect = true), this.$set(this.client, "Status", "offline");
+      this.$set(this.client, "Status", "offline");
+      this.$set(this.client, "Paused", false);
       this.showMainLog = false;
       this.showErrorLog = false;
       this.showProcessedLog = false;
