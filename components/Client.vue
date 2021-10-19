@@ -605,6 +605,8 @@ export default {
       return this.getActiveProcess().process !== OFFLINE;
     },
     clearClient: function () {
+      //todo: this needs to maybe be different to make clients going offline mid-work don't show strings
+      //this may not even be needed if done right i think, as we can just emit a new offline client object for the list!
       this.$set(this.client, "Status", "offline");
       this.$set(this.client, "Paused", false);
       this.showMainLog = false;
