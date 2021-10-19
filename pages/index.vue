@@ -53,14 +53,12 @@ export default {
     /**
      * Moves client from online to offline list when their websocket connection is closed or terminated
      */
-    moveClientToOfflineList(offlineClientHostName) {
-      console.log(`moving ${offlineClientHostName} to offline list`);
-      let idx = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == offlineClientHostName.toLowerCase());
+    moveClientToOfflineList(offlineClient) {
+      console.log(`moving ${offlineClient.HostName} to offline list`);
+      let idx = this.clientInfosOnline.findIndex((cio) => cio.HostName.toLowerCase() == offlineClient.HostName.toLowerCase());
       if (idx != -1) {
-        let pushToOffline = this.clientInfosOnline[idx];
-        console.log(pushToOffline);
         this.clientInfosOnline.splice(idx, 1);
-        this.clientInfosOffline.push(pushToOffline);
+        this.clientInfosOffline.push(offlineClient);
       }
     },
     /**

@@ -412,9 +412,6 @@ export default {
   },
   mounted() {
     this.connectToWebSocket(this.client);
-    if (this.client.NoReconnect) {
-      console.log("noreconnect");
-    }
   },
   data: () => ({
     toggle_exclusive: [],
@@ -535,14 +532,13 @@ export default {
         };
         this.ws.onclose = () => {
           console.log(`Disconnected from ${client.Ip}`);
-          this.$set(this.client, "NoReconnect", true);
           this.clearClient();
-          this.$emit("offlineClient", this.client.HostName);
+          this.$emit("offlineClient", this.client);
         };
         this.ws.onerror = (error) => {
           console.log(`Error connecting to ${client.Ip}: ${error}`);
-          //this.clearClient();
-          //this.$emit("offlineClient", this.client.HostName);
+          this.clearClient();
+          this.$emit("offlineClient", this.client.HostName);
         };
       } catch (error) {
         console.log(`Error connecting to ${client.Ip}: ${error}`);
