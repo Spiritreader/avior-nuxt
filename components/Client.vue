@@ -221,8 +221,7 @@
           <span>Process Info</span>
         </v-tooltip>
 
-        
-        <v-tooltip top v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')" >
+        <v-tooltip top v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')">
           <template v-slot:activator="{ on, attrs }">
             <v-btn icon v-bind="attrs" v-on="on" @click="showEncoderLog = !showEncoderLog">
               <v-icon>mdi-console</v-icon>
@@ -392,6 +391,28 @@ const ENCODER = "encoder",
   WORKING = "working",
   INACTIVE = [OFFLINE, PAUSED, IDLE];
 export default {
+  beforeDestroy() {
+    try {
+      this.ws.close();
+    } catch (e) {
+      console.log("error while closing websocket");
+      console.log(e);
+    }
+    console.log("websocket closed");
+  },
+  created() {
+    this.client = this.clientInit;
+  },
+  watch: {
+    clientInit: {
+      handler(newVal) {
+        this.client = newVal;
+      },
+    },
+  },
+  mounted() {
+    this.connectToWebSocket(this.client);
+  },
   data: () => ({
     toggle_exclusive: [],
     showMainLog: false,
@@ -402,8 +423,6 @@ export default {
     errorLog: [],
     processedLog: [],
     skippedLog: [],
-    encoderInterpolation: 0,
-    interpolationHandle: null,
     showProcessInfo: false,
     showEncoderLog: false,
     remaining: null,
@@ -413,9 +432,11 @@ export default {
     shutdownConfirm: false,
     errorMessage: null,
     errorMessageTimeout: null,
+    client: null,
+    ws: null,
   }),
   props: {
-    client: Object,
+    clientInit: Object,
   },
   computed: {
     bufferValue: function () {
@@ -497,6 +518,32 @@ export default {
     },
   },
   methods: {
+    connectToWebSocket: async function (client) {
+      try {
+        this.ws = new WebSocket(`ws://${client.Ip.replace("http://", "")}/ws/status`);
+        this.ws.onopen = (info) => {
+          console.log(`Connected to ${client.Ip}`);
+        };
+        this.ws.onmessage = (info) => {
+          if (!this.shutdownMachine) {
+            this.client = { ...this.client, ...JSON.parse(info.data) };
+            this.$set(this.client, "HostName", this.clientInit.HostName);
+          }
+        };
+        this.ws.onclose = () => {
+          console.log(`Disconnected from ${client.Ip}`);
+          this.clearClient();
+          this.$emit("offlineClient", this.client);
+        };
+        this.ws.onerror = (error) => {
+          console.log(`Error connecting to ${client.Ip}: ${error}`);
+          this.clearClient();
+          this.$emit("offlineClient", this.client.HostName);
+        };
+      } catch (error) {
+        console.log(`Error connecting to ${client.Ip}: ${error}`);
+      }
+    },
     getMainLog: async function () {
       this.showErrorLog = false;
       this.showProcessedLog = false;
@@ -556,6 +603,27 @@ export default {
     },
     isOnline: function () {
       return this.getActiveProcess().process !== OFFLINE;
+    },
+    clearClient: function () {
+      //todo: this needs to maybe be different to make clients going offline mid-work don't show strings
+      //this may not even be needed if done right i think, as we can just emit a new offline client object for the list!
+      this.$set(this.client, "Status", "offline");
+      this.$set(this.client, "Paused", false);
+      this.showMainLog = false;
+      this.showErrorLog = false;
+      this.showProcessedLog = false;
+      this.showSkippedLog = false;
+      this.mainLog = [];
+      this.errorLog = [];
+      this.processedLog = [];
+      this.skippedLog = [];
+      this.showProcessInfo = false;
+      this.showEncoderLog = false;
+      this.remaining = null;
+      this.pauseMachine = false;
+      this.resumeMachine = false;
+      this.shutdownMachine = false;
+      this.shutdownConfirm = false;
     },
     sendResumeCommand: async function () {
       this.resumeMachine = true;
@@ -645,10 +713,10 @@ export default {
       }
     },
     getDurationFromDate: function (date) {
-      return `${date.getUTCHours().toString().padStart(2, "0")}:${date
-        .getUTCMinutes()
+      return `${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}:${date
+        .getUTCSeconds()
         .toString()
-        .padStart(2, "0")}:${date.getUTCSeconds().toString().padStart(2, "0")}`;
+        .padStart(2, "0")}`;
     },
     getEncoderInfo: function () {
       let client = Object.assign({}, this.client.Encoder);
