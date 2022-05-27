@@ -1,0 +1,38 @@
+{
+    "InFile": "",
+    "Encoder": {
+      "Active": false,
+      "Duration": "0001-01-01T00:00:00Z",
+      "Frame": 0,
+      "Fps": 0,
+      "Q": 0,
+      "Size": "",
+      "Position": "0001-01-01T00:00:00Z",
+      "Bitrate": "",
+      "Dup": 0,
+      "Drop": 0,
+      "Speed": 0,
+      "Slice": 0,
+      "OfSlices": 0,
+      "Remaining": 0,
+      "Progress": 0,
+      "ReplacementReason": "",
+      "OutPath": ""
+    },
+    "FileWalker": {
+      "Active": false,
+      "Directory": "",
+      "Position": 0,
+      "LibSize": 0
+    },
+    "Mover": {
+      "Active": false,
+      "File": "",
+      "Progress": 0,
+      "Position": "",
+      "FileSize": ""
+    },
+    "Paused": true,
+    "ShutdownPending": false,
+    "HostName": "VAVA"
+  }

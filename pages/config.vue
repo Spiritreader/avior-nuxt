@@ -409,7 +409,7 @@ export default {
         this.err = err;
         this.loading = false;
       }
-      
+
     }*/
   },
   methods: {
@@ -450,6 +450,7 @@ export default {
         resolvedClient.Reachable = false;
         resolvedClient.Address = client.Addresses[0];
       }
+      this.$set(this.selectedClient, "Address", resolvedClient.Address);
       return resolvedClient;
     },
     importConfig() {
