@@ -132,9 +132,9 @@ export default {
     },
     editAll() {
       if (!this.disabledTag) {
-        this.content.PreArguments = this.preArgumentsString.split("\n");
-        this.content.PostArguments = this.postArgumentsString.split("\n");
-        this.content.Stash = this.stashString.split("\n");
+        this.content.PreArguments = this.preArgumentsString.trim().split("\n").filter(e => e);
+        this.content.PostArguments = this.postArgumentsString.trim().split("\n").filter(e => e);
+        this.content.Stash = this.stashString.trim().split("\n");
         this.content.OutDirectory = this.outDirectory;
         console.log(this.content.PreArguments);
         this.$emit("newdata", {
