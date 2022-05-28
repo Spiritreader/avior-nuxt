@@ -492,9 +492,12 @@ export default {
       );
       try {
         this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
+        if (this.selectedEncoderConfigTag) {
+          this.loadEncoderConfig();
+        }
 
         //this.config = await fetch(`${client}/config`).then(res => res.json());
-        this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
+        //this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
       } catch (err) {
         this.err = err;
         console.log(`couldn't load config for client ${resolvedClient.Address}, err: ${this.err}`);
