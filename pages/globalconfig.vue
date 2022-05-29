@@ -19,6 +19,9 @@
       <v-tabs-items v-model="tab">
         <v-tab-item value="tab-1">
           <v-container class="pt-4 pb-0">
+            <v-alert border="top" color="red lighten-2" v-show="scheduleModified" dark>
+              You must pause and unpause the client for the schedule changes to take effect!
+            </v-alert>
             <v-btn @click="clientAdd = true" class="pl-2" color="orange lighten-2" outlined text>
               <v-icon class="mr-2">mdi-plus</v-icon>New
             </v-btn>
@@ -126,7 +129,7 @@
                           transition="scale-transition"
                         >
                           <template v-slot:activator="{ on }">
-                            <v-text-field :value="client.AvailabilityStart" label="Start Time" outlined readonly v-on="on" />
+                            <v-text-field :value="client.AvailabilityStart" label="Start Time" @change="enableBanner" outlined readonly v-on="on" />
                           </template>
                           <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityStart" />
                         </v-menu>
@@ -141,7 +144,7 @@
                           transition="scale-transition"
                         >
                           <template v-slot:activator="{ on }">
-                            <v-text-field :value="client.AvailabilityEnd" label="End Time" outlined readonly v-on="on" />
+                            <v-text-field :value="client.AvailabilityEnd" label="End Time" @change="enableBanner" outlined readonly v-on="on" />
                           </template>
                           <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityEnd" />
                         </v-menu>
@@ -366,6 +369,7 @@ export default {
     },
     nameExcludes: [],
     subExcludes: [],
+    scheduleModified: false,
     logExcludes: [],
     logIncludes: [],
     url: "",
@@ -396,6 +400,9 @@ export default {
     },
   },
   methods: {
+    enableBanner() {
+      this.scheduleModified = true;
+    },
     async importConfig() {
       try {
         this.importLoader = true;
@@ -530,7 +537,7 @@ export default {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
     sortClients() {
-      this.clients.sort(function(x,y) {
+      this.clients.sort(function (x, y) {
         if (x.Priority < y.Priority) {
           return -1;
         } else if (x.Priority > y.Priority) {
@@ -538,10 +545,11 @@ export default {
         } else {
           return 0;
         }
-      })
+      });
     },
     async editClient(client) {
       this.clientLoader = true;
+      this.scheduleModified = false;
       await this.timeout(300);
       try {
         let result = await this.$http.$put(`${this.url}/clients/`, client);
