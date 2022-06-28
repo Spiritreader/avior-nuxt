@@ -429,6 +429,11 @@ export default {
         for (const job of client) {
           job.AssignedClient.ID = this.reassignToClient.ID;
           job.AssignedClient.DB = "undefined";
+          if (job.CustomParameters && job.CustomParameters !== "") {
+            job.CustomParameters = job.CustomParameters.split("\n");
+          } else {
+            job.CustomParameters = null;
+          }
           promises.push(this.$http.$put(this.url + "/jobs/", job));
           if (idx % 5 == 0 || idx === this.selectedJobs.length - 1) {
             let res = await Promise.allSettled(promises);
