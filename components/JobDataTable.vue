@@ -49,7 +49,13 @@
                 outlined
               ></v-select>
               <v-btn class="mr-4" @click="closeEditJobDialog(item)">Cancel</v-btn>
-              <v-btn class="mr-4" :loading="item.EditingJob" :disabled="item.EditingJob" outlined color="green" @click="$emit('editjob', item)"
+              <v-btn
+                class="mr-4"
+                :loading="item.EditingJob"
+                :disabled="item.EditingJob"
+                outlined
+                color="green"
+                @click="$emit('editjob', item)"
                 >Update Job</v-btn
               >
             </v-form>
@@ -159,28 +165,29 @@ export default {
     },
     bulkSelect({ item: b, value }) {
       const { selectedRows, current, shiftKeyOn, lastSelected } = this;
-      this.lastSelected = b;
-
-      if (value == true && shiftKeyOn) {
-        let start = current.findIndex((item) => item == lastSelected);
-        let end = current.findIndex((item) => item == b);
-        if (start - end > 0) {
-          let temp = start;
-          start = end;
-          end = temp;
-        }
-        for (let i = start; i <= end; i++) {
-          if (!selectedRows.includes(current[i])) {
-            selectedRows.push(current[i]);
+      if (b) {
+        this.lastSelected = b;
+        if (value == true && shiftKeyOn && b) {
+          let start = current.findIndex((item) => item == lastSelected);
+          let end = current.findIndex((item) => item == b);
+          if (start - end > 0) {
+            let temp = start;
+            start = end;
+            end = temp;
           }
+          for (let i = start; i <= end; i++) {
+            if (!selectedRows.includes(current[i])) {
+              selectedRows.push(current[i]);
+            }
+          }
+        } else if (value == true) {
+          selectedRows.push(b);
+        } else if (value == false) {
+          selectedRows.splice(selectedRows.indexOf(b), 1);
         }
-      } else if (value == true) {
-        selectedRows.push(b);
-      } else if (value == false) {
-        selectedRows.splice(selectedRows.indexOf(b), 1);
-      }
 
-      this.emitSelected();
+        this.emitSelected();
+      }
     },
   },
   watch: {
