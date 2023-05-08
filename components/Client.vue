@@ -526,6 +526,19 @@ export default {
         };
         this.ws.onmessage = (info) => {
           if (!this.shutdownMachine) {
+            // if client status has been set to offline the websocket should no longer be open
+            if (this.client.Status == "offline") {
+              try {
+                this.ws.close();
+              } catch (e) {
+                console.log("can't close websocket because it is probably already closed");
+                console.log(e);
+              }
+            }
+            // spreads the object to avoid reactivity issues
+            // https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+            // uses spread operator to update this.client properties with data from info.data
+            // without having to assign each property individually
             this.client = { ...this.client, ...JSON.parse(info.data) };
             this.$set(this.client, "HostName", this.clientInit.HostName);
           }
@@ -609,6 +622,7 @@ export default {
       //this may not even be needed if done right i think, as we can just emit a new offline client object for the list!
       this.$set(this.client, "Status", "offline");
       this.$set(this.client, "Paused", false);
+      this.$set(this.client, "InFile", "");
       this.showMainLog = false;
       this.showErrorLog = false;
       this.showProcessedLog = false;
@@ -696,6 +710,8 @@ export default {
     },
     getActiveProcess: function () {
       const client = this.client;
+      // if the client.Status attribute exists it is considered offline.
+      // NO CLUE why this is the way it is, but it is.
       if (client.Status) {
         return { process: OFFLINE, text: "Offline" };
       } else if (client.Encoder.Active) {
