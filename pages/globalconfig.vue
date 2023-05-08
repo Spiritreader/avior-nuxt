@@ -38,40 +38,30 @@
                 </v-container>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn
-                    @click="
-                      clientAdd = false;
-                      err = null;
-                    "
-                    color="darken-1"
-                    text
-                    >Cancel</v-btn
-                  >
-                  <v-btn :loading="clientLoader" @click="addClient()" color="indigo lighten-3" text>Add</v-btn>
+                  <v-btn @click="clientAdd = false;
+                  err = null;
+                                                                                            " color="darken-1" text>Cancel</v-btn>
+                  <v-btn :loading=" clientLoader " @click=" addClient() " color="indigo lighten-3" text>Add</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
 
             <!-- client list -->
             <v-list>
-              <v-list-group :key="client.id" no-action sub-group v-for="client in clients" v-model="client.active" value="true">
-                <v-dialog max-width="500" v-if="client.Selected" v-model="client.Selected">
+              <v-list-group :key=" client.id " no-action sub-group v-for="    client     in     clients    "
+                v-model=" client.active " value="true">
+                <v-dialog max-width="500" v-if=" client.Selected " v-model=" client.Selected ">
                   <v-card>
                     <v-card-title>Delete confirm</v-card-title>
                     <v-card-subtitle>Do you really want to delete {{ client.Name }}?</v-card-subtitle>
-                    <v-alert class="mx-5" v-if="err" type="error">{{ err }}</v-alert>
+                    <v-alert class="mx-5" v-if=" err " type="error">{{ err }}</v-alert>
                     <v-card-actions>
                       <v-spacer></v-spacer>
-                      <v-btn
-                        @click="
-                          client.Selected = false;
-                          err = null;
-                        "
-                        color="darken-1"
-                        text
-                        >Cancel</v-btn
-                      >
-                      <v-btn @click="deleteClient(client)" color="red darken-1" text>Delete</v-btn>
+                      <v-btn @click="
+                        client.Selected = false;
+                        err = null;
+                      " color="darken-1" text>Cancel</v-btn>
+                      <v-btn @click=" deleteClient(client) " color="red darken-1" text>Delete</v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
@@ -85,77 +75,53 @@
                 <v-list-item class="pl-6">
                   <v-container>
                     <v-row>
-                      <v-switch
-                        class="pl-2"
-                        color="indigo lighten-2"
-                        label="Can always receive jobs"
-                        v-model="client.IgnoreOnline"
-                      ></v-switch>
+                      <v-switch class="pl-2" color="indigo lighten-2" label="Can always receive jobs"
+                        v-model=" client.IgnoreOnline "></v-switch>
                     </v-row>
                     <v-layout class="pt-4 d-flex flex-wrap" row wrap>
                       <v-flex class="px-2" md4 sm6 xs12>
                         <v-text-field
-                          :rules="[(v) => (v || '').indexOf(' ') < 0 || 'No spaces are allowed', (v) => !!v || 'Name is required']"
-                          label="Name"
-                          outlined
-                          v-model="client.Name"
-                        ></v-text-field>
+                          :rules=" [(v) => (v || '').indexOf(' ') < 0 || 'No spaces are allowed', (v) => !!v || 'Name is required'] "
+                          label="Name" outlined v-model=" client.Name "></v-text-field>
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
-                        <v-text-field
-                          :rules="[(v) => (!!v && v >= 0) || 'Must be set and positive']"
-                          label="Priority"
-                          outlined
-                          type="number"
-                          v-model.number="client.Priority"
-                        ></v-text-field>
+                        <v-text-field :rules=" [(v) => (!!v && v >= 0) || 'Must be set and positive'] " label="Priority"
+                          outlined type="number" v-model.number=" client.Priority "></v-text-field>
                       </v-flex>
                       <v-flex class="px-2" md2 sm3 xs6>
-                        <v-text-field
-                          :rules="[(v) => (!!v && v >= 0) || 'Must be set and positive']"
-                          label="Maximum Jobs"
-                          outlined
-                          type="number"
-                          v-model.number="client.MaximumJobs"
-                        ></v-text-field>
+                        <v-text-field :rules=" [(v) => (!!v && v >= 0) || 'Must be set and positive'] "
+                          label="Maximum Jobs" outlined type="number"
+                          v-model.number=" client.MaximumJobs "></v-text-field>
                       </v-flex>
                       <v-flex class="px-2" md2>
-                        <v-menu
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          max-width="290px"
-                          min-width="290px"
-                          offset-y
-                          transition="scale-transition"
-                        >
-                          <template v-slot:activator="{ on }">
-                            <v-text-field :value="client.AvailabilityStart" label="Start Time" @change="enableBanner" outlined readonly v-on="on" />
+                        <v-menu :close-on-content-click=" false " :nudge-right=" 40 " max-width="290px" min-width="290px"
+                          offset-y transition="scale-transition">
+                          <template v-slot:activator=" { on } ">
+                            <v-text-field :value=" client.AvailabilityStart " label="Start Time" @change=" enableBanner "
+                              outlined readonly v-on=" on " />
                           </template>
-                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityStart" />
+                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable
+                            v-model=" client.AvailabilityStart " />
                         </v-menu>
                       </v-flex>
                       <v-flex class="px-2" md2>
-                        <v-menu
-                          :close-on-content-click="false"
-                          :nudge-right="40"
-                          max-width="290px"
-                          min-width="290px"
-                          offset-y
-                          transition="scale-transition"
-                        >
-                          <template v-slot:activator="{ on }">
-                            <v-text-field :value="client.AvailabilityEnd" label="End Time" @change="enableBanner" outlined readonly v-on="on" />
+                        <v-menu :close-on-content-click=" false " :nudge-right=" 40 " max-width="290px" min-width="290px"
+                          offset-y transition="scale-transition">
+                          <template v-slot:activator=" { on } ">
+                            <v-text-field :value=" client.AvailabilityEnd " label="End Time" @change=" enableBanner "
+                              outlined readonly v-on=" on " />
                           </template>
-                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable v-model="client.AvailabilityEnd" />
+                          <v-time-picker class="mt-4" format="24hr" min="0:00" scrollable
+                            v-model=" client.AvailabilityEnd " />
                         </v-menu>
                       </v-flex>
                     </v-layout>
                     <v-row justify="center">
-                      <v-btn :loading="clientLoader" class="ml-2" color="indigo lighten-2" icon>
-                        <v-icon @click="editClient(client)" size="30">mdi-content-save</v-icon>
+                      <v-btn :loading=" clientLoader " class="ml-2" color="indigo lighten-2" icon>
+                        <v-icon @click=" editClient(client) " size="30">mdi-content-save</v-icon>
                       </v-btn>
-                      <v-btn :loading="clientLoader" class="ml-2" color="red lighten-2" icon>
-                        <v-icon @click="client.Selected = true" size="30">mdi-delete</v-icon>
+                      <v-btn :loading=" clientLoader " class="ml-2" color="red lighten-2" icon>
+                        <v-icon @click=" client.Selected = true " size="30">mdi-delete</v-icon>
                       </v-btn>
                     </v-row>
                   </v-container>
@@ -168,117 +134,61 @@
         <!-- Include and exclude lists -->
         <v-tab-item value="tab-2">
           <v-card flat>
-            <v-btn
-              outlined
-              text
-              @click="
-                importDialog = true;
-                importType = 'name_exclude';
-              "
-              color="orange lighten-2"
-              class="ml-4 mt-3"
-              >Import</v-btn
-            >
-            <v-btn
-              outlined
-              text
-              @click="
-                exportType = 'name_exclude';
-                exportConfig();
-              "
-              color="orange lighten-2"
-              class="mt-3"
-              >Export</v-btn
-            >
-            <TextDataTable @newdata="modifyFields($event, 'name_exclude')" v-model="nameExcludes"></TextDataTable>
+            <v-btn outlined text @click="
+              importDialog = true;
+              importType = 'name_exclude';
+            " color="orange lighten-2" class="ml-4 mt-3">Import</v-btn>
+            <v-btn outlined text @click="
+              exportType = 'name_exclude';
+              exportConfig();
+            " color="orange lighten-2" class="mt-3">Export</v-btn>
+            <TextDataTable @newdata=" modifyFields($event, 'name_exclude') " v-model=" nameExcludes "></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-3">
-          <v-btn
-            outlined
-            text
-            @click="
-              importDialog = true;
-              importType = 'sub_exclude';
-            "
-            color="orange lighten-2"
-            class="ml-4 mt-3"
-            >Import</v-btn
-          >
-          <v-btn
-            outlined
-            text
-            @click="
-              exportType = 'sub_exclude';
-              exportConfig();
-            "
-            color="orange lighten-2"
-            class="mt-3"
-            >Export</v-btn
-          >
+          <v-btn outlined text @click="
+            importDialog = true;
+            importType = 'sub_exclude';
+          " color="orange lighten-2" class="ml-4 mt-3">Import</v-btn>
+          <v-btn outlined text @click="
+            exportType = 'sub_exclude';
+            exportConfig();
+          " color="orange lighten-2" class="mt-3">Export</v-btn>
           <v-card flat>
-            <TextDataTable @newdata="modifyFields($event, 'sub_exclude')" v-model="subExcludes"></TextDataTable>
+            <TextDataTable @newdata=" modifyFields($event, 'sub_exclude') " v-model=" subExcludes "></TextDataTable>
           </v-card>
         </v-tab-item>
 
         <v-tab-item value="tab-4">
           <v-card flat>
-            <v-btn
-              outlined
-              text
-              @click="
-                importDialog = true;
-                importType = 'log_include';
-              "
-              color="orange lighten-2"
-              class="ml-4 mt-3"
-              >Import</v-btn
-            >
-            <v-btn
-              outlined
-              text
-              @click="
-                exportType = 'log_include';
-                exportConfig();
-              "
-              color="orange lighten-2"
-              class="mt-3"
-              >Export</v-btn
-            >
-            <TextDataTable @newdata="modifyFields($event, 'log_include')" v-model="logIncludes"></TextDataTable>
+            <v-btn outlined text @click="
+              importDialog = true;
+              importType = 'log_include';
+            " color="orange lighten-2" class="ml-4 mt-3">Import</v-btn>
+            <v-btn outlined text @click="
+              exportType = 'log_include';
+              exportConfig();
+            " color="orange lighten-2" class="mt-3">Export</v-btn>
+            <TextDataTable @newdata=" modifyFields($event, 'log_include') " v-model=" logIncludes "></TextDataTable>
           </v-card>
         </v-tab-item>
         <v-tab-item value="tab-5">
           <v-card flat>
-            <v-btn
-              outlined
-              text
-              @click="
-                importDialog = true;
-                importType = 'log_exclude';
-              "
-              color="orange lighten-2"
-              class="ml-4 mt-3"
-              >Import</v-btn
-            >
-            <v-btn
-              outlined
-              text
-              @click="
-                exportType = 'log_exclude';
-                exportConfig();
-              "
-              color="orange lighten-2"
-              class="mt-3"
-              >Export</v-btn
-            >
-            <TextDataTable @newdata="modifyFields($event, 'log_exclude')" v-model="logExcludes"></TextDataTable>
+            <v-btn outlined text @click="
+              importDialog = true;
+              importType = 'log_exclude';
+            " color="orange lighten-2" class="ml-4 mt-3">Import</v-btn>
+            <v-btn outlined text @click="
+              exportType = 'log_exclude';
+              exportConfig();
+            " color="orange lighten-2" class="mt-3">Export</v-btn>
+            <TextDataTable @newdata=" modifyFields($event, 'log_exclude') " v-model=" logExcludes "></TextDataTable>
           </v-card>
         </v-tab-item>
       </v-tabs-items>
     </v-card>
 
-    <v-dialog v-if="importDialog" v-model="importDialog" max-width="500">
+    <v-dialog v-if=" importDialog " v-model=" importDialog " max-width="500">
       <v-card>
         <v-card-title>
           Paste your fields here!
@@ -286,31 +196,21 @@
         </v-card-title>
         <v-card-subtitle>Your changes are saved as soon as you hit Import</v-card-subtitle>
         <v-container>
-          <v-textarea
-            outlined
-            label="Import"
-            name="Import"
-            placeholder="One entry per line please"
-            :error-messages="importError"
-            v-model="importContent"
-          ></v-textarea>
+          <v-textarea outlined label="Import" name="Import" placeholder="One entry per line please"
+            :error-messages=" importError " v-model=" importContent "></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="darken-1"
-            text
-            @click="
-              importDialog = false;
-              importContent = '';
-            "
-            >Cancel</v-btn
-          >
-          <v-btn color="green" :loading="importLoader" :disabled="importLoader" text @click="importConfig">Import</v-btn>
+          <v-btn color="darken-1" text @click="
+            importDialog = false;
+            importContent = '';
+          ">Cancel</v-btn>
+          <v-btn color="green" :loading=" importLoader " :disabled=" importLoader " text
+            @click=" importConfig ">Import</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-if="exportDialog" v-model="exportDialog" max-width="500">
+    <v-dialog v-if=" exportDialog " v-model=" exportDialog " max-width="500">
       <v-card>
         <v-card-title>
           Here's your configuration in a json format!
@@ -318,24 +218,19 @@
         </v-card-title>
         <v-card-subtitle>DatabaseURL is omitted and can only be set from the client machine</v-card-subtitle>
         <v-container>
-          <v-textarea outlined label="Export" rows="12" v-model="exportContent" name="Export"></v-textarea>
+          <v-textarea outlined label="Export" rows="12" v-model=" exportContent " name="Export"></v-textarea>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="darken-1"
-            text
-            @click="
-              exportDialog = false;
-              exportType = '';
-            "
-            >Close</v-btn
-          >
+          <v-btn color="darken-1" text @click="
+            exportDialog = false;
+            exportType = '';
+          ">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-overlay :value="deleting">
-      <v-progress-circular :value="deleteProgress" width="15" size="150"></v-progress-circular>
+    <v-overlay :value=" deleting ">
+      <v-progress-circular :value=" deleteProgress " width="15" size="150"></v-progress-circular>
     </v-overlay>
   </div>
 </template>
@@ -495,6 +390,20 @@ export default {
         this.subExcludes = await this.$http.$get(`${this.url}/fields/sub_exclude/`);
         this.logExcludes = await this.$http.$get(`${this.url}/fields/log_exclude/`);
         this.logIncludes = await this.$http.$get(`${this.url}/fields/log_include/`);
+
+        if (typeof (this.nameExcludes) == "string") {
+          this.nameExcludes = [];
+        }
+        if (typeof (this.subExcludes) == "string") {
+          this.subExcludes = [];
+        }
+        if (typeof (this.logExcludes) == "string") {
+          this.logExcludes = [];
+        }
+        if (typeof (this.logIncludes) == "string") {
+          this.logIncludes = [];
+        }
+
       } catch (err) {
         console.error(err);
       }
@@ -505,6 +414,9 @@ export default {
         case "name_exclude":
           try {
             this.nameExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
+            if (typeof (this.nameExcludes) == "string") {
+              this.nameExcludes = [];
+            }
             console.log("name excludes: ", this.nameExcludes);
           } catch (err) {
             console.error(err);
@@ -513,6 +425,9 @@ export default {
         case "sub_exclude":
           try {
             this.subExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
+            if (typeof (this.subExcludes) == "string") {
+              this.subExcludes = [];
+            }
           } catch (err) {
             console.error(err);
           }
@@ -520,6 +435,9 @@ export default {
         case "log_exclude":
           try {
             this.logExcludes = await this.$http.$get(`${this.url}/fields/${type}/`);
+            if (typeof (this.logExcludes) == "string") {
+              this.logExcludes = [];
+            }
           } catch (err) {
             console.error(err);
           }
@@ -527,6 +445,9 @@ export default {
         case "log_include":
           try {
             this.logIncludes = await this.$http.$get(`${this.url}/fields/${type}/`);
+            if (typeof (this.logIncludes) == "string") {
+              this.logIncludes = [];
+            }
           } catch (err) {
             console.error(err);
           }
@@ -643,7 +564,7 @@ export default {
       return this.$http.$get(this.url + "/jobs/");
     },
   },
-  mounted() {},
+  mounted() { },
   props: {},
 };
 </script>
