@@ -1,4 +1,4 @@
-FROM node:14.16.1-alpine3.13
+FROM node:20.1.0-alpine
 
 ARG COMMIT=""
 LABEL commit=${COMMIT}
@@ -6,7 +6,7 @@ LABEL commit=${COMMIT}
 RUN mkdir -p /app
 WORKDIR /app
 
-# Install software 
+# Install software
 COPY . /app
 
 ENV NUXT_ENV_CURRENT_GIT_SHA=${COMMIT}
