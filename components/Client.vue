@@ -3,7 +3,7 @@
     <v-skeleton-loader v-if="client.Refreshing" type="image" class="ma-2"></v-skeleton-loader>
     <v-card v-else :loading="client.Encoder && (client.Encoder.Active || client.Mover.Active || client.FileWalker.Active)" class="ma-2">
       <!-- Begin Progress Bar -->
-      <template style="min-height: 4px" v-slot:progress>
+      <template v-slot:progress>
         <v-progress-linear
           v-if="client.Encoder.OfSlices > 0"
           v-model="client.Encoder.Progress"
