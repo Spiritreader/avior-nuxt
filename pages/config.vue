@@ -222,6 +222,7 @@
                 :item-text="'tag'"
                 :item-value="'tag'"
                 v-model="selectedEncoderConfigTag"
+                :disabled="!allowUploadConfig"
                 @change="loadEncoderConfig"
                 label="Add or edit an encoder configuration"
                 outlined
@@ -234,6 +235,7 @@
                   :content="selectedEncoderConfig.content"
                   @deleted="handleEncoderSettingsDelete($event)"
                   @newdata="handleEncoderSettingsData($event)"
+                  @isEdit="handleEncoderSettingsEditActive($event)"
                   :allowNew="true"
                 ></EncoderConfig>
               </div>
@@ -251,6 +253,7 @@
       <div class="d-flex flex-wrap">
         <v-btn
           :loading="saving"
+          :disabled="!allowUploadConfig"
           v-if="clientIsSelected && !loading && !err != ''"
           @click="saveConfig()"
           color="red darken-2"
@@ -340,6 +343,7 @@ export default {
     err: "",
     selectedEncoderConfigTag: "",
     selectedEncoderConfig: {},
+    allowUploadConfig: true,
     saving: false,
     loading: false,
     items: [],
@@ -537,6 +541,9 @@ export default {
     },
     handleEncoderSettingsDelete: function (e) {
       this.$delete(this.config.EncoderConfig, e);
+    },
+    handleEncoderSettingsEditActive: function (e) {
+      this.allowUploadConfig = e;
     },
   },
 };
