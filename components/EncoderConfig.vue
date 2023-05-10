@@ -167,10 +167,14 @@ export default {
     },
     editAll() {
       if (!this.disabledTag) {
-        this.content.PreArguments = this.preArgumentsString.trim().split("\n").map(s => s.trim());
-        this.content.PostArguments = this.postArgumentsString.trim().split("\n").map(s => s.trim());
-        this.content.MultiChArguments = this.multiChArgumentsString.trim().split("\n").map(s => s.trim());
-        this.content.StereoArguments = this.stereoArgumentsString.trim().split("\n").map(s => s.trim());
+        // in case you're ever wondering what filter(e => e) does again and why it seems so pointless
+        // it prevents empty lines from being added to the array
+        // which would result in a lot of empty lines in the textareas
+        // and cause issues with the encoding of files because ffmpeg REALLY DISLIKES empty lines
+        this.content.PreArguments = this.preArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
+        this.content.PostArguments = this.postArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
+        this.content.MultiChArguments = this.multiChArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
+        this.content.StereoArguments = this.stereoArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
 
         this.content.Stash = this.stashString.trim().split("\n");
         this.content.OutDirectory = this.outDirectory;
