@@ -4,9 +4,9 @@
       <h4 v-if="!isNew()" class="ml-3 pb-2">Encoder Configuration</h4>
       <h4 v-else class="ml-3 pb-2">Enter new encoder configuration</h4>
     </div>
-      <v-alert v-model="showSaveHint" color="yellow" class="mx-3 mt-1" dismissible transition="fade-transition" text type="info">
-        <div class="alert-text">To push changes to the client, you need to hit upload config</div>
-      </v-alert>
+    <v-alert v-model="showSaveHint" color="yellow" class="mx-3 mt-1" dismissible transition="fade-transition" text type="info">
+      <div class="alert-text">To push changes to the client, you need to hit upload config</div>
+    </v-alert>
     <div class="d-flex pb-1">
       <v-col cols="8" md="8" lg="5" xl="5" class="pr-0">
         <v-text-field
@@ -63,6 +63,30 @@
       <v-textarea
         :disabled="disabledTag"
         outlined
+        label="Stereo Encoding Arguments"
+        placeholder="Use this to specify an encoding profile for stereo audio streams.
+If you don't specify a profile, only the post arguments will be used."
+        auto-grow
+        name="StereoInput"
+        v-model="stereoArgumentsString"
+      ></v-textarea>
+    </div>
+    <div class="px-3">
+      <v-textarea
+        :disabled="disabledTag"
+        outlined
+        label="Multi Channel Encoding Arguments"
+        placeholder="Use this to specify an encoding profile for mutli channel audio streams.
+If you don't specify a profile, only the post arguments will be used."
+        auto-grow
+        name="MultiChInput"
+        v-model="multiChArgumentsString"
+      ></v-textarea>
+    </div>
+    <div class="px-3">
+      <v-textarea
+        :disabled="disabledTag"
+        outlined
         label="Stash"
         placeholder="Use this to store parameters you're currently not using :)"
         auto-grow
@@ -100,10 +124,6 @@
 <script>
 export default {
   methods: {
-    toggleSaveHint(e) {
-      e.preventDefault();
-      this.showSaveHint = !this.showSaveHint;
-    },
     refresh() {
       if (!this.new) {
         this.disabledTag = true;
@@ -112,6 +132,8 @@ export default {
       }
       this.preArgumentsString = "";
       this.postArgumentsString = "";
+      this.stereoArgumentsString = "";
+      this.multiChArgumentsString = "";
       this.stashString = "";
       console.log("mounted");
       console.log(this.content);
@@ -126,6 +148,12 @@ export default {
       if (this.content.Stash) {
         this.content.Stash.forEach((l) => (this.stashString += l + "\n"));
       }
+      if (this.content.StereoArguments) {
+        this.content.StereoArguments.forEach((l) => (this.stereoArgumentsString += l + "\n"));
+      }
+      if (this.content.MultiChArguments) {
+        this.content.MultiChArguments.forEach((l) => (this.multiChArgumentsString += l + "\n"));
+      }
       this.outDirectory = this.content.OutDirectory;
       if (this.new) {
         this.disabledTag = false;
@@ -139,14 +167,11 @@ export default {
     },
     editAll() {
       if (!this.disabledTag) {
-        this.content.PreArguments = this.preArgumentsString
-          .trim()
-          .split("\n")
-          .filter((e) => e);
-        this.content.PostArguments = this.postArgumentsString
-          .trim()
-          .split("\n")
-          .filter((e) => e);
+        this.content.PreArguments = this.preArgumentsString.trim().split("\n").map(s => s.trim());
+        this.content.PostArguments = this.postArgumentsString.trim().split("\n").map(s => s.trim());
+        this.content.MultiChArguments = this.multiChArgumentsString.trim().split("\n").map(s => s.trim());
+        this.content.StereoArguments = this.stereoArgumentsString.trim().split("\n").map(s => s.trim());
+
         this.content.Stash = this.stashString.trim().split("\n");
         this.content.OutDirectory = this.outDirectory;
         console.log(this.content.PreArguments);
@@ -174,6 +199,8 @@ export default {
     preArgumentsString: "",
     postArgumentsString: "",
     stashString: "",
+    stereoArgumentsString: "",
+    multiChArgumentsString: "",
     deleted: false,
   }),
   props: {
@@ -192,6 +219,11 @@ export default {
     id: {
       handler: function () {
         this.refresh();
+      },
+    },
+    disabledTag: {
+      handler: function () {
+        this.$emit("isEdit", this.disabledTag);
       },
     },
   },
