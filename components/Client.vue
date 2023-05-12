@@ -30,8 +30,11 @@
           <div class="mr-auto">
             {{ client.HostName }}
             <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
+            <v-icon class="pb-1" v-else-if="client.Sleeping">mdi-alarm-snooze</v-icon>
             <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
-            <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-outline</v-icon>
+            <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-play-outline</v-icon>
+            <v-icon class="pb-1" v-else-if="isActive">mdi-movie-open-cog-outline</v-icon>
+
           </div>
           <!-- Begin Card Buttons -->
           <div v-if="isOnline()">
@@ -389,7 +392,8 @@ const ENCODER = "encoder",
   IDLE = "idle",
   OFFLINE = "offline",
   WORKING = "working",
-  INACTIVE = [OFFLINE, PAUSED, IDLE];
+  SLEEPING = "sleeping",
+  INACTIVE = [OFFLINE, PAUSED, IDLE, SLEEPING];
 export default {
   beforeDestroy() {
     try {
@@ -489,6 +493,8 @@ export default {
         case IDLE:
           return {};
         case WORKING:
+          return {};
+        case SLEEPING:
           return {};
       }
     },
@@ -724,6 +730,8 @@ export default {
         return { process: PAUSED, text: "Paused" };
       } else if (client.InFile !== "") {
         return { process: WORKING, text: "Working" };
+      } else if (client.Sleeping) {
+        return { process: SLEEPING, text: "Sleeping" };
       } else {
         return { process: IDLE, text: "Idle" };
       }
