@@ -12,6 +12,7 @@
       "skipFiles": [
         "node_modules/**/*.js",
         "lib/**/*.js",
+        "_nuxt/*.js",
         "<node_internals>/**"
       ],
       "sourceMapPathOverrides": {

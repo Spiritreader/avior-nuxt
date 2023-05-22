@@ -43,17 +43,11 @@
           <!--general settings -->
           <v-tab-item :key="configHeaders[0]">
             <v-card flat>
-              <v-row justify="start" class="px-4 mt-4">
-                <v-col cols="12" sm="2" md="2" class="mb-1 pb-0">
-                  <v-text-field
-                    label="Extension"
-                    v-model="config.Ext"
-                    placeholder="Enter Extension"
-                    hide-details
-                    outlined
-                  ></v-text-field>
+              <v-row justify="start" class="px-7 mt-4">
+                <v-col cols="12" sm="2" md="2" lg="2" class="mb-1 pb-0">
+                  <v-text-field label="Extension" v-model="config.Ext" placeholder="Enter Extension" hide-details outlined></v-text-field>
                 </v-col>
-                <v-col cols="12" sm="10" md="10" class="mb-1 pb-0">
+                <v-col cols="12" sm="10" md="10" lg="10" class="mb-1 pb-0">
                   <v-text-field
                     label="Obsolete Directory"
                     placeholder="Enter Path"
@@ -62,6 +56,14 @@
                     outlined
                   ></v-text-field>
                 </v-col>
+              </v-row>
+              <v-row justify="start" class="px-7 mt-4">
+                <v-col class="mt-0 pt-0">
+                  <v-checkbox v-model="config.PauseOnEncodeError" hide-details :label="`Pause service if encoding fails`"></v-checkbox>
+                </v-col>
+              </v-row>
+              <v-row justify="start" class="px-4">
+                <v-col> <CacheConfig @newdata="handleRedisConfigUpdate" :redisConfig="config.Redis" /> </v-col>
               </v-row>
               <v-row justify="start" class="px-4">
                 <v-col class="mt-0 pt-0">
@@ -261,18 +263,10 @@
           >Upload Config</v-btn
         >
         <div>
-          <v-btn
-            @click="configImportConfirm = true"
-            color="gray darken-3"
-            v-if="clientIsSelected && !loading && !err != ''"
-            class="mt-6"
+          <v-btn @click="configImportConfirm = true" color="gray darken-3" v-if="clientIsSelected && !loading && !err != ''" class="mt-6"
             >Import</v-btn
           >
-          <v-btn
-            @click="configExportDialog = true"
-            color="gray darken-3"
-            v-if="clientIsSelected && !loading && !err != ''"
-            class="mt-6"
+          <v-btn @click="configExportDialog = true" color="gray darken-3" v-if="clientIsSelected && !loading && !err != ''" class="mt-6"
             >Export</v-btn
           >
         </div>
@@ -490,9 +484,7 @@ export default {
       this.err = false;
       const resolvedClient = await this.tryResolveClient(client);
       console.log(
-        `Trying to get result for ${resolvedClient.Reachable ? "reachable" : "previously unreachable"} with ip ${
-          resolvedClient.Address
-        }`
+        `Trying to get result for ${resolvedClient.Reachable ? "reachable" : "previously unreachable"} with ip ${resolvedClient.Address}`
       );
       try {
         this.config = await this.$http.$get(`${resolvedClient.Address}/config/`);
@@ -510,6 +502,10 @@ export default {
     },
     addResolution() {
       this.$set(this.config.Resolutions, "", "");
+    },
+    handleRedisConfigUpdate: function (e) {
+      console.log("good old jannis");
+      this.config.Redis = e;
     },
     handleMediaPathData: function (e) {
       this.config.MediaPaths = e;
