@@ -226,9 +226,9 @@
           <span>Process Info</span>
         </v-tooltip>
 
-        <v-tooltip top v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')">
+        <v-tooltip top v-if="isOnline()">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon v-bind="attrs" v-on="on" @click="showEncoderLog = !showEncoderLog">
+            <v-btn icon v-bind="attrs" v-on="on" @click="toggleEncoderLog">
               <v-icon>mdi-console</v-icon>
             </v-btn>
           </template>
@@ -296,7 +296,7 @@
       <!-- Begin Encoder Log -->
       <v-expand-transition v-if="client.EncoderLineOut && !client.EncoderLineOut.includes('null')">
         <div v-show="showEncoderLog">
-          <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="300" class="mb-2">
+          <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="450" class="mb-2">
             <template v-slot="{ item }">
               <div>
                 <v-list-item class="encoder-line-out my-2">
@@ -307,6 +307,13 @@
               </div>
             </template>
           </v-virtual-scroll>
+        </div>
+      </v-expand-transition>
+      <v-expand-transition>
+        <div v-show="isOnline() && showEncoderLog">
+          <v-container class="px-0 pb-1 pt-1">
+            <v-alert class="mx-4 mt-1" type="info" color="blue-grey darken-3" dark> No log yet </v-alert>
+          </v-container>
         </div>
       </v-expand-transition>
       <!-- Begin Encoder Log -->
@@ -621,6 +628,17 @@ export default {
         (this.client.FileWalker.Active && this.client.FileWalker.LibSize === 0) ||
         this.client.InFile == ""
       );
+    },
+    toggleEncoderLog: async function () {
+      this.showEncoderLog = !this.showEncoderLog;
+      try {
+        const lineOut = await this.$http.$get(this.client.Ip + "/encoder/");
+        this.client.EncoderLineOut = lineOut;
+      } catch (e) {
+        this.client.EncoderLineOut = "";
+        console.log("could not retrieve encoder log");
+        console.log(e);
+      }
     },
     /**
      * Checks if the client is active
