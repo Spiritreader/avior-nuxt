@@ -466,7 +466,14 @@ export default {
       this.saving = true;
       console.log(this.selectedClient.Address);
       try {
-        let result = await this.$http.$put(`${this.selectedClient.Address.trim()}/config`, this.config);
+        //let result = await this.$http.$put(`${this.selectedClient.Address.trim()}/config`, this.config);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        let result = await fetch(`${this.selectedClient.Address.trim()}/config`, {
+          method: "PUT",
+          signal: controller.signal,
+          body: JSON.stringify(this.config),
+        });
         setTimeout(() => {
           this.saving = false;
         }, 500);
