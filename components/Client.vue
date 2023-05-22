@@ -311,8 +311,11 @@
       </v-expand-transition>
       <v-expand-transition>
         <div v-show="isOnline() && showEncoderLog">
-          <v-container class="px-0 pb-1 pt-1">
-            <v-alert class="mx-4 mt-1" type="info" color="blue-grey darken-3" dark> No log yet </v-alert>
+          <v-container
+            class="px-0 pb-1 pt-1"
+            v-if="!client.EncoderLineOut || (client.EncoderLineOut && client.EncoderLineOut.includes('null'))"
+          >
+            <v-alert class="mx-4 mt-1" type="info" color="blue-grey darken-3" dark> No encoder data available yet </v-alert>
           </v-container>
         </div>
       </v-expand-transition>
