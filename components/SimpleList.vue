@@ -7,7 +7,7 @@
         <v-icon>{{ icon }}</v-icon>
       </v-list-item-icon>
       <v-list-item-content>
-        <v-list-item-title v-text="item"></v-list-item-title>
+        <v-list-item-title>{{ item }}</v-list-item-title>
       </v-list-item-content>
       <v-btn icon small color="red" @click="removeElement(i)" class="mt-0"><v-icon>mdi-close</v-icon></v-btn>
     </v-list-item>

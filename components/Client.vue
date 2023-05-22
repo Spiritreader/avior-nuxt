@@ -29,12 +29,12 @@
         <div class="display-1 text-h4 d-flex">
           <div class="mr-auto">
             {{ client.HostName }}
-            <v-icon class="pb-1" v-if="client.Paused">mdi-sleep</v-icon>
+            <v-icon class="pb-1" v-if="isPauseError()">mdi-cancel</v-icon>
+            <v-icon class="pb-1" v-else-if="client.Paused">mdi-sleep</v-icon>
             <v-icon class="pb-1" v-else-if="client.Sleeping">mdi-alarm-snooze</v-icon>
             <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
             <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-play-outline</v-icon>
             <v-icon class="pb-1" v-else-if="isActive">mdi-movie-open-cog-outline</v-icon>
-
           </div>
           <!-- Begin Card Buttons -->
           <div v-if="isOnline()">
@@ -121,12 +121,14 @@
             'status-active': isActive(),
             'status-idle': !isActive(),
             'status-offline': !isOnline(),
+            'status-pause-error': isPauseError(),
           }"
         >
           Status: {{ activeProcess.text }}
           <span v-if="client.Encoder && client.Encoder.Active && client.Encoder.OfSlices !== 0">Estimating</span>
         </p>
         <p v-if="client.InFile" class="body-2">{{ client.InFile }}</p>
+        <p v-if="isPauseError()" class="error-message">{{ pauseErrorText }}</p>
         <!-- End Card Info -->
         <!-- Begin Card Content -->
         <v-container
@@ -443,6 +445,13 @@ export default {
     clientInit: Object,
   },
   computed: {
+    pauseErrorText: function () {
+      if (this.client.PauseReason && this.client.PauseReason.length > 0) {
+        return this.client.PauseReason.split(/(?=[A-Z])/).join(" ");
+      } else {
+        return "none";
+      }
+    },
     bufferValue: function () {
       if (this.client.Encoder.Active) {
         return 100;
@@ -623,12 +632,17 @@ export default {
     isOnline: function () {
       return this.getActiveProcess().process !== OFFLINE;
     },
+    isPauseError: function () {
+      const isPauseError = this.getActiveProcess().process === PAUSED && this.client.PauseReason && this.client.PauseReason.length > 0;
+      return isPauseError;
+    },
     clearClient: function () {
       //todo: this needs to maybe be different to make clients going offline mid-work don't show strings
       //this may not even be needed if done right i think, as we can just emit a new offline client object for the list!
       this.$set(this.client, "Status", "offline");
       this.$set(this.client, "Paused", false);
       this.$set(this.client, "InFile", "");
+      this.$set(this.client, "PauseReason", "");
       this.showMainLog = false;
       this.showErrorLog = false;
       this.showProcessedLog = false;
@@ -811,6 +825,10 @@ export default {
 
 .error-message {
   color: rgb(244, 67, 54);
+}
+
+.status-pause-error {
+  color: rgb(244, 146, 54);
 }
 
 .progress,
