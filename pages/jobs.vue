@@ -423,6 +423,8 @@ export default {
         await this.getClients();
         this.clearNewJob();
       } catch (err) {
+        // TODO make this an error in the ui
+        console.log("error inserting job");
         console.error(err);
       }
       this.addingJob = false;
@@ -539,6 +541,9 @@ export default {
       this.howManyJobsAreSelectedQuestionmark = this.calculateHowManyJobsAreSelectedQuestionmark();
     },
     getJobsForClient: function (client) {
+      if (this.jobs == null) {
+        return [];
+      };
       return this.jobs.filter((j) => {
         this.$set(j, "EditJobDialog", false);
         this.$set(j, "EditingJob", false);
@@ -567,8 +572,11 @@ export default {
     },
     getJobs: async function () {
       const jobs = await this.$http.$get(this.url + "/jobs/");
-      if (jobs != "null\n") {
+      if (jobs != null && jobs != "null\n") {
         this.jobs = jobs;
+      }
+      else {
+        this.jobs = [];
       }
     },
 
