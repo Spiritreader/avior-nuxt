@@ -11,7 +11,13 @@
     :mobile-breakpoint="0"
   >
     <template v-slot:top>
-      <v-toolbar flat>
+      <!--
+        color="transparent": Vuetify 4's v-toolbar paints its own surface colour, so inside
+        a card it renders as a lighter grey stripe. Vuetify 2's flat toolbar inherited the
+        card's background. class="px-2" restores the horizontal padding the search field
+        needs — without it the input sits flush against the card's left edge.
+      -->
+      <v-toolbar flat color="transparent" class="px-2">
         <v-text-field
           v-model="nameSearch"
           append-inner-icon="mdi-magnify"
