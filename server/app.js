@@ -77,7 +77,8 @@ app.use((req, res) => {
 // Without this, Express's default handler answers in HTML — malformed JSON
 // would return an HTML 400, and any thrown error an HTML 500 with a stack
 // trace. This API only ever speaks JSON.
-// eslint-disable-next-line no-unused-vars
+// Note: `next` is required so Express recognizes this as 4-arg error-handling
+// middleware, even though it's unused in the body.
 app.use((err, req, res, next) => {
   console.error('unhandled api error:', err)
   const status = err.status || err.statusCode || 500

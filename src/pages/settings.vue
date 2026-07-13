@@ -115,10 +115,6 @@ function handleAddressData(data: string[]) {
   clientAddresses.value = data;
 }
 
-function setLoader(i: unknown) {
-  loader.value = i;
-}
-
 async function addClient() {
   if (clientName.value != "" && clientAddress != "") {
     submitLoad.value = true;

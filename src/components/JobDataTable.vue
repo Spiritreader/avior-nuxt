@@ -120,6 +120,10 @@ function closeDeleteJobDialog(job: Job) {
   job.DeletingJob = false;
 }
 
+// Not called anywhere -- true of the pre-port Options API original too, which
+// defined the same method here and never invoked it (jobs.vue has its own,
+// separately-called filteredJob). Kept verbatim.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function filteredJob(job: Record<string, unknown>) {
   const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeletingJob"];
   const filtered = Object.keys(job)

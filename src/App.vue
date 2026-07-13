@@ -107,8 +107,6 @@ const items = ref<NavItem[]>([
 ]);
 
 const miniVariant = ref(false);
-const right = ref(true);
-const rightDrawer = ref(false);
 const title = ref("Avior");
 
 const commitHash = computed(() => {

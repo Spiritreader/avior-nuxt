@@ -58,7 +58,6 @@ const selected = ref(0);
 const settingsInternal = ref<LogMatchSettingsType>(props.settings);
 const steps = ref<string[]>(["include", "neutral", "exclude"]);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function accIcon(value: any) {
   if (value == 0) {
     return "mdi-circle-outline";

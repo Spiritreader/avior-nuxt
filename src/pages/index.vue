@@ -75,7 +75,7 @@ async function refresh() {
 function moveClientToOfflineList(offlineClientOrName: ClientInfo | string) {
   const offlineClient = offlineClientOrName as ClientInfo;
   console.log(`moving ${offlineClient.HostName} to offline list`);
-  let idx = clientInfosOnline.value.findIndex((cio) => cio.HostName.toLowerCase() == offlineClient.HostName.toLowerCase());
+  const idx = clientInfosOnline.value.findIndex((cio) => cio.HostName.toLowerCase() == offlineClient.HostName.toLowerCase());
   if (idx != -1) {
     clientInfosOnline.value.splice(idx, 1);
     clientInfosOffline.value.push(offlineClient);

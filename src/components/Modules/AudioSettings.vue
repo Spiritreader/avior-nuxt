@@ -61,7 +61,6 @@ const selectedFormat = ref(0);
 const settingsInternal = ref<AudioSettingsType>(props.settings);
 const steps = ref<string[]>(["low", "med", "high"]);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function accIcon(value: any) {
   if (value == 0) {
     return "mdi-circle-outline";

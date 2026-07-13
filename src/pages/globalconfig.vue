@@ -250,7 +250,6 @@ const clientAdd = ref(false);
 const clientLoader = ref(false);
 const tab = ref("tab-1");
 const opened = ref<unknown[]>([]);
-const currentActiveCard = ref("");
 const clients = ref<DaemonClient[]>([]);
 
 const nameExcludesValues = computed(() => nameExcludes.value.map((f) => f.Value));

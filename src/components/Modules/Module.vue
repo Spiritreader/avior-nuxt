@@ -56,6 +56,7 @@ const moduleInternal = ref<ModuleInternal>({
   Priority: -1,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const computedPriority = computed<number>({
   get() {
     return moduleInternal.value.Priority;

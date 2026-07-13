@@ -132,6 +132,7 @@ function addElement(event: Event) {}
 
 // NOTE: `list` is not a prop of this component. Calling removeElement throws --
 // exactly as it did before the port. Nothing calls it; kept verbatim.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function removeElement(index: number) {
   const self = props as unknown as { list: unknown[] };
   self.list.splice(index, 1);

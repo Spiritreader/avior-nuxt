@@ -180,8 +180,7 @@ function editItem(item: FieldRow) {
 }
 
 function deleteItem(item: FieldRow) {
-  const index = data.value.indexOf(item);
-  //data.value.splice(index, 1);
+  //data.value.splice(data.value.indexOf(item), 1);
   emit("newdata", { mode: "delete", obj: item });
 }
 

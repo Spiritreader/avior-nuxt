@@ -514,7 +514,12 @@ const activeProcess = computed(() => getActiveProcess());
 
 /**
  * Color goes from red (0) to light blue (100)
+ *
+ * Not currently bound to any template element (the progress bars below have
+ * no `:color`) — same as in the pre-port source. Not wiring it up here since
+ * that would be a behavioural change, not a lint fix.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const progressColor = computed(() => {
   // `perc` is a string from toFixed(2) in the encoder/filewalker/mover branches and a
   // number in the rest. The comparisons and arithmetic below coerce, exactly as before.

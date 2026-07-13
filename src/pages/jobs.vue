@@ -579,7 +579,7 @@ async function reassignJobs() {
 
 async function deleteSelectedJobs() {
   deletingSelectedJobs.value = true;
-  let promises: Promise<unknown>[] = [];
+  const promises: Promise<unknown>[] = [];
   for (const client of Object.values(selectedJobs.value) as Job[][]) {
     for (const job of client) {
       promises.push(deleteJobNoRefresh(job));
