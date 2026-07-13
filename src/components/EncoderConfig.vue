@@ -96,7 +96,7 @@ If you don't specify a profile, only the post arguments will be used."
     </div>
     <v-dialog v-if="deleteConfirm" v-model="deleteConfirm" max-width="500">
       <template v-slot:activator="{ props }">
-        <v-btn variant="text" class="mb-2" size="large" icon color="red" v-bind="props">
+        <v-btn variant="text" class="mb-2" size="44" icon color="red" v-bind="props">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>

@@ -54,7 +54,7 @@
                   class="mb-2"
                   :loading="pauseMachine"
                   :disabled="pauseMachine"
-                  size="large"
+                  size="44"
                   icon
                   color="blue"
                   v-bind="props"
@@ -71,7 +71,7 @@
               class="mb-2"
               :loading="resumeMachine"
               :disabled="resumeMachine"
-              size="large"
+              size="44"
               icon
               color="green"
               @click="sendResumeCommand()"
@@ -86,7 +86,7 @@
             <!-- Begin Shutdown Dialog -->
             <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
               <template v-slot:activator="{ props }">
-                <v-btn variant="text" class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" size="large" icon color="red" v-bind="props">
+                <v-btn variant="text" class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" size="44" icon color="red" v-bind="props">
                   <v-tooltip location="bottom">
                     <template v-slot:activator="{ props: tooltipProps }">
                       <v-icon v-bind="tooltipProps">mdi-power</v-icon>
