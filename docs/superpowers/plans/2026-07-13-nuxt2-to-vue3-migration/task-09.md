@@ -82,6 +82,23 @@ These are the dangerous ones. An unknown attribute on a Vue component falls thro
 | `<v-slider ticks="always">` | `show-ticks="always"` | In v4 `ticks` takes `number[]` or `Record<number, string>`; the `"always"` value moved to the separate `show-ticks` prop. Ticks silently vanish. |
 | `<v-slider :tick-labels="arr">` | `:ticks="record"` where record is `Record<number, string>` | `tickLabels` does not exist in v4 at all. Labels silently vanish. |
 | `v-slider` `#thumb-label` slot arg `{ value }` | `{ modelValue }` | The slot arg was renamed. `props.value` is `undefined`. |
+| `<v-btn text>` | `variant="text"` | `VBtn`'s `variant` defaults to `elevated` regardless, so a bare `text` renders a FILLED elevated button instead of a flat one. |
+| `<v-btn depressed>` | `variant="flat"` | No boolean `depressed` prop. |
+| `<v-btn large>` / `small` / `x-small` / `x-large` | `size="large"` / `size="small"` / … | No boolean size props exist in v4. |
+| `<v-alert dismissible>` | `closable` | Renamed. |
+| `<v-alert text>` | `variant="text"` | DANGEROUS: in v4 `text` on `VAlert` is a STRING CONTENT prop. A bare `text` does not mean what it looks like. |
+| `<v-alert transition="fade-transition">` | removed | Not a valid `VAlert` prop; lands as a dead DOM attribute. |
+
+### Verified as UNCHANGED — do not "fix" these
+
+Agents have wasted effort or introduced regressions by "correcting" things that were already right. All verified against the 4.1.4 typings:
+
+- `flat` is still a real prop on `VCard`, `VBtn`, `VToolbar` and `VAppBar`. Leave it.
+- `VRow` still has `dense`, `align`, `justify`, `no-gutters`. Leave them.
+- `single-line` is still a real `VTextField` prop.
+- `append-icon` / `@click:append` on `VTextField` still work.
+- `<v-btn icon>` (boolean) is still valid.
+- `xs="6"` on a `v-col`: LEAVE IT. Vuetify 2's `VCol` breakpoints were `['sm','md','lg','xl']` — there has NEVER been an `xs` prop, in either version. It is dead code in both, so converting it to `cols="6"` ADDS a span the page never had. That is a behaviour change, not a fix. The same applies to reasoning about `v-flex xs12` when rewriting the old grid: work out what it ACTUALLY rendered as, not what the name suggests.
 
 Verify any prop you are unsure about against the shipped typings rather than the docs or memory:
 
