@@ -8,10 +8,20 @@
     </v-row>
     <v-row v-else>
       <v-card class="mx-auto" width="100%">
-        <v-system-bar color="light-green-darken-3" :window="true">
+        <!-- Was <v-system-bar>. In Vuetify 4 VSystemBar calls useLayoutItem, so it is a
+             LAYOUT component: it hoists itself out of the card and pins to the top of the
+             page, spanning the full width. In Vuetify 2 it was an ordinary inline element
+             unless given `app`/`fixed`. No prop restores the inline behaviour (`absolute`
+             would overlay the card's own content), so this is a plain strip: same colour,
+             same 32px height as `window`, same content, but it stays inside the card. -->
+        <v-sheet
+          color="light-green-darken-3"
+          height="32"
+          class="d-flex align-center px-4 text-body-medium"
+        >
           <span>{{ jobs.length }} job{{ s2 }} left to process</span>
           <v-spacer></v-spacer>
-        </v-system-bar>
+        </v-sheet>
         <!-- VList has no boolean `flat` prop in Vuetify 4 (it is only a value of `variant`,
              whose default is already 'text' = flat). The v2 attribute is dropped. -->
         <v-list>

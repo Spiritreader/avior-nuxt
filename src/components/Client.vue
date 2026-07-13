@@ -186,10 +186,13 @@
           </div>
           <!-- Begin Progress Circle -->
           <div v-if="isActive() && activeProcess.process !== 'working'" class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'">
+            <!-- No `rotate` prop: Vuetify 2's arc started at 3 o'clock, so the original
+                 passed -90 to move it to the top. Vuetify 4 already applies
+                 rotate(calc(-90deg + Xdeg)) internally, so its default of 0 starts at
+                 the top. Passing -90 again lands the arc at 9 o'clock. -->
             <v-progress-circular
               transition="slide-x-transition"
               class="text-headline-small"
-              :rotate="determineIndeterminate() ? 0 : -90"
               :size="175"
               :width="21"
               :model-value="activeProcessProgress"

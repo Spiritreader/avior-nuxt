@@ -1,4 +1,7 @@
 import 'vuetify/styles'
+// Restores the global margin/padding reset Vuetify 2 shipped and Vuetify 4 dropped.
+// Must come after vuetify/styles so its @layer reset block is ordered correctly.
+import '@/styles/reset.css'
 import '@mdi/font/css/materialdesignicons.css'
 
 // Vuetify's CSS says `font-family: var(--v-font-body, "Roboto", sans-serif)` — it
