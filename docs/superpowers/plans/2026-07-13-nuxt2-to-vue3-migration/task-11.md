@@ -2,7 +2,6 @@
 
 Part of the Nuxt 2 to Vue 3 SPA migration.
 Master plan: `docs/superpowers/plans/2026-07-13-nuxt2-to-vue3-migration.md`
-Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.md`
 
 You are being given only this task. Do not do work belonging to other tasks.
 Read the constraints below before starting; they are not optional.
@@ -90,21 +89,32 @@ Do not convert scripts to `<script setup>` or TypeScript in these tasks. That is
 
 ### Verification for every port task
 
-There is no test suite. Verification means:
+There is no test suite and no browser in the dev environment, so `scripts/inspect-page.mjs` is your eyes. It loads a page headlessly and writes three artifacts: `console.txt` (every console message and page error), `structure.txt` (a semantic dump: headings, nav items, tabs, buttons, links, inputs, table columns, list items, and every Vuetify component that rendered), and `screenshot.png`.
 
-1. `pnpm dev` (Vite, port 5173) and `pnpm dev:api` (Express, port 10009) both running.
-2. Open the ported page in the browser.
-3. Open the OLD Nuxt app at the same page, side by side. It runs from a separate git worktree, NOT from this one:
+The structure dump is deliberately NOT a DOM diff. Vuetify 2 and Vuetify 4 emit entirely different class names and nesting for the same component, so comparing markup is pure noise. The dump captures what "the same page" actually means: the same controls, with the same labels, in the same order.
+
+Procedure:
+
+1. Start the new app: `pnpm dev` (Vite, 5173) and `pnpm dev:api` (Express, 10009).
+2. Inspect the ported page:
 
 ```bash
-cd ../avior-nuxt-reference && pnpm dev
+node scripts/inspect-page.mjs http://localhost:5173/<route> /tmp/insp/new-<page>
 ```
 
-The reference worktree is pinned to commit `baff6fe`, the last commit where Nuxt still worked, and has its own isolated `node_modules`. It must exist; if it does not, recreate it with `git worktree add ../avior-nuxt-reference baff6fe --detach && cd ../avior-nuxt-reference && pnpm install`. It prints the port it chose — read it from the output rather than assuming.
+3. Compare against the committed baseline, captured from the real Nuxt app:
 
-Nuxt CANNOT run from the main working tree any more, and `pnpm dev:nuxt` no longer exists. Vue 2 and Vue 3 are the same package name at two versions, so they cannot both occupy `node_modules/vue` — and `shamefullyHoist: true` (which Nuxt 2 itself requires) forces exactly that collision. Vuetify 2 and 4 collide the same way. This is not a bug to fix; it is why the reference lives in its own worktree.
-4. Compare them, applying the right standard. What must match: every element is present, the hierarchy and grouping are the same, every interaction works, and the same data appears. What will NOT match, by design, because Vuetify 4 is Material Design 3: font sizes and weights, shadow depths, button label casing, exact spacing and breakpoints. Do not chase those. If you cannot tell whether a difference is intentional MD3 or a real regression, say so in your report rather than guessing — a wrong guess in either direction is worse than an open question.
-5. Check the browser console. Zero errors and zero Vue warnings. Vuetify warns loudly about removed props, so a clean console is a real signal here — this, rather than pixel comparison, is now the sharpest tool for catching a bad port.
+```bash
+diff docs/superpowers/baselines/<page>.txt /tmp/insp/new-<page>/structure.txt
+```
+
+4. What must match: the nav items, headings, tabs, buttons, input labels, and table columns — same content, same order. What may differ: the `vuetify components rendered` list (v2 and v4 have different component names — `v-list-item-content` simply does not exist in v4, and that is the point), and any font/spacing/elevation difference, since Vuetify 4 is Material Design 3.
+5. `console.txt` must contain zero `[error]` and zero `[pageerror]` lines from your page. Vuetify warns loudly about removed props, so a clean console is the sharpest automatic signal that a port is correct. Note the reference app itself logs `Request timed out` errors because the database and daemons are unreachable from this machine — those are environmental and expected in both apps.
+6. Look at `screenshot.png`. Report anything structurally wrong.
+
+KNOWN GAP, do not paper over it: MongoDB (10.11.194.75) and the Avior daemons are unreachable from this machine, so both the reference and the new app render their EMPTY state. The baselines therefore capture the page shell, navigation, and static controls — but NOT populated data tables, client cards, or anything that requires a successful fetch. A `v-data-table` that renders zero rows in both apps proves nothing about its column mapping. Say so in your report rather than claiming a page is fully verified. Data-dependent behaviour must be checked by the user on the real network.
+
+To regenerate a baseline (only if asked): run the reference worktree (`cd ../avior-nuxt-reference && pnpm dev`, note the port it prints) and point the inspector at it.
 
 ---
 

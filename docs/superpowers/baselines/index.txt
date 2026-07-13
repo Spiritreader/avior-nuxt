@@ -1,0 +1,62 @@
+# http://100.64.124.194:8453/
+
+title: Avior - powered by Walzen Group
+
+body text length: 128
+
+table rows: 0
+
+## headings (0)
+  (none)
+
+## nav items (5)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+
+## tabs (0)
+  (none)
+
+## buttons (5)
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - PING OFFLINE
+
+## links (7)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+  - Icon -> https://dryicons.com/icon/love-file-icon-6200
+  - dev -> https://github.com/spiritreader/avior-nuxt/commit/dev
+
+## inputs (0)
+  (none)
+
+## table columns (0)
+  (none)
+
+## list items (5)
+  - Overview
+  - Job Manager
+  - Client Configuration
+  - Global Configuration
+  - Frontend Settings
+
+## vuetify components rendered (11)
+  - v-app-bar
+  - v-application
+  - v-btn
+  - v-footer
+  - v-icon
+  - v-list
+  - v-list-item
+  - v-main
+  - v-navigation-drawer
+  - v-sheet
+  - v-toolbar

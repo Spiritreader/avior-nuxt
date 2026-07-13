@@ -2,7 +2,6 @@
 
 Part of the Nuxt 2 to Vue 3 SPA migration.
 Master plan: `docs/superpowers/plans/2026-07-13-nuxt2-to-vue3-migration.md`
-Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.md`
 
 You are being given only this task. Do not do work belonging to other tasks.
 Read the constraints below before starting; they are not optional.

@@ -38,6 +38,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-nuxt": "^1.0.0",
+    "playwright": "^1.61.1",
     "typescript": "^5.9.3",
     "unplugin-vue-router": "^0.19.2",
     "vite": "^8.1.4",
