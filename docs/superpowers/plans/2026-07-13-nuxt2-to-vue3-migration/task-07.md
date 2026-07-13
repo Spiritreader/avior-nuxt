@@ -64,16 +64,30 @@ The table above covers what Vuetify 3 removed. Vuetify 4 changes more on top of 
 
 | Vuetify 3 | Vuetify 4 |
 |---|---|
-| `<v-row dense>` | `<v-row density="compact">` (or `gap="8"`) |
-| `<v-row align="center">` / `justify="..."` / `align-content="..."` | props removed — use the equivalent utility class on the row (`align-center`, `justify-center`, …), including the responsive variants (`align-sm`, `order-md`, …) |
-| `<v-col order="2">` / `align-self="..."` | props removed — use utility classes |
+| `<v-row dense>` / `align` / `justify` / `no-gutters` | STILL PRESENT in Vuetify 4.1.4 — verified against `VRow.d.ts`. Leave them alone. (The upgrade guide describes a future direction; the shipped component still accepts them.) |
 | `v-select` / `v-combobox` / `v-autocomplete` slot `#item` | renamed `#internalItem`. `item` survives as an alias for `internalItem.raw`, so read the slot body before changing it |
 | `v-container fill-height` centering | no longer centers vertically — add `d-flex align-center flex-wrap` if the centering was load-bearing |
 | `elevation-8` and similar, up to 24 | elevation is now 0-5 only. Map anything above 5 down; a codemod exists |
 | `text-h1` … `text-caption` typography classes | renamed to the MD3 scale (`text-display-large`, `text-headline-small`, `text-body-medium`, …). A codemod exists |
 | `v-btn` uppercase by default | no longer uppercase. If a specific button's casing matters, set it explicitly |
 
-The grid is the one to be careful with: Vuetify 4 rebuilt `v-row`/`v-col` on CSS `gap` instead of negative margins. Read what a row is actually doing before converting it.
+### Silent traps: wrong in Vuetify 4, but NOT caught by vue-tsc
+
+These are the dangerous ones. An unknown attribute on a Vue component falls through to `$attrs` with no type error, so `pnpm typecheck` passes and the component silently renders wrong. All four were found only by reading the shipped Vuetify typings. Check every one of them in every file you port.
+
+| Vuetify 2 | Vuetify 4 | What happens if you leave it |
+|---|---|---|
+| `<v-text-field outlined>` (also `v-textarea`, `v-select`) | `variant="outlined"` | `outlined` is NOT a prop in v4 — it is only a value of `variant`. The attribute lands on the DOM node and the field renders as the default `filled` variant. Visibly wrong, no warning. |
+| `color="red darken-3"` (space-separated) | `color="red-darken-3"` (hyphenated) | The v2 colour-helper syntax is not a valid v4 colour. The component falls back to its default colour. No warning. |
+| `<v-slider ticks="always">` | `show-ticks="always"` | In v4 `ticks` takes `number[]` or `Record<number, string>`; the `"always"` value moved to the separate `show-ticks` prop. Ticks silently vanish. |
+| `<v-slider :tick-labels="arr">` | `:ticks="record"` where record is `Record<number, string>` | `tickLabels` does not exist in v4 at all. Labels silently vanish. |
+| `v-slider` `#thumb-label` slot arg `{ value }` | `{ modelValue }` | The slot arg was renamed. `props.value` is `undefined`. |
+
+Verify any prop you are unsure about against the shipped typings rather than the docs or memory:
+
+```bash
+grep -n "propName" node_modules/vuetify/lib/components/VComponent/VComponent.d.ts
+```
 
 The current codebase is Vuetify 2, so it does not use the MD3 typography or elevation class names anywhere — those rows matter only if a port introduces them. Do not introduce them.
 
