@@ -385,12 +385,16 @@ const items = ref<Client[]>([]);
 // `v-if="config == null || config == {} || loading"`, so nothing dereferences it
 // before configLoad() replaces it with a real Config.
 const config = ref<Config>({} as Config);
-const selectedClient = ref<Client>({} as Client);
+// null, not {}. Vuetify 2's v-select rendered an empty object as blank; Vuetify 4
+// falls back to String(value) for a model it cannot resolve against `items`, which
+// printed "[object Object]" in the field before anything was selected. null is the
+// correct "nothing selected" model in Vuetify 4.
+const selectedClient = ref<Client | null>(null);
 const selectedTab = ref("General");
 const configHeaders = ref(["General", "Audio Formats", "Resolutions", "Modules", "Encoder"]);
 
 const clientIsSelected = computed(() => {
-  return selectedClient.value && Object.keys(selectedClient.value).length !== 0;
+  return selectedClient.value != null;
 });
 
 const resolutionArray = computed<PropertyEntry[]>(() => {
@@ -458,7 +462,7 @@ async function refresh() {
 async function tryResolveClient(client: Client) {
   const resolvedClient = await resolveClient(client);
   // Vue 3's proxy reactivity tracks plain property addition; $set is gone.
-  selectedClient.value.Address = resolvedClient.Address;
+  if (selectedClient.value) selectedClient.value.Address = resolvedClient.Address;
   return resolvedClient;
 }
 
@@ -476,13 +480,13 @@ function importConfig() {
 
 async function saveConfig() {
   saving.value = true;
-  console.log(selectedClient.value.Address);
+  console.log(selectedClient.value?.Address);
   try {
     // 20s, matching the original's explicit AbortController timeout. A config
     // upload is a big body and a slow daemon operation, so it gets far longer
     // than the 2.5s default — but it must still be bounded, or a daemon that
     // accepts the connection and never answers spins the button forever.
-    await put(`${selectedClient.value.Address!.trim()}/config`, config.value, 20000);
+    await put(`${selectedClient.value!.Address!.trim()}/config`, config.value, 20000);
     setTimeout(() => {
       saving.value = false;
     }, 500);

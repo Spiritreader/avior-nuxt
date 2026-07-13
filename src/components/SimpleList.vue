@@ -28,18 +28,23 @@
           <v-icon>mdi-plus</v-icon>
         </a>
       </template>
-      <v-list-item-title>
-        <v-text-field
-          v-model="newElement"
-          :label="`Add ${type}`"
-          variant="solo"
-          flat
-          density="compact"
-          hide-details
-          class="ma-0 pa-0"
-          @keydown.enter="addElement"
-        ></v-text-field>
-      </v-list-item-title>
+      <!--
+        The text field goes in the list item's default (content) slot, NOT inside a
+        <v-list-item-title>. In Vuetify 4 the title is `overflow: hidden; white-space:
+        nowrap` with a fixed line-height, so an input nested in it cannot stretch and its
+        caret sits below the text. Vuetify 2 got away with it because the surrounding
+        <v-list-item-content> — which v4 deleted — did the stretching.
+      -->
+      <v-text-field
+        v-model="newElement"
+        :label="`Add ${type}`"
+        variant="solo"
+        flat
+        density="compact"
+        hide-details
+        class="ma-0 pa-0"
+        @keydown.enter="addElement"
+      ></v-text-field>
     </v-list-item>
   </v-list>
 </template>

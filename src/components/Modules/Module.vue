@@ -1,12 +1,22 @@
 <template>
   <v-card color="#242424" class="pl-1 mx-2 mb-4">
-    <v-card-title class="mb-0 pb-0 pt-0">
-      {{ name }}
+    <!--
+      Vuetify 4's v-card-title is `display: block` with nowrap/ellipsis, where Vuetify 2's
+      was a flex row. Without d-flex the v-spacer does nothing and the switch drops onto
+      its own line below the module name. The original also zeroed the top padding
+      (`pt-0`), which in Vuetify 2 was masked by the switch's own margins — in Vuetify 4 it
+      just glues the title to the top of the card, so the default padding stays.
+    -->
+    <v-card-title class="d-flex align-center">
+      <span>{{ name }}</span>
       <v-spacer></v-spacer>
       <v-switch
         color="red-darken-3"
         :label="moduleInternal.Enabled ? ' Enabled' : ' Disabled'"
         v-model="moduleInternal.Enabled"
+        hide-details
+        density="compact"
+        class="flex-grow-0"
       ></v-switch>
     </v-card-title>
     <v-container>
@@ -20,7 +30,12 @@
         variant="outlined"
       ></v-text-field>
     </v-container>
-    <v-container v-if="moduleInternal.Settings" class="text-label-medium pb-0 mb-0">Settings</v-container>
+    <!--
+      Vuetify 4 has no `text-overline`; MD3's nearest label style is text-label-medium,
+      but it is not uppercase and has no tracking. `text-uppercase` restores the overline
+      look with Vuetify 4's own utilities.
+    -->
+    <v-container v-if="moduleInternal.Settings" class="text-label-medium text-uppercase pb-0 mb-0">Settings</v-container>
     <v-container class="pt-2">
       <slot></slot>
     </v-container>

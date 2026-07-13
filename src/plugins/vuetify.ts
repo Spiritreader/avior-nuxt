@@ -28,6 +28,18 @@ import { createVuetify } from 'vuetify'
 // vite-plugin-vuetify's autoImport, so globalconfig.vue can use <v-time-picker>
 // with no explicit registration here.
 export default createVuetify({
+  // Vuetify 4 defaults inputs to variant="filled" — the grey box. This app is an
+  // underlined-input design (that was Vuetify 2's default, and every field here was
+  // written against it). Setting it once here is the idiomatic Vuetify 4 way; an
+  // explicit variant="outlined" or "solo" on an individual field still wins.
+  defaults: {
+    VTextField: { variant: 'underlined' },
+    VTextarea: { variant: 'underlined' },
+    VSelect: { variant: 'underlined' },
+    VCombobox: { variant: 'underlined' },
+    VAutocomplete: { variant: 'underlined' },
+    VFileInput: { variant: 'underlined' },
+  },
   theme: {
     defaultTheme: 'dark',
     themes: {
