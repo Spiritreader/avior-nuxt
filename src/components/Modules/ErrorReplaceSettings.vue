@@ -1,6 +1,15 @@
 <template>
   <div>
-    <div class="d-flex">
+    <!--
+      align-center: this row is a flex container, so it defaults to align-items: stretch.
+      The help button's mt-3/mb-2 margins make it taller than the 56px field, so the field
+      was stretched to match it — the value sat at the top of an over-tall box with dead
+      space beneath, which read as a leftover validation slot. Vuetify 2 hid this because
+      its field reserved a message slot and so was TALLER than the button; collapsing that
+      slot exposed the mismatch. Centring the row removes the stretch, and the button no
+      longer needs vertical margins to fake its position.
+    -->
+    <div class="d-flex align-center">
       <v-text-field
         label="Threshold"
         type="number"
@@ -10,7 +19,7 @@
         hide-details
         variant="outlined"
       ></v-text-field>
-      <v-btn variant="text" icon class="mb-2 ml-2 mt-3" color="primary" @click="expand = !expand">
+      <v-btn variant="text" icon class="ml-2" color="primary" @click="expand = !expand">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
     </div>

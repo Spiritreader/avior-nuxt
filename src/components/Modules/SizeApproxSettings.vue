@@ -70,7 +70,7 @@
       </v-slider>
     </div>
     <div>
-      <div class="mt-4 d-flex">
+      <div class="mt-4 d-flex align-center">
         <v-text-field
           label="Sample Count"
           type="number"
@@ -80,7 +80,7 @@
           hide-details
           variant="outlined"
         ></v-text-field>
-        <v-btn variant="text" icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
+        <v-btn variant="text" icon class="ml-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
       </div>

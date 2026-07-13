@@ -13,7 +13,13 @@
       <p>No one seems to be online. {{ err }}</p>
     </v-row>-->
     <v-container class="px-0" v-else>
-      <v-row class="mb-2" justify="start" no-gutters>
+      <!--
+        mb-8, where the original had mb-2. Vuetify 2's select carried a validation-message
+        slot below it that pushed the tab bar down; hideDetails: 'auto' collapses that, so
+        the whole card rode 22px higher and the tabs crowded the select. The gap the
+        layout actually wants is declared here instead of coming from a dead message slot.
+      -->
+      <v-row class="mb-8" justify="start" no-gutters>
         <v-col class="client-dropdown">
           <v-select
             :items="items"
@@ -162,12 +168,13 @@
           <!--modules-->
           <!--first column-->
           <!--
-            bg-background (#121212) rather than the card's own surface (#212121): the
-            module cards are #242424, so on the default surface they were within a few
-            values of their backdrop and read as one flat slab. The theme's background
-            token is the darker step that gives them an edge.
+            The module cards are #242424. On the card's own surface (#212121) they were
+            within a few values of their backdrop and read as one flat slab; on the page
+            background (#121212) the pane stopped being a layer at all. module-pane
+            (#1A1A1A, see plugins/vuetify.ts) sits between the two, so the cards have an
+            edge and the pane still reads as its own surface.
           -->
-          <v-window-item :eager="true" :key="configHeaders[3]" :value="configHeaders[3]" class="mt-2 bg-background">
+          <v-window-item :eager="true" :key="configHeaders[3]" :value="configHeaders[3]" class="mt-2 bg-module-pane">
             <div class="d-flex flex-wrap">
               <div class="module-col">
                 <Module :name="'AudioModule'" :module="config.Modules.AudioModule">

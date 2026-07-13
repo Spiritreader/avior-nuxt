@@ -76,6 +76,10 @@ export default createVuetify({
           // VSelect, VSlider, VAlert and VTimePicker, which share it — the time
           // picker's clock face (globalconfig) would go nearly black.
           toolbar: '#2A2A2A',
+          // The pane behind the module cards. It has to read as a distinct layer
+          // between the page background (#121212) and the cards themselves (#242424) —
+          // sitting on either one makes the cards vanish into their backdrop.
+          'module-pane': '#1A1A1A',
         },
       },
     },

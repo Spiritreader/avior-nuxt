@@ -4,7 +4,14 @@
       <h4 v-if="!isNew()" class="ml-3 pb-2">Encoder Configuration</h4>
       <h4 v-else class="ml-3 pb-2">Enter new encoder configuration</h4>
     </div>
-    <v-alert v-model="showSaveHint" color="yellow" class="mx-3 mt-1" closable variant="text" type="info">
+    <!--
+      px-3 instead of mx-3: the alert's own 16px of padding sat on top of the 12px margin,
+      so its icon started at 28px while the heading and the Tag field below it are at 12px.
+      The alert is variant="text" and paints no background, so only where its content
+      begins reads visually — setting the padding to 12px and dropping the margin lands it
+      on the same line as everything else.
+    -->
+    <v-alert v-model="showSaveHint" color="yellow" class="mt-1 px-3" closable variant="text" type="info">
       <div class="alert-text">To push changes to the client, you need to hit upload config</div>
     </v-alert>
     <!--
