@@ -44,53 +44,31 @@ the git history.
 
 ## STILL BROKEN
 
-### 1. Tab / window slide animation not visible to the user
-The user reports NO animations anywhere — tab switches, expand transitions.
+### 1. Global config toolbar: user says the buttons have "no mx to the right"
+Reported after the toolbar padding fix landed. Measured against the reference at 1600px
+and the two apps AGREE: search field inset 16px from the card's left edge, last button
+inset 24px from the right, both in old and new. So either the complaint is about
+something else in that toolbar, or it only shows at a different viewport width.
+Reproduce at the user's width before changing anything.
 
-What was verified: the transition demonstrably runs in the built app. Sampling
-`.v-window-item` transforms every 40ms across a tab switch shows a real 320ms slide
-(outgoing `x=0 → -911px`, incoming `x=912 → 0`). `VWindow.css` is loaded, the transition
-classes fire, duration is `0.3s`.
+### 2. Adjacent button gaps that shifted (measured, not yet fixed)
+Vue 3's compiler condenses away the whitespace-only text nodes between elements that
+Vue 2 kept. Buttons are `inline-flex`, so a bare HTML space between two of them used to
+render as a 4px gap. Any pair that got its spacing that way now touches. Swept every
+page and tab; these two still differ:
 
-Leading hypothesis, NOT yet confirmed: **Vuetify 4 honours `prefers-reduced-motion` and
-Vuetify 2 does not.** Vuetify 2's CSS has zero such rules; Vuetify 4's `VWindow.css` has
-`@media (prefers-reduced-motion: reduce) { transition-duration: 0s }`. Verified in
-Playwright: `no-preference` → `0.3s`, `reduce` → `0s`. Windows reports `MinAnimate = 1`
-(animations on), so it is not the OS setting — but Windows 11's Accessibility → Visual
-effects → "Animation effects" toggle is separate, and browser flags/extensions can force
-it too.
+| Where | Old gap | New gap |
+|---|---|---|
+| `/` — refresh icon → "Ping Offline" | 8px | 32px |
+| `/jobs` — New → Reassign → Delete | 20px | 16px |
 
-NEXT STEP — ask the user to run this in their browser console:
-```js
-matchMedia('(prefers-reduced-motion: reduce)').matches
-```
-- `true`  → that is the whole cause. Decide whether to override it (the app can opt out
-  by re-declaring the transition durations outside the media query in
-  `src/styles/vuetify2-compat.css`).
-- `false` → the built app animates but the user's does not. Check whether they are on the
-  Vite dev server vs the built output, and re-test there.
+The `/` one is the odd one: the new gap is BIGGER, so it is not the whitespace cause and
+needs its own look.
 
-### 2. Resolutions list (config → Resolutions) row spacing
-Rows are too far apart vs the original. `Property.vue`'s markup is IDENTICAL to the
-original, so this is Vuetify 4's `v-container` / `v-row` / `v-col` / text-field metrics.
-NOT yet measured. Measure `v-container` padding, `v-row` margins, `v-col` padding and the
-outlined text-field height in both apps and reconcile.
-
-### 3. Audio formats list — delete button placement
-The add-field now stretches correctly (fixed), but the red X sits immediately after the
-item text rather than at the right edge of the list item. In Vuetify 2 the (now-deleted)
-`v-list-item-content` stretched and pushed the button to the far right. The `#append`
-slot in `SimpleList.vue` should do this — check why the title is not flex-growing.
-
-### 4. Global config: delete / add buttons in the table toolbar
-User reported "button margins on the global config card are busted". The toolbar
-background and search-bar padding ARE fixed. The red delete and blue `+` buttons at the
-right of the toolbar still look cramped/small. Compare against the reference.
-
-### 5. Whole-app sweep not done
-The user has been finding these page by page. The pages NOT yet walked in detail:
-`/jobs` (beyond the system bar), `/settings`, config → General, config → Encoder,
-globalconfig → Clients tab. Expect more of the same class of issue.
+### 3. Whole-app sweep not done
+The pages NOT yet walked in detail: `/jobs` (beyond the system bar and the button gap
+above), `/settings`, config → General, config → Encoder. Expect more of the same class
+of issue.
 
 ---
 
@@ -116,7 +94,16 @@ unknown attributes on a Vue component fall through to `$attrs` with no type erro
 | Module card: switch on its own line, title glued to top | Vuetify 4's `v-card-title` is `display: block` with nowrap/ellipsis, not a flex row, so `v-spacer` did nothing. The original's `pt-0` was harmless in v2 (the switch's margins filled the gap) but glues the title to the card edge in v4. | `5e60102` |
 | Client select showed `[object Object]` | `selectedClient` was initialised to `{}`. Vuetify 2 rendered that blank; Vuetify 4 falls back to `String(value)` for a model it cannot resolve against `items`. `null` is the correct empty model. | `5e60102` |
 | SimpleList add-field would not stretch, caret offset | The input was nested in `<v-list-item-title>`, which in Vuetify 4 is `overflow: hidden` / `nowrap` with a fixed line-height. It belongs in the list item's content slot. | `5e60102` |
-| Search bar grey stripe, no left margin | Vuetify 4's `v-toolbar` paints its own surface colour (v2's flat toolbar inherited the card's) and has different content padding. `color="transparent" class="px-2"`. | `cbb02f7` |
+| Search bar grey stripe, no left margin | Vuetify 4's `v-toolbar` paints the `surface-light` token, which the dark theme sets to `#424242` — a washed-out band. v2 used `#272727` on a `#1E1E1E` card: surface, one step up. A dedicated `toolbar` theme colour (`#2A2A2A`), NOT a retuned `surface-light` — VSelect, VSlider, VAlert and VTimePicker share that one and the time-picker clock face would go black. `.v-toolbar__content` also has no padding of its own now (v2's was `4px 16px`), hence `px-4`. | `cbb02f7`, `e19cf7e` |
+| NO animations anywhere | Not a broken port. Windows' Accessibility → Visual effects → "Animation effects" is off, so Chrome reports `prefers-reduced-motion: reduce` and Vuetify 4 honours it. Vuetify 2 ignored the preference entirely. Confirmed by reading `SPI_GETCLIENTAREAANIMATION`, the flag Chrome maps to the media query. Vuetify gates motion in TWO layers and both had to go: CSS (several transitions are only *declared* inside a `no-preference` query, so under `reduce` they do not exist and no override can restore them — `build/force-motion.ts` rewrites the queries at build time) and JS (every transition's `disabled` prop defaults to `PREFERS_REDUCED_MOTION()`, so Vue's `<Transition>` is off outright — `src/force-motion.ts` patches `matchMedia`, and must be imported BEFORE Vuetify because the prop default is evaluated once at module load). Deliberately overrides an accessibility preference, at the user's request. | `7936b64` |
+| Resolution rows 104px tall, not 72px | Vuetify 4 rebuilt the grid on flexbox `gap`. v2's `.v-row` had a `-12px` margin that cancelled the container's padding, so the container added NO vertical height; v4's row has no negative margin and `.v-col` has no padding at all, so the container's 16px top/bottom started counting. `py-0` on the container. | `2ca8274` |
+| Audio format lists collapsed, delete X against the text | The cols had no `v-row` parent. v2's `.col-md-6` carried `flex: 0 0 50%` on the class, so it sized inside any flex parent; v4 computes flex-basis from custom properties that **`.v-row` declares**, so with no row the calc is invalid and the column shrink-wraps. Swept the whole app — this was the only `v-col` without a row. | `d3d956e` |
+| Caret sat below the text in add-item fields | v4 pads a field's input asymmetrically (16px top, 0 bottom) to reserve room for a FLOATING label, but a `solo` field's label does not float — it stays centred. So the label rendered 8px above the text box. v2's solo label already behaved as a placeholder, so `placeholder` is the faithful equivalent. | `90b819d` |
+| Sliders far too heavy | MD3 re-specced them: track `2px→4px`, thumb `12px→20px`, overall `32px→58px`. Restored with v4's own `trackSize`/`thumbSize`/`density` props as global defaults. | `b7c6e0d` |
+| Dead space under every input | v4 permanently reserves ~26px beneath a field for a validation message whether or not one can appear. `hideDetails: 'auto'` collapses it and expands only when a rule actually fails. | `b7c6e0d` |
+| Module cards had no contrast | Cards are `#242424` on the card surface `#212121` — a few values apart, so they read as one flat slab. The modules pane uses the theme `background` token (`#121212`). | `b7c6e0d` |
+| Import/Export buttons touching | The original never declared a gap — it got 4px from the whitespace text node between two `inline-flex` buttons. Vue 3's compiler condenses whitespace-only nodes between elements away. Declared explicitly. | `b7c6e0d` |
+| Expanded client panel 286px, not 204px | The switch reserved a 26px validation slot (`VSwitch` → `hideDetails: 'auto'`), AND v4 puts a **24px margin between consecutive rows** (`.v-row + .v-row`) where v2 gave them `-12px` — so the original's `pt-4`, which existed to compensate for that negative margin, stacked on top of a gap that already existed. | `89b9f36` |
 
 ---
 
