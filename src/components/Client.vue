@@ -39,12 +39,12 @@
         <div class="text-headline-large d-flex">
           <div class="mr-auto">
             {{ client.HostName }}
-            <v-icon class="pb-1" v-if="isPauseError()">mdi-cancel</v-icon>
-            <v-icon class="pb-1" v-else-if="client.Paused">mdi-sleep</v-icon>
-            <v-icon class="pb-1" v-else-if="client.Sleeping">mdi-alarm-snooze</v-icon>
-            <v-icon class="pb-1" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
-            <v-icon class="pb-1" v-else-if="activeProcess.process === 'idle'">mdi-timer-play-outline</v-icon>
-            <v-icon class="pb-1" v-else-if="isActive">mdi-movie-open-cog-outline</v-icon>
+            <v-icon class="pb-1" size="24" v-if="isPauseError()">mdi-cancel</v-icon>
+            <v-icon class="pb-1" size="24" v-else-if="client.Paused">mdi-sleep</v-icon>
+            <v-icon class="pb-1" size="24" v-else-if="client.Sleeping">mdi-alarm-snooze</v-icon>
+            <v-icon class="pb-1" size="24" v-else-if="activeProcess.process === 'offline'">mdi-lan-disconnect</v-icon>
+            <v-icon class="pb-1" size="24" v-else-if="activeProcess.process === 'idle'">mdi-timer-play-outline</v-icon>
+            <v-icon class="pb-1" size="24" v-else-if="isActive">mdi-movie-open-cog-outline</v-icon>
           </div>
           <!-- Begin Card Buttons -->
           <div v-if="isOnline()">
