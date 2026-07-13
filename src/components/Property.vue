@@ -6,7 +6,14 @@
         <v-icon color="green" v-else>mdi-checkbox-marked-circle-outline</v-icon>
       </v-btn>
     </div>
-    <v-container>
+    <!--
+      py-0: Vuetify 4 rebuilt the grid on flexbox `gap`. Vuetify 2's .v-row carried a
+      -12px margin that cancelled this container's 12px padding, so the container added
+      no vertical height at all; v4's row has no negative margin, so its 16px top and
+      bottom padding suddenly counted and every resolution row grew 72px -> 104px.
+      The col's own py-2 still provides the spacing between rows, as it did before.
+    -->
+    <v-container class="py-0">
       <v-row>
         <v-col class="py-2" xs="6" sm="4" md="3" lg="2" xl="2">
           <v-text-field
