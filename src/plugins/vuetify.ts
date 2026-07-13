@@ -1,5 +1,18 @@
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
+
+// Vuetify's CSS says `font-family: var(--v-font-body, "Roboto", sans-serif)` — it
+// EXPECTS Roboto but does not ship it. Under Nuxt, @nuxtjs/vuetify injected it from
+// Google Fonts automatically; dropping that module dropped the font with it, and the
+// whole app silently fell back to a generic system sans-serif. Self-hosted here so
+// there is no runtime dependency on a CDN.
+import '@fontsource/roboto/100.css'
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
+import '@fontsource/roboto/900.css'
+
 import { createVuetify } from 'vuetify'
 
 // NOTE: the plan called for registering VTimePicker from `vuetify/labs/VTimePicker`,

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row class="title" no-gutters>
+    <v-row class="text-title-large" no-gutters>
       <h2 class="mb-2">Settings</h2>
     </v-row>
     <v-divider class="mb-2"></v-divider>

@@ -20,7 +20,7 @@
         variant="outlined"
       ></v-text-field>
     </v-container>
-    <v-container v-if="moduleInternal.Settings" class="text-overline pb-0 mb-0">Settings</v-container>
+    <v-container v-if="moduleInternal.Settings" class="text-label-medium pb-0 mb-0">Settings</v-container>
     <v-container class="pt-2">
       <slot></slot>
     </v-container>

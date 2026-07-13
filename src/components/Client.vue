@@ -36,7 +36,7 @@
       <!-- Begin Card Main -->
       <v-card-text>
         <!-- Begin Card Header -->
-        <div class="display-1 text-h4 d-flex">
+        <div class="text-headline-large d-flex">
           <div class="mr-auto">
             {{ client.HostName }}
             <v-icon class="pb-1" v-if="isPauseError()">mdi-cancel</v-icon>
@@ -125,7 +125,7 @@
         <!-- Begin Card Info -->
         <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
         <p
-          class="body-1 ma-0"
+          class="text-body-large ma-0"
           v-bind:class="{
             'status-active': isActive(),
             'status-idle': !isActive(),
@@ -136,7 +136,7 @@
           Status: {{ activeProcess.text }}
           <span v-if="client.Encoder && client.Encoder.Active && client.Encoder.OfSlices !== 0">Estimating</span>
         </p>
-        <p v-if="client.InFile" class="body-2">{{ client.InFile }}</p>
+        <p v-if="client.InFile" class="text-body-medium">{{ client.InFile }}</p>
         <p v-if="isPauseError()" class="error-message">{{ pauseErrorText }}</p>
         <!-- End Card Info -->
         <!-- Begin Card Content -->
@@ -188,7 +188,7 @@
           <div v-if="isActive() && activeProcess.process !== 'working'" class="justify-end d-flex mx-auto mx-sm-0 ml-sm-auto'">
             <v-progress-circular
               transition="slide-x-transition"
-              class="text-h5"
+              class="text-headline-small"
               :rotate="determineIndeterminate() ? 0 : -90"
               :size="175"
               :width="21"

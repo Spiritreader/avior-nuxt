@@ -21,6 +21,14 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Bind all interfaces so the dev server is reachable from other machines,
+    // not just localhost.
+    host: true,
+    // Vite rejects requests whose Host header it does not recognise. This app is
+    // reached over the LAN/VPN by hostname (e.g. mmdg.wan.walzen.org), so accept
+    // any host. Dev server only — it is never used in production, where Express
+    // serves the built SPA.
+    allowedHosts: true,
     proxy: {
       // Forwards app-origin API calls to the standalone Express server in dev.
       // In production the same Express server serves the built SPA, so the

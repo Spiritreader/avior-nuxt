@@ -37,7 +37,7 @@
           </template>
           <v-card>
             <v-card-title>
-              <span class="headline">Delete {{ selected.length }} Fields</span>
+              <span class="text-headline-small">Delete {{ selected.length }} Fields</span>
             </v-card-title>
 
             <v-card-text>Do you really want to delete the following fields?</v-card-text>
@@ -69,7 +69,7 @@
           </template>
           <v-card>
             <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
+              <span class="text-headline-small">{{ formTitle }}</span>
             </v-card-title>
 
             <v-card-text>
