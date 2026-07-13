@@ -5,8 +5,12 @@ const Client = require('./schema.js')
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://10.11.194.75/Avior'
 
+// serverSelectionTimeoutMS bounds the initial connect. bufferTimeoutMS bounds
+// queries issued while disconnected: Mongoose buffers those, so they never
+// reach server selection and would otherwise hang for its 10s default.
+// The .catch is what keeps an unreachable database from killing the process.
 mongoose
-  .connect(MONGO_URL, { serverSelectionTimeoutMS: 5000 })
+  .connect(MONGO_URL, { serverSelectionTimeoutMS: 5000, bufferTimeoutMS: 5000 })
   .catch(err => console.error('mongo initial connection failed:', err.message))
 
 const db = mongoose.connection

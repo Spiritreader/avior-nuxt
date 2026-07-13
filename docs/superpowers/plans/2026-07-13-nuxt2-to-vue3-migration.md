@@ -25,6 +25,8 @@ Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.m
 - Every task ends with the app in a runnable state and a commit.
 - Ports during coexistence: Nuxt dev on 3000, Vite dev on 5173, Express standalone on 10009. These must not collide.
 - `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
+- Server stack is Mongoose 9, Express 5, Node 24 (Task 2b). The upstream MongoDB was upgraded, and Mongoose 9 requires Node >= 20.19. Express 5 rejects a bare `'*'` path — the SPA fallback is `'/*splat'`. Do not reintroduce `body-parser`; Express has the parsers built in.
+- MongoDB at 10.11.194.75 is NOT reachable from the development machine. A hanging or 500-ing `/api/clients` locally is the environment, not a bug. Never claim a successful query.
 
 ## Ported-file conventions
 
@@ -279,7 +281,13 @@ const Client = require('./schema.js')
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://10.11.194.75/Avior'
 
-mongoose.connect(MONGO_URL)
+// serverSelectionTimeoutMS bounds the initial connect. bufferTimeoutMS bounds
+// queries issued while disconnected: Mongoose buffers those, so they never
+// reach server selection and would otherwise hang for its 10s default.
+// The .catch is what keeps an unreachable database from killing the process.
+mongoose
+  .connect(MONGO_URL, { serverSelectionTimeoutMS: 5000, bufferTimeoutMS: 5000 })
+  .catch(err => console.error('mongo initial connection failed:', err.message))
 
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'mongo error:'))
@@ -358,7 +366,8 @@ server.use('/api', app)
 
 const distDir = path.join(__dirname, '..', 'dist')
 server.use(express.static(distDir))
-server.get('*', (req, res) => {
+// Express 5 (path-to-regexp v8) rejects a bare '*'; it must be a named splat.
+server.get('/*splat', (req, res) => {
   res.sendFile(path.join(distDir, 'index.html'))
 })
 
@@ -1309,7 +1318,7 @@ Expected: the install produces a strict, symlinked `node_modules`, and the Vite 
 - [ ] Step 7: Rewrite the Dockerfile as a multi-stage build
 
 ```dockerfile
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 
 ARG COMMIT=""
 ENV VITE_COMMIT_SHA=${COMMIT}
@@ -1323,7 +1332,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 ARG COMMIT=""
 LABEL commit=${COMMIT}
