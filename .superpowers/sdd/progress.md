@@ -1,43 +1,47 @@
-# Migration progress ledger
+# Migration progress ledger — COMPLETE
 
-Base: c97abfd
-Reference worktree: ../avior-nuxt-reference @ baff6fe. `cd there && pnpm dev`, note the port it prints.
-Baselines: docs/superpowers/baselines/*.txt — semantic dumps of the REAL Nuxt app, WITH live data.
-Inspector: node scripts/inspect-page.mjs <url> <outdir>  -> console.txt, structure.txt, screenshot.png
+All 15 tasks done. Branch: migration/vue3 (38 commits off master @ 575ee82).
 
-ENVIRONMENT (verified, do not re-derive):
-  - MongoDB: mongodb://192.168.178.75:27017/Avior  REACHABLE. 5 clients. (10.11.194.75 was stale.)
-  - Daemons: reachable ONLY via the WAN hostname, e.g. http://vdr-u.wan.walzen.org:10000.
-    The LAN IPs (192.168.178.61:10000-2, 10.11.194.x) refuse connections. The app races all
-    three addresses per client, so it works — but a direct curl to a LAN IP will fail.
-  - Docker: NOT installed. No image has ever been built. node:24-alpine untested.
+FINAL STATE, verified through the PRODUCTION path (pnpm build + node server/index.js):
+  lint PASS | typecheck PASS (strict) | build PASS
+  All 5 routes load with 0 app console errors and 0 warnings.
+  SPA fallback survives a hard refresh of /jobs. /api/clients returns the 5 real clients.
 
-Task 1:  complete (03b7026, 2da0ae4) — pnpm. Reviewed clean.
-Task 2:  complete (8f5407f) — Express API extracted from Nuxt.
-Task 2b: complete (3e19a49, baff6fe, 2396919) — Mongoose 9.7.4, Express 5.2.1, Node 24.
-         Reviewed: SPEC PASS. Mongoose 9 <-> upgraded MongoDB now CONFIRMED working.
-Task 3:  complete (872fe5c, 89d4701) — Vue 3.5.39 / Vuetify 4.1.4 / vue-router 4.6.4 / Vite 8.1.4.
-Task 4:  complete (cef9226, 4baa68c) — layout. Nav identical to baseline, console clean, verified
-         by screenshot against the real app.
-Task 5:  NEXT — settings.vue + SimpleList.vue. Fully verifiable: settings is Mongo-only.
+Stack: Vue 3.5.39 / Vuetify 4.1.4 / Vite 8.1.4 / vue-router 4.6.4 (unplugin-vue-router),
+<script setup lang="ts"> throughout, TS strict. Express 5.2.1 + Mongoose 9.7.4 on Node 24.
+One container, one port: Express serves dist/ AND /api.
 
-KEY FINDINGS (do not re-learn):
-  - Nuxt 2 and Vue 3 CANNOT coexist in one node_modules. Hence the reference worktree.
-  - VFooter KEEPS `app` in Vuetify 4 (unlike v-app-bar / v-navigation-drawer). Without it the
-    footer stretches to 320px. Emits NO warning — only a screenshot catches it.
-  - v-navigation-drawer: Vuetify 2 `app` auto-opened on desktop regardless of v-model. Vuetify 4
-    honours v-model literally. Faithful code != faithful behaviour. Drawer must default OPEN.
-  - v-list-item needs `exact`, else to="/" prefix-matches every route.
-  - color="grey lighten-1" -> "grey-lighten-1" (space form silently breaks in v4).
-  - VTimePicker is STABLE in Vuetify 4, not labs.
-  - vue-tsc cannot use TypeScript 7 despite peering ">=5.0.0". Pinned to 5.9.3.
-  - Express 5 leaves req.body undefined, not {}.
-  - LESSON: the semantic structure dump is necessary but NOT sufficient. It missed the closed
-    drawer (translated off-screen, kept its dimensions). ALWAYS look at the screenshot.
+ENVIRONMENT:
+  MongoDB  mongodb://192.168.178.75:27017/Avior  (the committed 10.11.194.75 was stale)
+  Daemons  VDR-U/-1/-2 at 192.168.178.61:10000-10002 (live). Phoenix + VAVA genuinely offline.
+  Reference worktree: ../avior-nuxt-reference @ baff6fe — the old Nuxt app, for comparison.
 
-PROCESS: never `git commit` while a subagent is live — it takes the whole index and swallows
-  their staged files. Happened twice (Tasks 1, 3).
+STILL UNVERIFIED — needs the user:
+  - NO DOCKER BUILD HAS EVER RUN. Docker is not installed here; the user declared it out of
+    scope. The Dockerfile is rewritten as a multi-stage build but is UNTESTED, including
+    node:24-alpine and the VITE_COMMIT_SHA build arg (so the footer's commit hash is unproven).
+  - Pause / Resume / Shutdown on a live client were never clicked (real PUTs; shutdown is
+    irreversible). Someone should click Pause once on a real client.
+  - Client.vue's FileWalker / Mover render paths were never exercised (no daemon was in
+    those states).
 
-DEFERRED to Task 13: NODE_ENV=production; engines field; README's config.json volume-mount
-  instruction is now actively harmful (silently reverts MONGO_URL to the default).
-DEFERRED to Task 15: pnpm lint fails repo-wide (2136 problems).
+PRE-EXISTING BUGS FOUND, DELIBERATELY NOT FIXED (report, don't smuggle in fixes):
+  - jobs.vue: selectedJobs.length means the Delete button never shows a count.
+  - jobs.vue: reassignJobs()'s `idx % 5` batching is INERT — idx is a client-ID string, so
+    both branches are always false, the batch never flushes, errorCount is always 0.
+  - Client.vue: a `:v-show=` binding that has never done anything; a duplicated
+    showProcessedLog=false; the author's own `//todo: BUGGED!!!!` dead branch.
+  - Client.vue emits offlineClient as an OBJECT from onclose but a bare STRING from onerror;
+    index.vue's handler would throw on the string. Unreachable today.
+  - Age/ErrorReplace/ErrorSkip/MaxSize Settings: a `watch` on `selectedFormat`, which does not
+    exist in their data or props — so they have NEVER emitted `newdata`. SizeApproxSettings has
+    the same problem via a missing `deep: true`. It does not matter in practice: settingsInternal
+    is the SAME object reference as config.Modules.X.Settings, so v-model mutates the config in
+    place. Proved by changing AgeModule MaxAge 5 -> 99 and confirming the export contained 99.
+  - config.vue: color="gray darken-3" is an invalid palette key ("grey" is real) — it was already
+    a no-op typo in Vuetify 2, so hyphenating it would ADD colour the page never had.
+  - v-col xs="6": dead in BOTH versions. Vuetify 2's VCol breakpoints were ['sm','md','lg','xl'].
+
+ACCEPTED DEVIATIONS (Material Design 3):
+  Typography, elevation (25 levels -> 6), button casing, spacing, and the four dropped theme
+  colours (accent/info/warning/error/success now use Vuetify 4 defaults).
