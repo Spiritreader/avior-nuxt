@@ -2,7 +2,14 @@
   <v-app>
     <v-navigation-drawer v-model="drawer" :rail="miniVariant">
       <v-list>
-        <v-list-item v-for="(item, i) in items" :key="i" :to="item.to">
+        <!-- `exact` matters: without it every route prefix-matches to="/" and
+             Overview stays highlighted on every page. -->
+        <v-list-item
+          v-for="(item, i) in items"
+          :key="i"
+          :to="item.to"
+          exact
+        >
           <template #prepend>
             <v-icon>{{ item.icon }}</v-icon>
           </template>
@@ -68,7 +75,11 @@ export default {
   data() {
     return {
       commitSha: import.meta.env.VITE_COMMIT_SHA,
-      drawer: false,
+      // The source says `drawer: false`, but Vuetify 2's `v-navigation-drawer
+      // app` auto-opened on desktop regardless of that initial value, so the
+      // real app ships with the drawer OPEN. Vuetify 4 honours v-model
+      // literally, so reproducing the observable behaviour means `true`.
+      drawer: true,
       items: [
         {
           icon: "mdi-eye-settings-outline",

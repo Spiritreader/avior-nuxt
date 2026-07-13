@@ -72,7 +72,12 @@ const structure = crashed
         const s = getComputedStyle(el)
         if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false
         const r = el.getBoundingClientRect()
-        return r.width > 0 && r.height > 0
+        if (r.width === 0 || r.height === 0) return false
+        // A closed Vuetify navigation drawer is translated off-screen, not
+        // hidden — it keeps its dimensions. Without this bounds check it counts
+        // as visible and a drawer that should be open silently looks fine.
+        if (r.right <= 0 || r.bottom <= 0 || r.left >= innerWidth) return false
+        return true
       }
       const text = el => (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ')
       const collect = (selector, fn) =>
