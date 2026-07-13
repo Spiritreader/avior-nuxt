@@ -55,6 +55,9 @@ export default createVuetify({
     VFileInput: { variant: 'underlined', hideDetails: 'auto' },
     VSlider: { trackSize: 2, thumbSize: 12, density: 'compact', hideDetails: 'auto' },
     VSwitch: { hideDetails: 'auto' },
+    // Vuetify 2 tinted a ticked checkbox with the theme colour; Vuetify 4 leaves it at
+    // currentColor, which in the dark theme is a hard white square.
+    VCheckbox: { color: 'primary', hideDetails: 'auto' },
   },
   theme: {
     defaultTheme: 'dark',

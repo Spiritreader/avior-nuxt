@@ -28,7 +28,13 @@
           <!-- Begin Buttons -->
           <v-list-item>
             <template v-slot:prepend>
-              <v-icon class="pl-4 pt-3">mdi-home</v-icon>
+              <!--
+                No pt-3. Vuetify 2's v-list-item-icon was top-aligned, so the original
+                padded it down to meet the button row. Vuetify 4's #prepend is already
+                centred vertically, so that padding just drops the icon 12px below the
+                buttons it is supposed to line up with.
+              -->
+              <v-icon class="pl-4">mdi-home</v-icon>
             </template>
             <v-container class>
               <!-- Begin Add Job -->
@@ -209,7 +215,14 @@
           <!-- Begin Client List -->
           <v-list-group v-for="(client, i) in clients" :key="`client-${i}`" :value="`client-${i}`" subgroup>
             <template v-slot:activator="{ props: activatorProps }">
-              <v-list-item v-bind="activatorProps">
+              <!--
+                lines="two": Vuetify 2 worked out a list item's height from what was
+                inside its v-list-item-content, so a title + subtitle automatically got
+                the taller two-line box. Vuetify 4 deleted that wrapper and needs telling,
+                otherwise every client row collapses to single-line height and the name
+                and its "N assigned" run into the next client.
+              -->
+              <v-list-item v-bind="activatorProps" lines="two">
                 <v-list-item-title>
                   <v-icon class="pb-1" :color="client.Online ? 'green' : 'red'">mdi-power</v-icon>
                   {{ client.Name }}

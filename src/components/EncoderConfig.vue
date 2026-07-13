@@ -7,7 +7,14 @@
     <v-alert v-model="showSaveHint" color="yellow" class="mx-3 mt-1" closable variant="text" type="info">
       <div class="alert-text">To push changes to the client, you need to hit upload config</div>
     </v-alert>
-    <div class="d-flex pb-1">
+    <!--
+      A v-row, where the original had a bare `d-flex` div. Vuetify 2's .col-* carried
+      `flex: 0 0 <n>%` on the class itself, so a column sized correctly inside any flex
+      parent. Vuetify 4 computes a column's flex-basis from custom properties that
+      .v-row declares, so with no row the calc is invalid and the column shrink-wraps —
+      which collapsed the Tag field to the width of its own text.
+    -->
+    <v-row class="pb-1">
       <v-col cols="8" md="8" lg="5" xl="5" class="pr-0">
         <v-text-field
           :disabled="disabledTag"
@@ -27,7 +34,7 @@
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </v-col>
-    </div>
+    </v-row>
     <div class="px-3 pt-3 pb-4">
       <v-text-field
         :disabled="disabledTag"

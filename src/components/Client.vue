@@ -295,7 +295,7 @@
           <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="450" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -309,7 +309,12 @@
             class="px-0 pb-1 pt-1"
             v-if="!client.EncoderLineOut || (client.EncoderLineOut && client.EncoderLineOut.includes('null'))"
           >
-            <v-alert class="mx-4 mt-1" type="info" color="blue-grey-darken-3"> No encoder data available yet </v-alert>
+            <!--
+              mb-4 matches the mx-4: Vuetify 2's v-alert shipped a 16px bottom margin of
+              its own, so the original only ever had to set the sides. Vuetify 4's alert
+              has no margin at all, which left it flush against whatever came next.
+            -->
+            <v-alert class="mx-4 mt-1 mb-4" type="info" color="blue-grey-darken-3"> No encoder data available yet </v-alert>
           </v-container>
         </div>
       </v-expand-transition>
@@ -321,7 +326,7 @@
           <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -338,7 +343,7 @@
           <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -354,7 +359,7 @@
           <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -370,7 +375,7 @@
           <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>

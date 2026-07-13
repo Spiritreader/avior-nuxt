@@ -251,8 +251,14 @@
                 label="Select an encoder process priority"
               ></v-select>
 
+              <!--
+                mt-4: these two selects used to be held apart by the validation-message
+                slot Vuetify reserves under every field. hideDetails: 'auto' collapses
+                that (it was dead space everywhere else), so the gap has to be declared.
+                Without it the second select's floating label overlaps the first's border.
+              -->
               <v-select
-                class="px-4 pt-0"
+                class="px-4 pt-0 mt-4"
                 :items="encoderConfigArray"
                 :item-title="'tag'"
                 :item-value="'tag'"
