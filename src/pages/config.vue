@@ -88,23 +88,36 @@
           <!--audio formats-->
           <v-window-item :key="configHeaders[1]" :value="configHeaders[1]">
             <v-card flat>
-              <v-container class="d-flex flex-wrap">
-                <v-col cols="12" sm="6" md="6">
-                  <SimpleList
-                    @newdata="handleAudioFormatStereoData($event)"
-                    :icon="'mdi-music-note'"
-                    :list="config.AudioFormats.StereoTags"
-                    :type="'Stereo Format'"
-                  ></SimpleList>
-                </v-col>
-                <v-col cols="12" sm="6" md="6">
-                  <SimpleList
-                    @newdata="handleAudioFormatMultiData($event)"
-                    :icon="'mdi-music-note-plus'"
-                    :list="config.AudioFormats.MultiTags"
-                    :type="'Multi Format'"
-                  ></SimpleList>
-                </v-col>
+              <!--
+                The columns need a v-row parent. Vuetify 2's .col-md-6 carried
+                `flex: 0 0 50%` on the class itself, so it sized correctly inside any
+                flex parent and the original got away with a bare `d-flex` container.
+                Vuetify 4 computes a column's flex-basis from custom properties that
+                .v-row declares (--v-col-size, --v-col-gap-x); with no row they are
+                undefined, the calc is invalid, and the column shrink-wraps to its
+                content — which is why both lists collapsed to ~260px and the delete
+                buttons sat against the text instead of at the right edge.
+                v-row is already flex-wrap, so d-flex flex-wrap is redundant now.
+              -->
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6" md="6">
+                    <SimpleList
+                      @newdata="handleAudioFormatStereoData($event)"
+                      :icon="'mdi-music-note'"
+                      :list="config.AudioFormats.StereoTags"
+                      :type="'Stereo Format'"
+                    ></SimpleList>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="6">
+                    <SimpleList
+                      @newdata="handleAudioFormatMultiData($event)"
+                      :icon="'mdi-music-note-plus'"
+                      :list="config.AudioFormats.MultiTags"
+                      :type="'Multi Format'"
+                    ></SimpleList>
+                  </v-col>
+                </v-row>
               </v-container>
             </v-card>
           </v-window-item>
