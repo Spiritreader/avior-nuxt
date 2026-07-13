@@ -33,7 +33,23 @@
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider v-model="selectedFormat" :ticks="stepTicks" :max="2" show-ticks="always" tick-size="4" step="1" color="red-darken-3">
+    <!--
+      mb-4: this slider's tick labels (low/med/high) hang below its track, and the only
+      thing that used to keep them off the card's bottom edge was the validation-message
+      slot Vuetify reserves under every input. hideDetails: 'auto' collapses that, so the
+      labels ended up flush against the card. Sliders that carry an append text field do
+      not need this — the field supplies the height.
+    -->
+    <v-slider
+      v-model="selectedFormat"
+      :ticks="stepTicks"
+      :max="2"
+      show-ticks="always"
+      tick-size="4"
+      step="1"
+      color="red-darken-3"
+      class="mb-4"
+    >
       <template v-slot:thumb-label="props">
         <v-icon>{{ accIcon(props.modelValue) }}</v-icon>
       </template>

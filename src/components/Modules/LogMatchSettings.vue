@@ -31,7 +31,19 @@
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider v-model="selected" :ticks="stepTicks" :max="2" show-ticks="always" tick-size="4" step="1" color="red-darken-3">
+    <!-- mb-4 for the same reason as AudioSettings: the include/neutral/exclude tick
+         labels hang below the track, and hideDetails: 'auto' removed the message slot
+         that was keeping them clear of the card's bottom edge. -->
+    <v-slider
+      v-model="selected"
+      :ticks="stepTicks"
+      :max="2"
+      show-ticks="always"
+      tick-size="4"
+      step="1"
+      color="red-darken-3"
+      class="mb-4"
+    >
       <template v-slot:thumb-label="props">
         <v-icon>{{ accIcon(props.modelValue) }}</v-icon>
       </template>

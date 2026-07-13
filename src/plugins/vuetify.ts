@@ -58,6 +58,14 @@ export default createVuetify({
     // Vuetify 2 tinted a ticked checkbox with the theme colour; Vuetify 4 leaves it at
     // currentColor, which in the dark theme is a hard white square.
     VCheckbox: { color: 'primary', hideDetails: 'auto' },
+    // Vuetify 4 halved a card title's vertical padding (16px -> 8px), so every card
+    // header sat cramped against its own top edge. py-4 puts the 16px back.
+    //
+    // A default `class` rather than a CSS rule, so the components that deliberately
+    // zero it (Module.vue's header, Client.vue's "Main Log") keep winning: their own
+    // pb-0/pt-0 is a utility like this one, and utilities beat py-* on source order.
+    // An unlayered CSS override would outrank them and break those.
+    VCardTitle: { class: 'py-4' },
   },
   theme: {
     defaultTheme: 'dark',

@@ -19,7 +19,9 @@
         class="flex-grow-0"
       ></v-switch>
     </v-card-title>
-    <v-container>
+    <!-- pb-3: v-container's padding went from 12px in Vuetify 2 to 16px in Vuetify 4, so
+         the gap between the Priority field and the SETTINGS label grew with it. -->
+    <v-container class="pb-3">
       <v-text-field
         label="Priority"
         type="number"
@@ -35,7 +37,11 @@
       but it is not uppercase and has no tracking. `text-uppercase` restores the overline
       look with Vuetify 4's own utilities.
     -->
-    <v-container v-if="moduleInternal.Settings" class="text-label-medium text-uppercase pb-0 mb-0">Settings</v-container>
+    <!-- pt-3: v-container's default 16px top padding put 16px above the SETTINGS label
+         where the reference has 12px. -->
+    <v-container v-if="moduleInternal.Settings" class="text-label-medium text-uppercase pt-3 pb-0 mb-0"
+      >Settings</v-container
+    >
     <v-container class="pt-2">
       <slot></slot>
     </v-container>
