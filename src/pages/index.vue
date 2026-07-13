@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-row v-if="fetchError" class="mb-6 justify-start" no-gutters>
+    <v-row v-if="fetchError" class="mb-6" justify="start" no-gutters>
       <p>There was something I couldn't load.</p>
     </v-row>
     <Client v-for="client in clientInfosOnline" :key="client.HostName" @offlineClient="moveClientToOfflineList" :clientInit="client"></Client>
