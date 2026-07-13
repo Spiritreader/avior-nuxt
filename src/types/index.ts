@@ -1,7 +1,7 @@
 /**
  * Shared shapes for the Avior frontend.
  *
- * These were derived from live responses, not from the code that consumes them:
+ * These were derived from live responses rather than from the code that consumes them:
  *   GET /api/clients                     -> Client[]        (the Mongo registry, behind Express)
  *   GET <address>/                       -> DaemonStatus    (the daemon's own status object)
  *   GET <address>/config/                -> Config
@@ -297,7 +297,7 @@ export interface PropertyEntry {
 export interface EncoderConfigEntryRow {
   tag: string
   /**
-   * Partial, not full: the synthetic "New Template..." row carries `{}`, and
+   * Partial on purpose: the synthetic "New Template..." row carries `{}`, and
    * EncoderConfig.vue guards every key read (`if (content.PreArguments)`) for exactly
    * that reason. Typing it Partial is what lets the empty row through unchanged.
    */

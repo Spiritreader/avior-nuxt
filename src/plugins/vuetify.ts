@@ -66,12 +66,12 @@ export default createVuetify({
           secondary: '#FF8F00',
           // Vuetify 4's v-toolbar paints `surface-light`, which the dark theme
           // sets to #424242 — a washed-out grey stripe across the card. Vuetify 2
-          // used #272727 on a #1E1E1E card: surface, one step up, not four.
-          // Vuetify 4's card surface is #212121, so the same step lands here.
+          // used #272727 on a #1E1E1E card: surface, one step up. Vuetify 4's card
+          // surface is #212121, so the same step lands here.
           //
-          // This is a dedicated token rather than a retuned `surface-light`
-          // because VSelect, VSlider, VAlert and VTimePicker share that one, and
-          // the time picker's clock face (globalconfig) would go nearly black.
+          // It gets its own token because retuning `surface-light` would also hit
+          // VSelect, VSlider, VAlert and VTimePicker, which share it — the time
+          // picker's clock face (globalconfig) would go nearly black.
           toolbar: '#2A2A2A',
         },
       },

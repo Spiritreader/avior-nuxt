@@ -294,9 +294,9 @@ const { resolveAnyAddress } = useClientResolution();
  * iterations below re-narrow to the real shape.
  */
 interface SelectedJobs {
-  /** client ID -> that client's selected jobs. `any`, not `Job[]`, purely so that the
-   *  template's `Object.values(selectedJobs).reduce((flat, ary) => flat.concat(ary))`
-   *  still infers an array rather than being poisoned by the phantom `length` below. */
+  /** client ID -> that client's selected jobs. Typed `any` on purpose, so the template's
+   *  `Object.values(selectedJobs).reduce((flat, ary) => flat.concat(ary))` still infers
+   *  an array instead of being poisoned by the phantom `length` below. */
   [clientId: string]: any;
   /** NOT REAL. Never assigned, so it always reads back as undefined. */
   length: number;
@@ -561,8 +561,8 @@ async function reassignJobs() {
         job.CustomParameters = null;
       }
       promises.push(put(url.value + "/jobs/", job));
-      // PRESERVED BUG: `idx` is an Object.entries KEY -- a client ID string like
-      // "62bc2a93...", not a counter. `idx % 5` coerces it to NaN, so the first
+      // PRESERVED BUG: `idx` is an Object.entries KEY, so it holds a client ID string
+      // like "62bc2a93...". `idx % 5` coerces that to NaN, so the first
       // branch is never true; and `selectedJobs.length` is undefined on an object,
       // so the second compares a string to NaN and is never true either. Net effect:
       // the batch is NEVER flushed inside the loop, so every put is fired and only

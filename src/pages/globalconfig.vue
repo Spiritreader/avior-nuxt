@@ -21,8 +21,8 @@
             <!--
               Not a parity fix: the original was a solid red-lighten-2 slab and the user
               asked for something less shouty. `tonal` tints the surface instead of
-              filling it, and border="start" gives the accent stripe. This is a warning,
-              not an error - nothing failed, the change just needs a client restart.
+              filling it, and border="start" gives the accent stripe. Typed as a warning
+              because nothing has failed — the change just needs a client restart.
             -->
             <v-alert
               v-show="scheduleModified"

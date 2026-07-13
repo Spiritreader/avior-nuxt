@@ -82,7 +82,7 @@ const computedPriority = computed<number>({
 });
 
 onMounted(() => {
-  // Same object reference as the prop, not a copy.
+  // Shares the prop's object, so v-model edits below write straight through to it.
   moduleInternal.value = props.module;
   console.log("hi from " + props.name);
 });

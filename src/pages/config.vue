@@ -141,9 +141,9 @@
               <!--
                 The original was `fab`: a filled, elevated, 56px round button. Vuetify 4
                 has no `fab` prop — `icon` gives the round shape and the default
-                `elevated` variant gives the fill and shadow, so this must NOT be
-                variant="text" (that is for flat icon buttons and left it looking like a
-                bare glyph). size="large" is v4's 56px, matching v2's fab.
+                `elevated` variant supplies the fill and shadow. The port put
+                variant="text" here, which is the flat icon-button style, and it
+                rendered as a bare glyph. size="large" is v4's 56px, matching v2's fab.
               -->
               <v-btn icon size="large" color="red-darken-3" @click="addResolution()">
                 <v-icon>mdi-plus</v-icon>
@@ -409,18 +409,19 @@ const selectedEncoderConfig = ref<EncoderConfigEntryRow>({} as EncoderConfigEntr
 const allowUploadConfig = ref(true);
 const saving = ref(false);
 const loading = ref(false);
-// Stands in for Nuxt's $fetchState.pending: true only for the initial
-// client-list fetch, not for the per-client config load (that is `loading`).
+// Stands in for Nuxt's $fetchState.pending: true only while the initial
+// client-list fetch is in flight. The per-client config load has its own flag,
+// `loading`.
 const fetchPending = ref(false);
 const items = ref<Client[]>([]);
 // Starts as an empty object: the template gates every `config.*` read behind
 // `v-if="config == null || config == {} || loading"`, so nothing dereferences it
 // before configLoad() replaces it with a real Config.
 const config = ref<Config>({} as Config);
-// null, not {}. Vuetify 2's v-select rendered an empty object as blank; Vuetify 4
-// falls back to String(value) for a model it cannot resolve against `items`, which
-// printed "[object Object]" in the field before anything was selected. null is the
-// correct "nothing selected" model in Vuetify 4.
+// Starts as null. Vuetify 2's v-select rendered an empty object as blank, so the
+// original got away with `{}`; Vuetify 4 falls back to String(value) for a model it
+// cannot resolve against `items`, which printed "[object Object]" in the field before
+// anything was selected. null is Vuetify 4's "nothing selected" model.
 const selectedClient = ref<Client | null>(null);
 const selectedTab = ref("General");
 const configHeaders = ref(["General", "Audio Formats", "Resolutions", "Modules", "Encoder"]);
@@ -530,7 +531,7 @@ async function saveConfig() {
 }
 
 function loadEncoderConfig(tag?: string) {
-  // VSelect has no `change` event in Vuetify 4, so this is wired to
+  // VSelect has no `change` event in Vuetify 4, so this is bound to
   // @update:model-value, which hands the new tag in directly.
   const wanted = tag === undefined ? selectedEncoderConfigTag.value : tag;
   selectedEncoderConfig.value = encoderConfigArray.value.find((cfg) => cfg.tag == wanted) as EncoderConfigEntryRow;

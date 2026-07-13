@@ -29,19 +29,19 @@
         </a>
       </template>
       <!--
-        The text field goes in the list item's default (content) slot, NOT inside a
-        <v-list-item-title>. In Vuetify 4 the title is `overflow: hidden; white-space:
-        nowrap` with a fixed line-height, so an input nested in it cannot stretch and its
-        caret sits below the text. Vuetify 2 got away with it because the surrounding
+        The text field belongs in the list item's default (content) slot. In Vuetify 4 a
+        <v-list-item-title> is `overflow: hidden; white-space: nowrap` with a fixed
+        line-height, so an input nested inside one cannot stretch and its caret sits
+        below the text. Vuetify 2 got away with it because the surrounding
         <v-list-item-content> — which v4 deleted — did the stretching.
       -->
       <!--
-        placeholder, not label. Vuetify 4 pads a field's input asymmetrically
-        (16px top, 0 bottom) to reserve room for a floating label, but a solo field's
-        label does not float — it stays vertically centred. So the label rendered 8px
-        above the text box and the caret sat below it. Vuetify 2's solo label behaved
-        as a placeholder anyway (it vanished on input rather than floating up), so a
-        real placeholder is the faithful equivalent and puts the caret on the text.
+        A placeholder here, where the original used a label. Vuetify 4 pads a field's
+        input asymmetrically (16px top, 0 bottom) to reserve room for a floating label,
+        but a solo field's label never floats — it stays vertically centred. So the
+        label rendered 8px above the text box and the caret sat below it. Vuetify 2's
+        solo label already behaved as a placeholder, vanishing on input, so this is the
+        faithful equivalent and it puts the caret on the text.
       -->
       <v-text-field
         v-model="newElement"

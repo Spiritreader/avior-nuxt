@@ -123,8 +123,8 @@ onMounted(() => {});
 
 /**
  * NOT deep -- exactly like the Options API original, which declared this watcher
- * without `deep: true`. It therefore only fires if settingsInternal is reassigned
- * (it never is), not when its fields are edited. Kept as-is.
+ * without `deep: true`. It therefore fires only if settingsInternal is reassigned,
+ * which never happens; editing its fields leaves it silent. Kept as-is.
  */
 watch(settingsInternal, () => {
   emit("newdata", {

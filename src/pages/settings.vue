@@ -13,7 +13,7 @@
               persistent-counter has no Vuetify 2 equivalent because v2 always
               showed the counter. Vuetify 4 only reveals it while the field is
               focused, so without this the reference app's permanent "0 / 30"
-              silently disappears. Matching the reference, not the v4 default.
+              silently disappears. This keeps the reference app's behaviour.
             -->
             <v-text-field
               v-model="clientName"

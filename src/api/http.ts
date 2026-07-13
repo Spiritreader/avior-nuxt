@@ -54,9 +54,9 @@ async function request<T>(url: string, init?: RequestInit, timeoutMs = DEFAULT_T
 
   const text = await res.text()
 
-  // $http.$get was res.text().then(destr). destr('') returns '', NOT null, and
-  // callers rely on the string-ness: Client.vue does log.split('\n') on an empty
-  // log body, and globalconfig.vue guards on `typeof result == "string"`.
+  // $http.$get was res.text().then(destr). destr('') returns an empty string, and
+  // callers rely on getting a string back: Client.vue does log.split('\n') on an
+  // empty log body, and globalconfig.vue guards on `typeof result == "string"`.
   // Returning null here would throw on the first and silently null out the second.
   if (!text) return '' as T
 

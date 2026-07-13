@@ -430,7 +430,7 @@ const shutdownConfirm = ref(false);
 const errorMessage = ref<string | null>(null);
 let errorMessageTimeout: ReturnType<typeof setTimeout> | undefined;
 
-// `created()` assigned clientInit straight across -- the same OBJECT, not a copy.
+// `created()` assigned clientInit straight across, so this shares the prop's object.
 const client = ref<ClientInfo>(props.clientInit);
 let ws: WebSocket | undefined;
 
@@ -521,8 +521,8 @@ const activeProcess = computed(() => getActiveProcess());
  * Color goes from red (0) to light blue (100)
  *
  * Not currently bound to any template element (the progress bars below have
- * no `:color`) — same as in the pre-port source. Not wiring it up here since
- * that would be a behavioural change, not a lint fix.
+ * no `:color`) — same as in the pre-port source. Binding it would change how the
+ * component renders, which is beyond the scope of a lint fix, so it stays unused.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const progressColor = computed(() => {
@@ -653,10 +653,9 @@ async function toggleEncoderLog() {
     const lineOut = await get<string[]>(client.value.Ip + "/encoder/");
     client.value.EncoderLineOut = lineOut;
   } catch (e) {
-    // The original assigns the empty STRING here, not an empty array. It is only ever
-    // used as a falsy sentinel by the template's v-if, so the value is preserved as-is
-    // rather than "corrected" to [] -- which would render an empty scroller instead of
-    // no scroller at all.
+    // The original assigns the empty STRING here. The template's v-if only ever reads
+    // it as a falsy sentinel, so it is preserved verbatim; "correcting" it to [] would
+    // render an empty scroller where there should be none.
     client.value.EncoderLineOut = "" as unknown as string[];
     console.log("could not retrieve encoder log");
     console.log(e);

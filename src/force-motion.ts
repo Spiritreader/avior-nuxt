@@ -13,10 +13,9 @@
  * module-evaluation time — so patching from inside main.ts's body would already be too
  * late, since ES imports are evaluated before any statement in the importing module.
  *
- * The patch is a Proxy rather than a plain object literal: MediaQueryList exposes
- * `matches` as a prototype getter and carries addEventListener/removeEventListener,
- * which Vuetify's display composable relies on. Spreading it would produce an object
- * with neither.
+ * The patch has to be a Proxy. MediaQueryList exposes `matches` as a prototype getter
+ * and carries addEventListener/removeEventListener, which Vuetify's display composable
+ * relies on; spreading it into an object literal would give you neither.
  */
 const native = window.matchMedia.bind(window)
 
