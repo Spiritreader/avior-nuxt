@@ -13,7 +13,17 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 
   // Some daemon endpoints reply 204 or with an empty body.
   const text = await res.text()
-  return (text ? JSON.parse(text) : null) as T
+  if (!text) return null as T
+
+  // Nuxt's $http returned destr(body): JSON when the body parses as JSON, the
+  // raw string otherwise. The daemons serve their whole API as text/plain --
+  // the status objects happen to be JSON, but /logs/{main,err,processed,skipped}
+  // are plain log text that JSON.parse would throw on. Preserve destr's rule.
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    return text as unknown as T
+  }
 }
 
 export function get<T = any>(url: string): Promise<T> {
