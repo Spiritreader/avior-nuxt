@@ -1,0 +1,4 @@
+shamefullyHoist: true
+allowBuilds:
+  core-js: true
+  nuxt: true

@@ -6,14 +6,15 @@ LABEL commit=${COMMIT}
 RUN mkdir -p /app
 WORKDIR /app
 
-# Install software
+RUN corepack enable && corepack prepare pnpm@11.12.0 --activate
+
 COPY . /app
 
 ENV NUXT_ENV_CURRENT_GIT_SHA=${COMMIT}
 
-RUN npm install
-RUN npm run build
+RUN pnpm install --frozen-lockfile
+RUN pnpm build
 EXPOSE 10009
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=10009
-CMD [ "npm", "start" ]
+CMD [ "pnpm", "start" ]
