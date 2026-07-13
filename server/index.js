@@ -12,7 +12,7 @@ server.use('/api', app)
 
 const distDir = path.join(__dirname, '..', 'dist')
 server.use(express.static(distDir))
-server.get('*', (req, res) => {
+server.get('/*splat', (req, res) => {
   res.sendFile(path.join(distDir, 'index.html'))
 })
 

@@ -1,4 +1,4 @@
-FROM node:20.1.0-alpine
+FROM node:24-alpine
 
 ARG COMMIT=""
 LABEL commit=${COMMIT}

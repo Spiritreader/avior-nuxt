@@ -5,7 +5,9 @@ const Client = require('./schema.js')
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://10.11.194.75/Avior'
 
-mongoose.connect(MONGO_URL)
+mongoose
+  .connect(MONGO_URL, { serverSelectionTimeoutMS: 5000 })
+  .catch(err => console.error('mongo initial connection failed:', err.message))
 
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'mongo error:'))
@@ -60,6 +62,10 @@ app.post('/clients/delete', async (req, res) => {
     console.error('error deleting client:', err)
     res.status(404).json({ error: 'failed to delete client' })
   }
+})
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'not found' })
 })
 
 module.exports = app
