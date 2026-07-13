@@ -1,4 +1,4 @@
-# http://100.64.124.194:4169/config
+# http://localhost:3300/config
 
 title: Avior - powered by Walzen Group
 
@@ -47,7 +47,7 @@ table rows: 0
   - Global Configuration
   - Frontend Settings
 
-## vuetify components rendered (17)
+## vuetify components rendered (16)
   - v-app-bar
   - v-application
   - v-btn
@@ -60,7 +60,6 @@ table rows: 0
   - v-main
   - v-messages
   - v-navigation-drawer
-  - v-progress-circular
   - v-select
   - v-sheet
   - v-text-field

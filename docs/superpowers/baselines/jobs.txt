@@ -1,4 +1,4 @@
-# http://100.64.124.194:4169/jobs
+# http://localhost:3300/jobs
 
 title: Avior - powered by Walzen Group
 
@@ -26,7 +26,7 @@ table rows: 0
   - NEW
   - REASSIGN
   - DELETE
-  - VDR-U 31 assigned
+  - VDR-U 32 assigned
   - VDR-U-1 32 assigned
   - PHOENIX 0 assigned
   - VAVA 0 assigned
@@ -56,7 +56,7 @@ table rows: 0
   - Global Configuration
   - Frontend Settings
   - NEW REASSIGN DELETE
-  - VDR-U 31 assigned
+  - VDR-U 32 assigned
   - VDR-U-1 32 assigned
   - PHOENIX 0 assigned
   - VAVA 0 assigned
