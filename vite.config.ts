@@ -3,8 +3,16 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 import VueRouter from 'unplugin-vue-router/vite'
+import { forceMotion } from './build/force-motion'
 
 export default defineConfig({
+  css: {
+    // Strips Vuetify 4's prefers-reduced-motion gating so the app animates like
+    // Vuetify 2 did. See build/force-motion.ts — the JS half is in src/main.ts.
+    postcss: {
+      plugins: [forceMotion()],
+    },
+  },
   plugins: [
     // VueRouter must come before vue()
     VueRouter({
