@@ -60,7 +60,7 @@
                   v-bind="props"
                   @click="sendPauseCommand()"
                 >
-                  <v-icon>mdi-pause-circle-outline</v-icon>
+                  <v-icon size="28">mdi-pause-circle-outline</v-icon>
                 </v-btn>
               </template>
               <span>Pause</span>
@@ -78,7 +78,7 @@
             >
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props">mdi-play-circle-outline</v-icon>
+                  <v-icon size="28" v-bind="props">mdi-play-circle-outline</v-icon>
                 </template>
                 <span>Resume</span>
               </v-tooltip>
@@ -89,7 +89,7 @@
                 <v-btn variant="text" class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" size="44" icon color="red" v-bind="props">
                   <v-tooltip location="bottom">
                     <template v-slot:activator="{ props: tooltipProps }">
-                      <v-icon v-bind="tooltipProps">mdi-power</v-icon>
+                      <v-icon size="28" v-bind="tooltipProps">mdi-power</v-icon>
                     </template>
                     <span>Shut Down</span>
                   </v-tooltip>
@@ -211,7 +211,7 @@
       <v-card-actions>
         <v-tooltip location="top" v-if="activeProcessInfoLength >= 5">
           <template v-slot:activator="{ props }">
-            <v-btn variant="text" icon v-bind="props" @click="showProcessInfo = !showProcessInfo">
+            <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="showProcessInfo = !showProcessInfo">
               <v-icon>mdi-format-list-bulleted</v-icon>
             </v-btn>
           </template>
@@ -220,7 +220,7 @@
 
         <v-tooltip location="top" v-if="isOnline()">
           <template v-slot:activator="{ props }">
-            <v-btn variant="text" icon v-bind="props" @click="toggleEncoderLog">
+            <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="toggleEncoderLog">
               <v-icon>mdi-console</v-icon>
             </v-btn>
           </template>
@@ -235,7 +235,7 @@
         <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" density="compact">
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn variant="text" icon v-bind="props" @click="getMainLog()">
+              <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="getMainLog()">
                 <v-icon>mdi-text-box-outline</v-icon>
               </v-btn>
             </template>
@@ -244,7 +244,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn variant="text" icon v-bind="props" @click="getErrorLog()">
+              <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="getErrorLog()">
                 <v-icon>mdi-text-box-remove-outline</v-icon>
               </v-btn>
             </template>
@@ -253,7 +253,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn variant="text" icon v-bind="props" @click="getProcessedLog()">
+              <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="getProcessedLog()">
                 <v-icon>mdi-text-box-plus-outline</v-icon>
               </v-btn>
             </template>
@@ -262,7 +262,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn variant="text" icon v-bind="props" @click="getSkippedLog()">
+              <v-btn variant="text" icon width="36" height="36" v-bind="props" @click="getSkippedLog()">
                 <v-icon>mdi-text-box-minus-outline</v-icon>
               </v-btn>
             </template>
@@ -293,7 +293,7 @@
           <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="450" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2">
+                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -319,7 +319,7 @@
           <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2">
+                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -336,7 +336,7 @@
           <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2">
+                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -352,7 +352,7 @@
           <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2">
+                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -368,7 +368,7 @@
           <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2">
+                <v-list-item class="encoder-line-out my-2 pa-0 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>

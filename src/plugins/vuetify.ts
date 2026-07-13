@@ -2,6 +2,9 @@ import 'vuetify/styles'
 // Restores the global margin/padding reset Vuetify 2 shipped and Vuetify 4 dropped.
 // Must come after vuetify/styles so its @layer reset block is ordered correctly.
 import '@/styles/reset.css'
+// Restores the Vuetify 2 component defaults that Material Design 3 re-specced
+// (button/tab typography, striped progress-bar pattern size).
+import '@/styles/vuetify2-compat.css'
 import '@mdi/font/css/materialdesignicons.css'
 
 // Vuetify's CSS says `font-family: var(--v-font-body, "Roboto", sans-serif)` — it

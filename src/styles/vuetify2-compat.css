@@ -1,0 +1,41 @@
+/*
+ * Vuetify 4 is Material Design 3, and MD3 re-specced several component defaults this
+ * app's look depends on. These are not cosmetic preferences — they are the Vuetify 2
+ * values, measured off the reference app and restored so the migration does not
+ * silently restyle the UI.
+ *
+ * These rules are deliberately UNLAYERED. Vuetify sets button typography inside its own
+ * cascade layers, and layer order beats specificity — so a rule inside `vuetify-overrides`
+ * still lost, even at higher specificity. Unlayered styles outrank every layered one.
+ */
+
+/*
+ * MD3 removed the uppercase default on buttons and tabs and re-specced their text.
+ * Measured, Vuetify 2 vs Vuetify 4:
+ *
+ *                    Vuetify 2   Vuetify 4
+ *   text-transform   uppercase   none
+ *   letter-spacing   1.25px      0.11px
+ *   font-weight      500         400
+ *   font-size        14px        16px
+ */
+.v-btn,
+.v-tab {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+/*
+ * The striped progress bar. Both versions paint the same 135deg gradient, but Vuetify 4
+ * scales the pattern to the bar's height instead of using a fixed size:
+ *
+ *                     Vuetify 2      Vuetify 4
+ *   background-size   40px 40px      8px
+ *
+ * The encoder bar is 8px tall, so v4's stripes come out 8px wide — invisible.
+ */
+.v-progress-linear--striped .v-progress-linear__determinate {
+  background-size: 40px 40px;
+}
