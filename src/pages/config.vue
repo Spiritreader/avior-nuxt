@@ -265,8 +265,14 @@
                 that (it was dead space everywhere else), so the gap has to be declared.
                 Without it the second select's floating label overlaps the first's border.
               -->
+              <!--
+                pb-4 too: with no config selected this select is the card's last child,
+                and Vuetify 2's field reserved a message slot underneath that happened to
+                keep it clear of the card's edge. hideDetails: 'auto' collapses that, so
+                the select's outline ran straight into the bottom border.
+              -->
               <v-select
-                class="px-4 pt-0 mt-4"
+                class="px-4 pt-0 mt-4 pb-4"
                 :items="encoderConfigArray"
                 :item-title="'tag'"
                 :item-value="'tag'"

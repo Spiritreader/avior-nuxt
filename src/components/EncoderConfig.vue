@@ -14,7 +14,14 @@
       .v-row declares, so with no row the calc is invalid and the column shrink-wraps —
       which collapsed the Tag field to the width of its own text.
     -->
-    <v-row class="pb-1">
+    <!--
+      px-3 on the row: every other block in this component is indented 12px (ml-3 on the
+      heading, mx-3 on the alert, px-3 on the fields below). Vuetify 2's .v-col carried
+      12px of padding, which lined the Tag field up with them for free. Vuetify 4's col
+      has none — gutters come from the row's `gap` — so the field sat flush against the
+      edge while everything around it stayed indented.
+    -->
+    <v-row class="px-3 pb-1">
       <v-col cols="8" md="8" lg="5" xl="5" class="pr-0">
         <v-text-field
           :disabled="disabledTag"
@@ -25,12 +32,18 @@
           variant="outlined"
         ></v-text-field>
       </v-col>
-      <v-col>
-        <v-btn variant="text" @click="editAll()" cols="4" md="4" lg="7" xl="7" icon class="mt-3">
+      <!--
+        The buttons are centred against the Tag field by the column, rather than nudged
+        down with the original's mt-3. That margin was tuned against Vuetify 2's 12px of
+        column padding; v4's column has none, so a fixed offset cannot land the buttons
+        on the field's centre line at any field height.
+      -->
+      <v-col class="d-flex align-center">
+        <v-btn variant="text" @click="editAll()" icon>
           <v-icon v-if="disabledTag">mdi-circle-edit-outline</v-icon>
           <v-icon color="green" v-else>mdi-checkbox-marked-circle-outline</v-icon>
         </v-btn>
-        <v-btn variant="text" v-if="allowNew" :disabled="isNew()" icon class="mt-3" @click="deleteConfirm = true">
+        <v-btn variant="text" v-if="allowNew" :disabled="isNew()" icon @click="deleteConfirm = true">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </v-col>
