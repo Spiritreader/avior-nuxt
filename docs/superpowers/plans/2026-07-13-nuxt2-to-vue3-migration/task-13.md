@@ -70,7 +70,7 @@ From `package.json`, delete `dev:nuxt`, `build:nuxt`, and `start:nuxt`.
 
 - [ ] Step 6: Remove the hoisting workaround
 
-Delete `.npmrc` entirely. `shamefully-hoist` existed only for Nuxt 2's webpack build. Then:
+Delete `.npmrc` entirely, and remove `shamefullyHoist: true` plus the `allowBuilds` entries for `core-js` and `nuxt` from `pnpm-workspace.yaml` (delete the file if nothing else remains in it). Hoisting existed only for Nuxt 2's webpack build; `core-js` and `nuxt` are both gone by this point. Then:
 
 ```bash
 rm -rf node_modules

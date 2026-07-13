@@ -126,15 +126,28 @@ pnpm import
 
 Expected: `pnpm-lock.yaml` is created. Output ends with something like `Importing package-lock.json to pnpm-lock.yaml`.
 
-- [ ] Step 2: Add `.npmrc` with the hoisting workaround
+- [ ] Step 2: Add the hoisting workaround
 
-Nuxt 2's webpack build assumes a flat `node_modules` and breaks under pnpm's strict symlinked layout, typically with module-resolution errors from `@nuxtjs/vuetify` or `babel`. `shamefully-hoist=true` reproduces npm's flat layout. This is a wart, and it is deliberately temporary — Task 13 removes it once Nuxt is gone.
+Nuxt 2's webpack build assumes a flat `node_modules` and breaks under pnpm's strict symlinked layout — concretely, `pnpm build` fails with `Cannot find module 'vue'`. Hoisting reproduces npm's flat layout. This is a wart, and it is deliberately temporary: Task 13 removes it once Nuxt is gone.
+
+Note that pnpm 11 does NOT read `shamefully-hoist` from `.npmrc`; that setting moved to `pnpm-workspace.yaml`. Putting it only in `.npmrc` silently does nothing and the build fails. Both files are created — `.npmrc` because it remains the conventional location and costs one line, `pnpm-workspace.yaml` because it is the one that actually takes effect.
 
 Create `.npmrc`:
 
 ```
 shamefully-hoist=true
 ```
+
+Create `pnpm-workspace.yaml`:
+
+```yaml
+shamefullyHoist: true
+allowBuilds:
+  core-js: true
+  nuxt: true
+```
+
+`allowBuilds` is required because pnpm blocks post-install build scripts by default; `core-js` and `nuxt` both need theirs to run.
 
 - [ ] Step 3: Pin the package manager
 
@@ -1280,7 +1293,7 @@ From `package.json`, delete `dev:nuxt`, `build:nuxt`, and `start:nuxt`.
 
 - [ ] Step 6: Remove the hoisting workaround
 
-Delete `.npmrc` entirely. `shamefully-hoist` existed only for Nuxt 2's webpack build. Then:
+Delete `.npmrc` entirely, and remove `shamefullyHoist: true` plus the `allowBuilds` entries for `core-js` and `nuxt` from `pnpm-workspace.yaml` (delete the file if nothing else remains in it). Hoisting existed only for Nuxt 2's webpack build; `core-js` and `nuxt` are both gone by this point. Then:
 
 ```bash
 rm -rf node_modules
