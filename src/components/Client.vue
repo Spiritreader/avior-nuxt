@@ -19,6 +19,7 @@
             :buffer-value="bufferValue"
             :v-show="!determineIndeterminate()"
             height="8"
+            color="primary"
             stream
           ></v-progress-linear>
           <v-progress-linear
@@ -27,6 +28,7 @@
             :buffer-value="bufferValue"
             :v-show="!determineIndeterminate()"
             height="8"
+            color="primary"
             striped
             stream
           ></v-progress-linear>
