@@ -295,7 +295,7 @@
           <v-virtual-scroll :items="client.EncoderLineOut" :item-height="20" height="450" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-1 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -326,7 +326,7 @@
           <v-virtual-scroll :items="mainLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-1 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -343,7 +343,7 @@
           <v-virtual-scroll :items="errorLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-1 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -359,7 +359,7 @@
           <v-virtual-scroll :items="processedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-1 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -375,7 +375,7 @@
           <v-virtual-scroll :items="skippedLog" :item-height="20" height="300" class="mb-2">
             <template v-slot="{ item }">
               <div>
-                <v-list-item class="encoder-line-out my-2 py-0 pr-2">
+                <v-list-item class="encoder-line-out my-2 py-1 pr-2">
                   <v-list-item-subtitle class="virtual-scroller-content">{{ item }}</v-list-item-subtitle>
                 </v-list-item>
               </div>
