@@ -34,7 +34,9 @@ app.get('/clients', async (req, res) => {
 })
 
 app.post('/clients', async (req, res) => {
-  const { Name, Addresses } = req.body
+  // Express 5 leaves req.body undefined (not {}) when no parseable body is
+  // sent, so destructuring it directly throws on a bodyless request.
+  const { Name, Addresses } = req.body || {}
   if (!Name || !Addresses) {
     res.status(400).json({ error: 'Name and Addresses are required' })
     return
@@ -54,7 +56,7 @@ app.post('/clients', async (req, res) => {
 })
 
 app.post('/clients/delete', async (req, res) => {
-  const { _id } = req.body
+  const { _id } = req.body || {}
   if (!_id) {
     res.status(400).json({ error: '_id is required' })
     return
@@ -70,6 +72,16 @@ app.post('/clients/delete', async (req, res) => {
 
 app.use((req, res) => {
   res.status(404).json({ error: 'not found' })
+})
+
+// Without this, Express's default handler answers in HTML — malformed JSON
+// would return an HTML 400, and any thrown error an HTML 500 with a stack
+// trace. This API only ever speaks JSON.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('unhandled api error:', err)
+  const status = err.status || err.statusCode || 500
+  res.status(status).json({ error: status === 400 ? 'malformed request' : 'internal error' })
 })
 
 module.exports = app
