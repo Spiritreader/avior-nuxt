@@ -432,9 +432,18 @@ const configExportString = computed(() => JSON.stringify(config.value, null, 1))
 async function refresh() {
   fetchPending.value = true;
   loading.value = true;
-  items.value = await get<Client[]>("/api/clients");
-  loading.value = false;
-  fetchPending.value = false;
+  try {
+    items.value = await get<Client[]>("/api/clients");
+  } catch (error) {
+    // Without this, a failing /api/clients (Mongo down) leaves fetchPending true
+    // forever: the page renders a spinner and the client selector never appears.
+    // index/jobs/globalconfig all guard this; config.vue did not.
+    console.log(error);
+    err.value = "could not load the client list";
+  } finally {
+    loading.value = false;
+    fetchPending.value = false;
+  }
 }
 
 /**
@@ -469,7 +478,11 @@ async function saveConfig() {
   saving.value = true;
   console.log(selectedClient.value.Address);
   try {
-    await put(`${selectedClient.value.Address!.trim()}/config`, config.value);
+    // 20s, matching the original's explicit AbortController timeout. A config
+    // upload is a big body and a slow daemon operation, so it gets far longer
+    // than the 2.5s default — but it must still be bounded, or a daemon that
+    // accepts the connection and never answers spins the button forever.
+    await put(`${selectedClient.value.Address!.trim()}/config`, config.value, 20000);
     setTimeout(() => {
       saving.value = false;
     }, 500);
