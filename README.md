@@ -41,29 +41,33 @@ This is a global configuration instance for the LogMatch module and the trimming
 
 ### Building manually
 
-```bash
-$ npm install
-$ npm run dev
+Requires Node >= 20.19 and pnpm.
 
-$ npm run build
-$ npm run start
+```bash
+$ pnpm install
+
+# development: Vite dev server on :5173, Express API on :10009
+$ pnpm dev:api
+$ pnpm dev
+
+# production: build the SPA, then serve it and the API from Express on :10009
+$ pnpm build
+$ pnpm start
 ```
 
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+### Configuration
 
-Modify the config.json file and change the URL to your mongodb instance.
+The MongoDB connection string is read from the `MONGO_URL` environment variable.
+It defaults to `mongodb://192.168.178.75:27017/Avior`. There is no `config.json`;
+set the environment variable instead.
+
+The listening port is read from `PORT` and defaults to `10009`.
 
 ### Docker
 
-This project is also available on dockerhub. Make sure to map a database configuration by creating a `config.json` like so:
-```json
-{
-    "url": "mongodb://your-url"
-}
-```
-
-Then run the docker container:
+This project is also available on dockerhub. Pass your database URL as an
+environment variable:
 
 ```docker
-docker run --publish=10009:10009--volume=/<path-to-config>/config.json:app/api/config.json spiritreader/avior-nuxt
+docker run --publish=10009:10009 --env MONGO_URL=mongodb://your-url/Avior spiritreader/avior-nuxt
 ```
