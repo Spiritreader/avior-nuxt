@@ -234,7 +234,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style>
 .alert-text {
   margin-top: 2px;
 }

@@ -66,7 +66,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style>
 .priority-tb {
   max-width: 120px;
 }
