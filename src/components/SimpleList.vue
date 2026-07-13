@@ -35,9 +35,18 @@
         caret sits below the text. Vuetify 2 got away with it because the surrounding
         <v-list-item-content> — which v4 deleted — did the stretching.
       -->
+      <!--
+        placeholder, not label. Vuetify 4 pads a field's input asymmetrically
+        (16px top, 0 bottom) to reserve room for a floating label, but a solo field's
+        label does not float — it stays vertically centred. So the label rendered 8px
+        above the text box and the caret sat below it. Vuetify 2's solo label behaved
+        as a placeholder anyway (it vanished on input rather than floating up), so a
+        real placeholder is the faithful equivalent and puts the caret on the text.
+      -->
       <v-text-field
         v-model="newElement"
-        :label="`Add ${type}`"
+        :placeholder="`Add ${type}`"
+        :aria-label="`Add ${type}`"
         variant="solo"
         flat
         density="compact"
