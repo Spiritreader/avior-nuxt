@@ -30,34 +30,46 @@
   </v-card>
 </template>
 
-<script>
-export default {
-  methods: {},
-  computed: {
-    computedPriority: {
-      get() {
-        return this.moduleInternal.Priority;
-      },
-      set(newVal) {
-        this.$emit("update:moduleInternal.Priority", newVal);
-      },
-    },
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import type { ModuleConfig } from "@/types";
+
+/**
+ * The initial value has no `Settings` key at all (the template's
+ * `v-if="moduleInternal.Settings"` is therefore false until mounted() swaps in
+ * the real module), so Settings has to be optional here.
+ */
+type ModuleInternal = Omit<ModuleConfig<unknown>, "Settings"> & { Settings?: unknown };
+
+const props = defineProps<{
+  module: ModuleConfig<unknown>;
+  name: string;
+}>();
+
+// The event name is nonsense and nobody listens for it. Kept verbatim.
+const emit = defineEmits<{
+  "update:moduleInternal.Priority": [value: number];
+}>();
+
+const moduleInternal = ref<ModuleInternal>({
+  Enabled: false,
+  Priority: -1,
+});
+
+const computedPriority = computed<number>({
+  get() {
+    return moduleInternal.value.Priority;
   },
-  mounted() {
-    this.moduleInternal = this.module;
-    console.log("hi from " + this.name);
+  set(newVal) {
+    emit("update:moduleInternal.Priority", newVal);
   },
-  data: () => ({
-    moduleInternal: {
-      Enabled: false,
-      Priority: -1,
-    },
-  }),
-  props: {
-    module: Object,
-    name: String,
-  },
-};
+});
+
+onMounted(() => {
+  // Same object reference as the prop, not a copy.
+  moduleInternal.value = props.module;
+  console.log("hi from " + props.name);
+});
 </script>
 
 <style>

@@ -44,37 +44,45 @@
   </v-list>
 </template>
 
-<script>
-export default {
-  name: "SimpleList",
-  props: {
-    list: Array,
-    icon: String,
-    type: String,
-    noheader: Boolean,
+<script setup lang="ts">
+import { ref, watch } from "vue";
+
+defineOptions({ name: "SimpleList" });
+
+const props = withDefaults(
+  defineProps<{
+    list: string[];
+    icon?: string;
+    type?: string;
+    noheader?: boolean;
+  }>(),
+  { noheader: false }
+);
+
+const emit = defineEmits<{
+  newdata: [list: string[]];
+}>();
+
+const newElement = ref("");
+
+// NOTE: mutates the prop's array in place -- the parent owns the array, this
+// child edits it. Preserved from the Options API original on purpose.
+function addElement() {
+  if (newElement.value.length > 0) {
+    props.list.push(newElement.value);
+    newElement.value = "";
+  }
+}
+
+function removeElement(index: number) {
+  props.list.splice(index, 1);
+}
+
+watch(
+  () => props.list,
+  () => {
+    emit("newdata", props.list);
   },
-  emits: ["newdata"],
-  data: () => ({
-    newElement: "",
-  }),
-  methods: {
-    addElement() {
-      if (this.newElement.length > 0) {
-        this.list.push(this.newElement);
-        this.newElement = "";
-      }
-    },
-    removeElement(index) {
-      this.list.splice(index, 1);
-    },
-  },
-  watch: {
-    list: {
-      handler: function () {
-        this.$emit("newdata", this.list);
-      },
-      deep: true,
-    },
-  },
-};
+  { deep: true }
+);
 </script>

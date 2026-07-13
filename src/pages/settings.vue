@@ -70,67 +70,80 @@
   </v-container>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
 import { get, post } from "@/api/http";
 import SimpleList from "@/components/SimpleList.vue";
+import type { Client } from "@/types";
 
-export default {
-  components: { SimpleList },
-  data() {
-    return {
-      users: [],
-      clientName: "",
-      clientAddresses: [],
-      rules: {
-        name: (v) => !!v || "Name is required",
-        nameLen: (v) => v.length <= 30 || "Name must be at most 30 characters",
-        address: (v) => !!v || "Address is required",
-      },
-      loader: null,
-      submitLoad: false,
-    };
-  },
-  mounted() {
-    this.refresh();
-  },
-  methods: {
-    // Nuxt's async fetch() hook has no Vue 3 equivalent; it becomes a plain
-    // method called from mounted() and re-invoked after every write.
-    async refresh() {
-      const users = await get("/api/clients");
-      users.forEach((user) => {
-        user.removeLoad = false;
-      });
-      this.users = users;
-    },
-    handleAddressData(data) {
-      this.clientAddresses = data;
-    },
-    setLoader(i) {
-      this.loader = i;
-    },
-    async addClient() {
-      if (this.clientName != "" && this.clientAddress != "") {
-        this.submitLoad = true;
-        const newUser = {
-          Name: this.clientName,
-          Addresses: this.clientAddresses,
-        };
-        this.loader = await post("/api/clients", newUser);
-        this.submitLoad = false;
-        await this.refresh();
-        this.submitLoad = false;
-      }
-    },
-    async deleteClient(client) {
-      client.removeLoad = true;
-      const deleteUser = {
-        _id: client._id,
-      };
-      await post("/api/clients/delete", deleteUser);
-      await this.refresh();
-      client.removeLoad = false;
-    },
-  },
+const users = ref<Client[]>([]);
+const clientName = ref("");
+
+// `any` on purpose: the (untouched) template compares this array to a string
+// (`clientAddresses === ''`), which never holds. Typing it as string[] would
+// make that comparison a type error in the template, and the template is not
+// mine to change.
+const clientAddresses = ref<any>([]);
+
+// PRESERVED BUG: addClient() below guards on `clientAddress` (SINGULAR), a field
+// that never existed on the Options API component -- the real one is
+// `clientAddresses` (plural). `undefined != ""` is always true, so that half of
+// the guard has never done anything. Declared here so the guard stays literally
+// the same expression and stays always-true.
+const clientAddress = undefined as string | undefined;
+
+const rules = {
+  name: (v: string) => !!v || "Name is required",
+  nameLen: (v: string) => v.length <= 30 || "Name must be at most 30 characters",
+  address: (v: string) => !!v || "Address is required",
 };
+
+const loader = ref<unknown>(null);
+const submitLoad = ref(false);
+
+// Nuxt's async fetch() hook has no Vue 3 equivalent; it becomes a plain
+// function called from onMounted() and re-invoked after every write.
+async function refresh() {
+  const fetched = await get<Client[]>("/api/clients");
+  fetched.forEach((user) => {
+    user.removeLoad = false;
+  });
+  users.value = fetched;
+}
+
+function handleAddressData(data: string[]) {
+  clientAddresses.value = data;
+}
+
+function setLoader(i: unknown) {
+  loader.value = i;
+}
+
+async function addClient() {
+  if (clientName.value != "" && clientAddress != "") {
+    submitLoad.value = true;
+    const newUser = {
+      Name: clientName.value,
+      Addresses: clientAddresses.value,
+    };
+    loader.value = await post("/api/clients", newUser);
+    submitLoad.value = false;
+    await refresh();
+    submitLoad.value = false;
+  }
+}
+
+async function deleteClient(client: Client) {
+  client.removeLoad = true;
+  const deleteUser = {
+    _id: client._id,
+  };
+  await post("/api/clients/delete", deleteUser);
+  await refresh();
+  client.removeLoad = false;
+}
+
+onMounted(() => {
+  refresh();
+});
 </script>

@@ -32,34 +32,33 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {},
-  data() {
-    return {
-      min: 0,
-      max: 100,
-      expand: false,
-      threshold: this.settings.Threshold,
-      settingsInternal: this.settings,
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    threshold: {
-      handler: function () {
-        this.settingsInternal.Threshold = this.threshold;
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-};
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import type { LengthSettings as LengthSettingsType, ModuleName, ModuleSettingsUpdate } from "@/types";
+
+const props = defineProps<{
+  settings: LengthSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const min = ref(0);
+const max = ref(100);
+const expand = ref(false);
+const threshold = ref(props.settings.Threshold);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<LengthSettingsType>(props.settings);
+
+watch(threshold, () => {
+  settingsInternal.value.Threshold = threshold.value;
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>

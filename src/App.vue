@@ -61,59 +61,63 @@
   </v-app>
 </template>
 
-<script>
-export default {
-  computed: {
-    commitHash() {
-      if (this.commitSha) {
-        return this.commitSha.substring(0, 7);
-      } else {
-        return "dev";
-      }
-    },
+<script setup lang="ts">
+import { computed, ref } from "vue";
+
+interface NavItem {
+  icon: string;
+  title: string;
+  to: string;
+}
+
+const commitSha = ref<string | undefined>(import.meta.env.VITE_COMMIT_SHA);
+
+// The source says `drawer: false`, but Vuetify 2's `v-navigation-drawer
+// app` auto-opened on desktop regardless of that initial value, so the
+// real app ships with the drawer OPEN. Vuetify 4 honours v-model
+// literally, so reproducing the observable behaviour means `true`.
+const drawer = ref(true);
+
+const items = ref<NavItem[]>([
+  {
+    icon: "mdi-eye-settings-outline",
+    title: "Overview",
+    to: "/",
   },
-  data() {
-    return {
-      commitSha: import.meta.env.VITE_COMMIT_SHA,
-      // The source says `drawer: false`, but Vuetify 2's `v-navigation-drawer
-      // app` auto-opened on desktop regardless of that initial value, so the
-      // real app ships with the drawer OPEN. Vuetify 4 honours v-model
-      // literally, so reproducing the observable behaviour means `true`.
-      drawer: true,
-      items: [
-        {
-          icon: "mdi-eye-settings-outline",
-          title: "Overview",
-          to: "/",
-        },
-        {
-          icon: "mdi-file-tree",
-          title: "Job Manager",
-          to: "/jobs",
-        },
-        {
-          icon: "mdi-cog-outline",
-          title: "Client Configuration",
-          to: "/config",
-        },
-        {
-          icon: "mdi-card-bulleted-settings",
-          title: "Global Configuration",
-          to: "/globalconfig",
-        },
-        {
-          icon: "mdi-remote",
-          title: "Frontend Settings",
-          to: "/settings",
-        },
-      ],
-      miniVariant: false,
-      right: true,
-      rightDrawer: false,
-      title: "Avior",
-    };
+  {
+    icon: "mdi-file-tree",
+    title: "Job Manager",
+    to: "/jobs",
   },
-};
+  {
+    icon: "mdi-cog-outline",
+    title: "Client Configuration",
+    to: "/config",
+  },
+  {
+    icon: "mdi-card-bulleted-settings",
+    title: "Global Configuration",
+    to: "/globalconfig",
+  },
+  {
+    icon: "mdi-remote",
+    title: "Frontend Settings",
+    to: "/settings",
+  },
+]);
+
+const miniVariant = ref(false);
+const right = ref(true);
+const rightDrawer = ref(false);
+const title = ref("Avior");
+
+const commitHash = computed(() => {
+  if (commitSha.value) {
+    return commitSha.value.substring(0, 7);
+  } else {
+    return "dev";
+  }
+});
 </script>
 <style>
 /* width */

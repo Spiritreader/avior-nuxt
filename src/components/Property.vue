@@ -37,57 +37,59 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    remove() {
-      this.deleted = true;
-    },
-    editTag() {
-      if (!this.disabledTag) {
-        this.$emit("newtagdata", { tag: this.tagInternal, id: this.id });
-        this.disabledTag = true;
-      } else {
-        this.disabledTag = false;
-      }
-    },
-  },
-  mounted() {
-    this.tagInternal = this.tag;
-    this.contentInternal = this.content;
-    if (this.new) {
-      this.disabledTag = false;
-    }
-  },
-  data: () => ({
-    disabledTag: true,
-    tagInternal: "",
-    contentInternal: "",
-    deleted: false,
-  }),
-  props: {
-    allowNew: Boolean,
-    new: Boolean,
-    id: Number,
-    tag: String,
-    content: String,
-    tagName: String,
-    contentName: String,
-  },
-  watch: {
-    deleted: {
-      handler: function () {
-        this.$emit("deleted", this.tag);
-      },
-    },
-    contentInternal: {
-      handler: function () {
-        this.$emit("newcontentdata", {
-          tag: this.tag,
-          content: this.contentInternal,
-        });
-      },
-    },
-  },
-};
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+
+const props = defineProps<{
+  allowNew?: boolean;
+  new?: boolean;
+  id: number;
+  tag: string;
+  content: string;
+  tagName?: string;
+  contentName?: string;
+}>();
+
+const emit = defineEmits<{
+  newtagdata: [payload: { tag: string; id: number }];
+  newcontentdata: [payload: { tag: string; content: string }];
+  deleted: [tag: string];
+}>();
+
+const disabledTag = ref(true);
+const tagInternal = ref("");
+const contentInternal = ref("");
+const deleted = ref(false);
+
+function remove() {
+  deleted.value = true;
+}
+
+function editTag() {
+  if (!disabledTag.value) {
+    emit("newtagdata", { tag: tagInternal.value, id: props.id });
+    disabledTag.value = true;
+  } else {
+    disabledTag.value = false;
+  }
+}
+
+onMounted(() => {
+  tagInternal.value = props.tag;
+  contentInternal.value = props.content;
+  if (props.new) {
+    disabledTag.value = false;
+  }
+});
+
+watch(deleted, () => {
+  emit("deleted", props.tag);
+});
+
+watch(contentInternal, () => {
+  emit("newcontentdata", {
+    tag: props.tag,
+    content: contentInternal.value,
+  });
+});
 </script>

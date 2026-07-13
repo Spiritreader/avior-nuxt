@@ -33,37 +33,37 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {},
-  mounted() {
-    this.minResolution = this.settingsInternal.MinResolution;
-  },
-  data() {
-    return {
-      min: 0,
-      max: 100,
-      expand: false,
-      minResolution: 0,
-      settingsInternal: this.settings,
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    minResolution: {
-      handler: function () {
-        this.settingsInternal.MinResolution = this.minResolution;
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-};
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { ModuleName, ModuleSettingsUpdate, ResolutionSettings as ResolutionSettingsType } from "@/types";
+
+const props = defineProps<{
+  settings: ResolutionSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const min = ref(0);
+const max = ref(100);
+const expand = ref(false);
+const minResolution = ref(0);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<ResolutionSettingsType>(props.settings);
+
+onMounted(() => {
+  minResolution.value = settingsInternal.value.MinResolution;
+});
+
+watch(minResolution, () => {
+  settingsInternal.value.MinResolution = minResolution.value;
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>

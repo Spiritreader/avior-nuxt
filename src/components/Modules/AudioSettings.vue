@@ -41,55 +41,56 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    accIcon(value) {
-      if (value == 0) {
-        return "mdi-circle-outline";
-      } else if (value == 1) {
-        return "mdi-circle-slice-4";
-      } else if (value == 2) {
-        return "mdi-circle-slice-8";
-      }
-    },
-  },
-  mounted() {
-    this.selectedFormat = this.steps.indexOf(this.settingsInternal.Accuracy);
-  },
-  data() {
-    return {
-      expand: false,
-      selectedFormat: 0,
-      settingsInternal: this.settings,
-      steps: ["low", "med", "high"],
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    selectedFormat: {
-      handler: function () {
-        let value = this.selectedFormat;
-        this.settingsInternal.Accuracy = this.steps[value];
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-  computed: {
-    stepTicks() {
-      return this.steps.reduce((acc, label, index) => {
-        acc[index] = label;
-        return acc;
-      }, {});
-    },
-  },
-};
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import type { AudioSettings as AudioSettingsType, ModuleName, ModuleSettingsUpdate } from "@/types";
+
+const props = defineProps<{
+  settings: AudioSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const expand = ref(false);
+// This component really does have a selectedFormat -- its watcher is live.
+const selectedFormat = ref(0);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<AudioSettingsType>(props.settings);
+const steps = ref<string[]>(["low", "med", "high"]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function accIcon(value: any) {
+  if (value == 0) {
+    return "mdi-circle-outline";
+  } else if (value == 1) {
+    return "mdi-circle-slice-4";
+  } else if (value == 2) {
+    return "mdi-circle-slice-8";
+  }
+}
+
+const stepTicks = computed<Record<number, string>>(() => {
+  return steps.value.reduce<Record<number, string>>((acc, label, index) => {
+    acc[index] = label;
+    return acc;
+  }, {});
+});
+
+onMounted(() => {
+  selectedFormat.value = steps.value.indexOf(settingsInternal.value.Accuracy);
+});
+
+watch(selectedFormat, () => {
+  const value = selectedFormat.value;
+  settingsInternal.value.Accuracy = steps.value[value];
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>

@@ -120,98 +120,93 @@
   </v-data-table>
 </template>
 
-<script>
-export default {
-  computed: {
-    formTitle() {
-      return this.editedIndex === -1 ? "New Field" : "Edit Field";
-    },
-    actionButton() {
-      return this.editedIndex === -1 ? "Add" : "Update";
-    },
-    data() {
-      return this.modelValue;
-    },
+<script setup lang="ts">
+import { computed, nextTick, ref, watch } from "vue";
+import type { Field, FieldMutation } from "@/types";
+
+// The rows carry a per-row `deleteDialog` flag that the template stamps onto
+// them via v-model. It is not part of the wire shape, hence the local widening.
+type FieldRow = Field & { deleteDialog?: boolean };
+
+const props = defineProps<{
+  // Vue 3 changed the component v-model contract from value + input to
+  // modelValue + update:modelValue. The emit below was already commented out
+  // in the Vue 2 original, so the binding is one-way: the parent owns the
+  // array and reloads it after every mutation.
+  modelValue: FieldRow[];
+}>();
+
+const emit = defineEmits<{
+  (e: "newdata", payload: FieldMutation): void;
+}>();
+
+const selected = ref<FieldRow[]>([]);
+//const data = ref(props.modelValue);
+const nameSearch = ref("");
+const dialogDeleteSelected = ref(false);
+const dialog = ref(false);
+const headers: any[] = [
+  {
+    title: "Field",
+    align: "start",
+    sortable: true,
+    key: "Value",
   },
-
-  props: {
-    // Vue 3 changed the component v-model contract from value + input to
-    // modelValue + update:modelValue. The emit below was already commented out
-    // in the Vue 2 original, so the binding is one-way: the parent owns the
-    // array and reloads it after every mutation.
-    modelValue: Array,
-  },
-  data() {
-    return {
-      selected: [],
-      //data: this.modelValue,
-      nameSearch: "",
-      dialogDeleteSelected: false,
-      dialog: false,
-      headers: [
-        {
-          title: "Field",
-          align: "start",
-          sortable: true,
-          key: "Value",
-        },
-        { title: "Actions", key: "actions", sortable: false, align: "end" },
-      ],
-      editedIndex: -1,
-      editedItem: {
-        ID: "",
-        Value: "",
-      },
-      defaultItem: {
-        ID: "",
-        Value: "",
-      },
-    };
-  },
-
-  watch: {
-    dialog(val) {
-      val || this.close();
-    },
-  },
-
-  methods: {
-    deleteSelected() {
-      this.$emit("newdata", { mode: "deleteMany", ary: this.selected });
-      this.selected = [];
-    },
-
-    editItem(item) {
-      this.editedIndex = this.data.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
-    },
-    deleteItem(item) {
-      const index = this.data.indexOf(item);
-      //this.data.splice(index, 1);
-      this.$emit("newdata", { mode: "delete", obj: item });
-    },
-
-    close() {
-      this.dialog = false;
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
-    },
-
-    add() {
-      if (this.editedIndex > -1) {
-        //Object.assign(this.data[this.editedIndex], this.editedItem);
-        //this.$emit("update:modelValue", this.data);
-        this.$emit("newdata", { mode: "update", obj: this.editedItem });
-      } else {
-        //this.data.push(this.editedItem);
-        //this.$emit("update:modelValue", this.data);
-        this.$emit("newdata", { mode: "create", obj: this.editedItem });
-      }
-      this.close();
-    },
-  },
+  { title: "Actions", key: "actions", sortable: false, align: "end" },
+];
+const editedIndex = ref(-1);
+const editedItem = ref<Field>({
+  ID: "",
+  Value: "",
+});
+const defaultItem: Field = {
+  ID: "",
+  Value: "",
 };
+
+const formTitle = computed(() => (editedIndex.value === -1 ? "New Field" : "Edit Field"));
+const actionButton = computed(() => (editedIndex.value === -1 ? "Add" : "Update"));
+const data = computed(() => props.modelValue);
+
+function deleteSelected() {
+  emit("newdata", { mode: "deleteMany", ary: selected.value });
+  selected.value = [];
+}
+
+function editItem(item: FieldRow) {
+  editedIndex.value = data.value.indexOf(item);
+  editedItem.value = Object.assign({}, item);
+  dialog.value = true;
+}
+
+function deleteItem(item: FieldRow) {
+  const index = data.value.indexOf(item);
+  //data.value.splice(index, 1);
+  emit("newdata", { mode: "delete", obj: item });
+}
+
+function close() {
+  dialog.value = false;
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem);
+    editedIndex.value = -1;
+  });
+}
+
+function add() {
+  if (editedIndex.value > -1) {
+    //Object.assign(data.value[editedIndex.value], editedItem.value);
+    //emit("update:modelValue", data.value);
+    emit("newdata", { mode: "update", obj: editedItem.value });
+  } else {
+    //data.value.push(editedItem.value);
+    //emit("update:modelValue", data.value);
+    emit("newdata", { mode: "create", obj: editedItem.value });
+  }
+  close();
+}
+
+watch(dialog, (val) => {
+  val || close();
+});
 </script>

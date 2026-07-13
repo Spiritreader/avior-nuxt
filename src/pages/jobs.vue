@@ -256,150 +256,55 @@
   </v-container>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import { get, post, put, del } from "@/api/http";
 import JobDataTable from "@/components/JobDataTable.vue";
+import { useClientResolution } from "@/composables/useClientResolution";
+import type { DaemonClient, Job, JobSelectionUpdate } from "@/types";
 
-export default {
-  components: { JobDataTable },
-  data: () => ({
-    loading: false,
-    fetchError: null,
-    reassigning: false,
-    reassignError: 0,
-    reassignDialog: false,
-    reassignToClient: null,
-    deletingSelectedJobs: false,
-    deleteSelectedJobsDialog: false,
-    addJobDialog: false,
-    addingJob: false,
-    howManyJobsAreSelectedQuestionmark: 0,
-    newJobs: `[
-  {
-    "ID": ""
-    "Path": "",
-    "Name": "",
-    "Subtitle": "",
-    "CustomParameters": null,
-    "AssignedClient": {
-      "Ref": "clients",
-      "ID": "",
-      "DB": "undefined"
-    }
-  }
-]`,
-    newJobsError: "",
-    addingJobs: false,
-    addJobsDialog: false,
-    newJob: {
-      Path: "",
-      Name: "",
-      Subtitle: "",
-      CustomParameters: null,
-      AssignedClient: {
-        Ref: "clients",
-        ID: "",
-        DB: "undefined",
-      },
-    },
-    selectedJobs: {},
-    jobs: [],
-    clients: [],
-    url: "",
+const { resolveAnyAddress } = useClientResolution();
 
-    // edit item data
-    editItem: {
-      Path: "",
-      Name: "",
-      Subtitle: "",
-      CustomParameters: "",
-      AssignedClient: {
-        ID: "",
-        Name: "",
-      },
-      EditJobDialog: false,
-      EditingJob: false,
-      DeleteJobDialog: false,
-      DeletingJob: false,
-    },
-  }),
-  computed: {
-    s() {
-      if (this.howManyJobsAreSelectedQuestionmark > 1) {
-        return "s";
-      }
-      return "";
-    },
-    s2() {
-      if (this.jobs.length > 1) {
-        return "s";
-      } else {
-        return "";
-      }
-    },
-    /**
-     * v-list takes an array of selected values, where v-list-item-group took a single one.
-     */
-    reassignSelection() {
-      return this.reassignToClient ? [this.reassignToClient] : [];
-    },
-  },
-  mounted() {
-    this.refresh();
-  },
-  methods: {
-    /**
-     * Replaces Nuxt's async fetch() hook. Called from mounted().
-     */
-    async refresh() {
-      this.loading = true;
-      this.fetchError = null;
-      try {
-        await this.getClients();
-      } catch (err) {
-        this.fetchError = err;
-      } finally {
-        this.loading = false;
-      }
-    },
-    setReassignToClient(selected) {
-      this.reassignToClient = selected.length > 0 ? selected[0] : null;
-    },
-    calculateHowManyJobsAreSelectedQuestionmark() {
-      let amount = 0;
-      for (const selectedRows of Object.values(this.selectedJobs)) {
-        amount += selectedRows.length;
-      }
-      return amount;
-    },
-    /**
-     * Removes all object keys within the filter, such that a job object only contains relevant keys to be displayed for rendering
-     */
-    filteredJob: function (job) {
-      const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeleteJob"];
-      const filtered = Object.keys(job)
-        .filter((key) => !filter.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = job[key];
-          return obj;
-        }, {});
-      return filtered;
-    },
-    clearNewJob: function () {
-      this.newJob = {
-        Path: "",
-        Name: "",
-        Subtitle: "",
-        CustomParameters: null,
-        AssignedClient: {
-          Ref: "clients",
-          ID: "",
-          DB: "undefined",
-        },
-      };
-    },
-    resetJsonJobs: function () {
-      this.newJobs = `[
+/**
+ * Selected jobs, keyed by client ID -- e.g. { "62bc2a93...": [job, job] }.
+ *
+ * Deliberately `any`, and that is not laziness. The template and reassignJobs() use
+ * this value in two mutually contradictory ways at once, which is the PRESERVED BUG:
+ *
+ *   - `selectedJobs.length` -- read as if it were an ARRAY. It is an object, so this
+ *     is always undefined. That is why the Delete button never shows a count
+ *     (`undefined > 0` is false), and why reassignJobs' `idx === selectedJobs.length - 1`
+ *     compares a string key against NaN and is never true.
+ *   - `Object.values(selectedJobs).reduce((flat, ary) => flat.concat(ary))` -- read as
+ *     if it were a plain record of Job[]. Correct, and the dialog depends on it.
+ *
+ * No single honest type admits both readings: adding `length: number` poisons
+ * Object.values() with a number, and omitting it makes `.length` an error. `any` keeps
+ * BOTH template expressions compiling AND both behaviours bit-identical. The script-side
+ * iterations below re-narrow to the real shape.
+ */
+interface SelectedJobs {
+  /** client ID -> that client's selected jobs. `any`, not `Job[]`, purely so that the
+   *  template's `Object.values(selectedJobs).reduce((flat, ary) => flat.concat(ary))`
+   *  still infers an array rather than being poisoned by the phantom `length` below. */
+  [clientId: string]: any;
+  /** NOT REAL. Never assigned, so it always reads back as undefined. */
+  length: number;
+}
+
+const loading = ref(false);
+const fetchError = ref<unknown>(null);
+const reassigning = ref(false);
+const reassignError = ref(0);
+const reassignDialog = ref(false);
+const reassignToClient = ref<DaemonClient | null>(null);
+const deletingSelectedJobs = ref(false);
+const deleteSelectedJobsDialog = ref(false);
+const addJobDialog = ref(false);
+const addingJob = ref(false);
+const howManyJobsAreSelectedQuestionmark = ref(0);
+
+const EMPTY_JOBS_JSON = `[
   {
     "ID": ""
     "Path": "",
@@ -413,239 +318,348 @@ export default {
     }
   }
 ]`;
+
+const newJobs = ref(EMPTY_JOBS_JSON);
+const newJobsError = ref("");
+const addingJobs = ref(false);
+const addJobsDialog = ref(false);
+
+function emptyJob() {
+  return {
+    Path: "",
+    Name: "",
+    Subtitle: "",
+    CustomParameters: null as Job["CustomParameters"],
+    AssignedClient: {
+      Ref: "clients",
+      ID: "",
+      DB: "undefined",
     },
-    addJobsFromJson: async function () {
-      this.addingJobs = true;
-      const promises = [];
-      try {
-        const parsedJobs = JSON.parse(this.newJobs);
-        this.newJobsError = "";
-        parsedJobs.forEach((job) => {
-          promises.push(post(this.url + "/jobs/", job));
-        });
-        try {
-          await Promise.all(promises);
-          await this.getClients();
-          this.resetJsonJobs();
-        } catch (err) {
-          console.error(err);
-        }
-        this.addingJobs = false;
-        this.addJobsDialog = false;
-        this.addJobDialog = false;
-      } catch (error) {
-        console.error(error);
-        this.newJobsError = `Invalid JSON: ${error.toString()}`;
-        this.addingJobs = false;
-        this.selectedJobs = {};
-      }
-    },
-    addJob: async function () {
-      this.addingJob = true;
-      const job = JSON.parse(JSON.stringify(this.newJob));
+  };
+}
+
+const newJob = ref(emptyJob());
+const selectedJobs = ref<SelectedJobs>({} as SelectedJobs);
+const jobs = ref<Job[]>([]);
+const clients = ref<(DaemonClient & { Jobs: Job[] })[]>([]);
+const url = ref("");
+
+// edit item data. Note this placeholder is not a valid Job: it has no ID, and its
+// AssignedClient is {ID, Name} rather than {Ref, ID, DB}. setEditItem() replaces it
+// with a real Job before anything reads it.
+const editItem = ref<Job>({
+  Path: "",
+  Name: "",
+  Subtitle: "",
+  CustomParameters: "",
+  AssignedClient: {
+    ID: "",
+    Name: "",
+  },
+  EditJobDialog: false,
+  EditingJob: false,
+  DeleteJobDialog: false,
+  DeletingJob: false,
+} as unknown as Job);
+
+const s = computed(() => {
+  if (howManyJobsAreSelectedQuestionmark.value > 1) {
+    return "s";
+  }
+  return "";
+});
+
+const s2 = computed(() => {
+  if (jobs.value.length > 1) {
+    return "s";
+  } else {
+    return "";
+  }
+});
+
+/**
+ * v-list takes an array of selected values, where v-list-item-group took a single one.
+ */
+const reassignSelection = computed(() => {
+  return reassignToClient.value ? [reassignToClient.value] : [];
+});
+
+/**
+ * Replaces Nuxt's async fetch() hook. Called from mounted().
+ */
+async function refresh() {
+  loading.value = true;
+  fetchError.value = null;
+  try {
+    await getClients();
+  } catch (err) {
+    fetchError.value = err;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function setReassignToClient(selected: DaemonClient[]) {
+  reassignToClient.value = selected.length > 0 ? selected[0] : null;
+}
+
+function calculateHowManyJobsAreSelectedQuestionmark() {
+  let amount = 0;
+  for (const selectedRows of Object.values(selectedJobs.value) as Job[][]) {
+    amount += selectedRows.length;
+  }
+  return amount;
+}
+
+/**
+ * Removes all object keys within the filter, such that a job object only contains relevant keys to be displayed for rendering
+ */
+function filteredJob(job: Job): Record<string, unknown> {
+  const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeleteJob"];
+  const filtered = Object.keys(job)
+    .filter((key) => !filter.includes(key))
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = (job as unknown as Record<string, unknown>)[key];
+      return obj;
+    }, {});
+  return filtered;
+}
+
+function clearNewJob() {
+  newJob.value = emptyJob();
+}
+
+function resetJsonJobs() {
+  newJobs.value = EMPTY_JOBS_JSON;
+}
+
+async function addJobsFromJson() {
+  addingJobs.value = true;
+  const promises: Promise<unknown>[] = [];
+  try {
+    const parsedJobs: Job[] = JSON.parse(newJobs.value);
+    newJobsError.value = "";
+    parsedJobs.forEach((job) => {
+      promises.push(post(url.value + "/jobs/", job));
+    });
+    try {
+      await Promise.all(promises);
+      await getClients();
+      resetJsonJobs();
+    } catch (err) {
+      console.error(err);
+    }
+    addingJobs.value = false;
+    addJobsDialog.value = false;
+    addJobDialog.value = false;
+  } catch (error) {
+    console.error(error);
+    newJobsError.value = `Invalid JSON: ${String(error)}`;
+    addingJobs.value = false;
+    selectedJobs.value = {} as SelectedJobs;
+  }
+}
+
+async function addJob() {
+  addingJob.value = true;
+  const job = JSON.parse(JSON.stringify(newJob.value));
+  if (job.CustomParameters && job.CustomParameters !== "") {
+    job.CustomParameters = job.CustomParameters.split("\n");
+  } else {
+    job.CustomParameters = null;
+  }
+  try {
+    await post(url.value + "/jobs/", job);
+    await getClients();
+    clearNewJob();
+  } catch (err) {
+    // TODO make this an error in the ui
+    console.log("error inserting job");
+    console.error(err);
+  }
+  addingJob.value = false;
+  addJobDialog.value = false;
+  selectedJobs.value = {} as SelectedJobs;
+}
+
+async function updateJob(job: Job) {
+  job.EditingJob = true;
+  const jobToSend = filteredJob(job) as Record<string, unknown> & { CustomParameters: unknown };
+  if (job.CustomParameters && jobToSend.CustomParameters !== "") {
+    jobToSend.CustomParameters = (jobToSend.CustomParameters as string).split("\n");
+  } else {
+    jobToSend.CustomParameters = null;
+  }
+  try {
+    await put(url.value + "/jobs/", jobToSend);
+    await getClients();
+  } catch (err) {
+    console.error(err);
+  }
+  job.EditingJob = false;
+  job.EditJobDialog = false;
+}
+
+function closeEditJobDialog(job: Job) {
+  job.EditJobDialog = false;
+  job.EditingJob = false;
+}
+
+function setEditItem(job: Job) {
+  job.EditJobDialog = true;
+  editItem.value = job;
+}
+
+async function deleteJobNoRefresh(job: Job) {
+  try {
+    await del(`${url.value}/jobs/${job.ID}`);
+  } catch (err) {
+    console.error(err);
+    console.log(`retrying ${job.ID}`);
+    try {
+      await del(`${url.value}/jobs/${job.ID}`);
+    } catch (err2) {
+      console.log("retry failed");
+      console.error(err2);
+    }
+  }
+}
+
+async function deleteJob(job: Job) {
+  job.DeletingJob = true;
+  try {
+    await del(`${url.value}/jobs/${job.ID}`);
+    await getClients();
+    job.DeletingJob = false;
+    job.DeleteJobDialog = false;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function reassignJobs() {
+  reassigning.value = true;
+  const promises: Promise<unknown>[] = [];
+  let errorCount = 0;
+  for (const [idx, client] of Object.entries(selectedJobs.value) as [string, Job[]][]) {
+    for (const job of client) {
+      job.AssignedClient.ID = reassignToClient.value!.ID;
+      job.AssignedClient.DB = "undefined";
       if (job.CustomParameters && job.CustomParameters !== "") {
-        job.CustomParameters = job.CustomParameters.split("\n");
+        job.CustomParameters = (job.CustomParameters as string).split("\n");
       } else {
         job.CustomParameters = null;
       }
-      try {
-        await post(this.url + "/jobs/", job);
-        await this.getClients();
-        this.clearNewJob();
-      } catch (err) {
-        // TODO make this an error in the ui
-        console.log("error inserting job");
-        console.error(err);
-      }
-      this.addingJob = false;
-      this.addJobDialog = false;
-      this.selectedJobs = {};
-    },
-    updateJob: async function (job) {
-      job.EditingJob = true;
-      const jobToSend = this.filteredJob(job);
-      if (job.CustomParameters && jobToSend.CustomParameters !== "") {
-        jobToSend.CustomParameters = jobToSend.CustomParameters.split("\n");
-      } else {
-        jobToSend.CustomParameters = null;
-      }
-      try {
-        await put(this.url + "/jobs/", jobToSend);
-        await this.getClients();
-      } catch (err) {
-        console.error(err);
-      }
-      job.EditingJob = false;
-      job.EditJobDialog = false;
-    },
-    closeEditJobDialog: function (job) {
-      job.EditJobDialog = false;
-      job.EditingJob = false;
-    },
-    setEditItem: function (job) {
-      job.EditJobDialog = true;
-      this.editItem = job;
-    },
-    deleteJobNoRefresh: async function (job) {
-      try {
-        await del(`${this.url}/jobs/${job.ID}`);
-      } catch (err) {
-        console.error(err);
-        console.log(`retrying ${job.ID}`);
-        try {
-          await del(`${this.url}/jobs/${job.ID}`);
-        } catch (err2) {
-          console.log("retry failed");
-          console.error(err2);
-        }
-      }
-    },
-    deleteJob: async function (job) {
-      job.DeletingJob = true;
-      try {
-        await del(`${this.url}/jobs/${job.ID}`);
-        await this.getClients();
-        job.DeletingJob = false;
-        job.DeleteJobDialog = false;
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    reassignJobs: async function () {
-      this.reassigning = true;
-      const promises = [];
-      let errorCount = 0;
-      for (const [idx, client] of Object.entries(this.selectedJobs)) {
-        for (const job of client) {
-          job.AssignedClient.ID = this.reassignToClient.ID;
-          job.AssignedClient.DB = "undefined";
-          if (job.CustomParameters && job.CustomParameters !== "") {
-            job.CustomParameters = job.CustomParameters.split("\n");
-          } else {
-            job.CustomParameters = null;
+      promises.push(put(url.value + "/jobs/", job));
+      // PRESERVED BUG: `idx` is an Object.entries KEY -- a client ID string like
+      // "62bc2a93...", not a counter. `idx % 5` coerces it to NaN, so the first
+      // branch is never true; and `selectedJobs.length` is undefined on an object,
+      // so the second compares a string to NaN and is never true either. Net effect:
+      // the batch is NEVER flushed inside the loop, so every put is fired and only
+      // awaited... never. errorCount therefore stays 0. Do not fix without being asked.
+      if ((idx as unknown as number) % 5 == 0 || (idx as unknown as number) === selectedJobs.value.length - 1) {
+        const res = await Promise.allSettled(promises);
+        res.forEach((r) => {
+          if (r.status === "rejected") {
+            errorCount++;
           }
-          promises.push(put(this.url + "/jobs/", job));
-          if (idx % 5 == 0 || idx === this.selectedJobs.length - 1) {
-            let res = await Promise.allSettled(promises);
-            res.forEach((r) => {
-              if (r.status === "rejected") {
-                errorCount++;
-              }
-            });
-            promises.length = 0;
-          }
-        }
-      }
-      this.reassignError = errorCount;
-      setTimeout(() => (this.reassignError = 0), 5000);
-      await this.getClients();
-      this.reassigning = false;
-      this.reassignToClient = null;
-      this.selectedJobs = {};
-      this.howManyJobsAreSelectedQuestionmark = 0;
-    },
-    deleteSelectedJobs: async function () {
-      this.deletingSelectedJobs = true;
-      let promises = [];
-      for (const client of Object.values(this.selectedJobs)) {
-        for (const job of client) {
-          promises.push(this.deleteJobNoRefresh(job));
-          if (promises.length >= 5) {
-            await Promise.all(promises);
-            promises.length = 0;
-          }
-        }
-      }
-      if (promises.length > 0) {
-        await Promise.all(promises);
-      }
-      await this.getClients();
-      this.deletingSelectedJobs = false;
-      this.deleteSelectedJobsDialog = false;
-      this.selectedJobs = {};
-      this.howManyJobsAreSelectedQuestionmark = 0;
-    },
-    updateJobSelection: function (updateObject) {
-      this.selectedJobs[updateObject.client] = updateObject.selected;
-      this.howManyJobsAreSelectedQuestionmark = this.calculateHowManyJobsAreSelectedQuestionmark();
-    },
-    getJobsForClient: function (client) {
-      if (this.jobs == null) {
-        return [];
-      }
-      return this.jobs.filter((j) => {
-        j.EditJobDialog = false;
-        j.EditingJob = false;
-        j.DeleteJobDialog = false;
-        j.DeleteJob = false;
-        if (j.CustomParameters && typeof j.CustomParameters === "object") {
-          j.CustomParameters = j.CustomParameters.join("\n");
-        }
-        return client.ID === j.AssignedClient.ID;
-      });
-    },
-    getJobName: function (job) {
-      let jobName = job.Name;
-      if (job.Subtitle !== "") {
-        jobName += " - " + job.Subtitle;
-      }
-      return jobName;
-    },
-    addSelectedJob: function (job) {
-      if (this.selectedJobs.includes(job)) {
-        this.selectedJobs.splice(this.selectedJobs.indexOf(job), 1);
-      } else {
-        this.selectedJobs.push(job);
-      }
-    },
-    getJobs: async function () {
-      const jobs = await get(this.url + "/jobs/");
-      if (jobs != null && jobs != "null\n") {
-        this.jobs = jobs;
-      } else {
-        this.jobs = [];
-      }
-    },
-
-    resolveClients: async function () {
-      const unresolvedClients = await get("/api/clients");
-      let promises = [];
-      for (let client of unresolvedClients) {
-        for (let address of client.Addresses) {
-          try {
-            let promise = new Promise(async (resolve, reject) => {
-              let response;
-              try {
-                response = await get(address + "/alive");
-              } catch (err) {
-                reject({ address: "none", response: {} });
-                return;
-              }
-              resolve({ address: address, response: response });
-            });
-            promises.push(promise);
-          } catch (error) {
-            console.log(`$failed to create promises: ${error}`);
-          }
-        }
-      }
-      return await Promise.any(promises);
-    },
-    getClients: async function () {
-      let resolution = await this.resolveClients();
-      console.log(resolution);
-      if (resolution.address != "none") {
-        this.url = resolution.address;
-        let clients = await get(this.url + "/clients/");
-        await this.getJobs();
-        clients.sort((a, b) => (a.Online === b.Online ? 0 : a.Online ? -1 : 1));
-        clients.forEach((c) => {
-          c.Jobs = this.getJobsForClient(c);
-          c.SelectAll = false;
         });
-        this.clients = clients;
+        promises.length = 0;
       }
-    },
-  },
-};
+    }
+  }
+  reassignError.value = errorCount;
+  setTimeout(() => (reassignError.value = 0), 5000);
+  await getClients();
+  reassigning.value = false;
+  reassignToClient.value = null;
+  selectedJobs.value = {} as SelectedJobs;
+  howManyJobsAreSelectedQuestionmark.value = 0;
+}
+
+async function deleteSelectedJobs() {
+  deletingSelectedJobs.value = true;
+  let promises: Promise<unknown>[] = [];
+  for (const client of Object.values(selectedJobs.value) as Job[][]) {
+    for (const job of client) {
+      promises.push(deleteJobNoRefresh(job));
+      if (promises.length >= 5) {
+        await Promise.all(promises);
+        promises.length = 0;
+      }
+    }
+  }
+  if (promises.length > 0) {
+    await Promise.all(promises);
+  }
+  await getClients();
+  deletingSelectedJobs.value = false;
+  deleteSelectedJobsDialog.value = false;
+  selectedJobs.value = {} as SelectedJobs;
+  howManyJobsAreSelectedQuestionmark.value = 0;
+}
+
+function updateJobSelection(updateObject: JobSelectionUpdate) {
+  selectedJobs.value[updateObject.client] = updateObject.selected;
+  howManyJobsAreSelectedQuestionmark.value = calculateHowManyJobsAreSelectedQuestionmark();
+}
+
+function getJobsForClient(client: DaemonClient): Job[] {
+  if (jobs.value == null) {
+    return [];
+  }
+  return jobs.value.filter((j) => {
+    j.EditJobDialog = false;
+    j.EditingJob = false;
+    j.DeleteJobDialog = false;
+    j.DeleteJob = false;
+    if (j.CustomParameters && typeof j.CustomParameters === "object") {
+      j.CustomParameters = j.CustomParameters.join("\n");
+    }
+    return client.ID === j.AssignedClient.ID;
+  });
+}
+
+function getJobName(job: Job) {
+  let jobName = job.Name;
+  if (job.Subtitle !== "") {
+    jobName += " - " + job.Subtitle;
+  }
+  return jobName;
+}
+
+async function getJobs() {
+  const fetched = await get<Job[] | string>(url.value + "/jobs/");
+  if (fetched != null && (fetched as unknown) != "null\n") {
+    jobs.value = fetched as Job[];
+  } else {
+    jobs.value = [];
+  }
+}
+
+/**
+ * Races EVERY address of EVERY client and keeps the single first responder: this page
+ * only needs one reachable daemon to marshal database operations through, because
+ * /jobs and /clients are cluster-wide. This is NOT the per-client race that index.vue
+ * and config.vue run.
+ */
+async function getClients() {
+  const resolution = await resolveAnyAddress();
+  console.log(resolution);
+  if (resolution.address != "none") {
+    url.value = resolution.address;
+    const fetched = await get<(DaemonClient & { Jobs: Job[] })[]>(url.value + "/clients/");
+    await getJobs();
+    fetched.sort((a, b) => (a.Online === b.Online ? 0 : a.Online ? -1 : 1));
+    fetched.forEach((c) => {
+      c.Jobs = getJobsForClient(c);
+      c.SelectAll = false;
+    });
+    clients.value = fetched;
+  }
+}
+
+onMounted(() => {
+  refresh();
+});
 </script>

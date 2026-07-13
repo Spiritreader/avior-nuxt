@@ -208,351 +208,320 @@
 
 
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
 import { get, post, put, del } from "@/api/http";
 import TextDataTable from "@/components/TextDataTable.vue";
+import { useClientResolution } from "@/composables/useClientResolution";
+import type { DaemonClient, Field, FieldMutation, FieldType, Job } from "@/types";
 
-export default {
-  components: { TextDataTable },
-  data: () => ({
-    loading: true,
-    error: false,
-    deleting: false,
-    deleteProgress: 0,
-    importDialog: false,
-    importContent: "",
-    importType: "",
-    importError: "",
-    importLoader: false,
-    exportDialog: false,
-    exportContent: "",
-    exportType: "",
-    newClient: {
-      ID: "",
-      Name: "",
-      AvailabilityStart: "0:00",
-      AvailabilityEnd: "0:00",
-      MaximumJobs: 10,
-      Priority: 0,
-      Online: false,
-      IgnoreOnline: false,
-    },
-    nameExcludes: [],
-    subExcludes: [],
-    scheduleModified: false,
-    logExcludes: [],
-    logIncludes: [],
-    url: "",
-    err: null,
-    clientAdd: false,
-    clientLoader: false,
-    tab: "tab-1",
-    opened: [],
-    currentActiveCard: "",
-    clients: [],
-  }),
-  mounted() {
-    this.refresh();
-  },
-  computed: {
-    nameExcludesValues() {
-      return this.nameExcludes.map((f) => f.Value);
-    },
-    subExcludesValues() {
-      return this.subExcludes.map((f) => f.Value);
-    },
-    logExcludesValues() {
-      return this.logExcludes.map((f) => f.Value);
-    },
-    logIncludesValues() {
-      return this.logIncludes.map((f) => f.Value);
-    },
-  },
-  methods: {
-    // Nuxt's async fetch() hook; Vue 3 has no equivalent, so it runs from mounted().
-    async refresh() {
-      this.loading = true;
-      this.error = false;
+const { resolveAnyAddress } = useClientResolution();
+
+const loading = ref(true);
+const error = ref(false);
+const deleting = ref(false);
+const deleteProgress = ref(0);
+const importDialog = ref(false);
+const importContent = ref("");
+const importType = ref("");
+const importError = ref("");
+const importLoader = ref(false);
+const exportDialog = ref(false);
+const exportContent = ref("");
+const exportType = ref("");
+const newClient = ref<DaemonClient>({
+  ID: "",
+  Name: "",
+  AvailabilityStart: "0:00",
+  AvailabilityEnd: "0:00",
+  MaximumJobs: 10,
+  Priority: 0,
+  Online: false,
+  IgnoreOnline: false,
+});
+const nameExcludes = ref<Field[]>([]);
+const subExcludes = ref<Field[]>([]);
+const scheduleModified = ref(false);
+const logExcludes = ref<Field[]>([]);
+const logIncludes = ref<Field[]>([]);
+const url = ref("");
+const err = ref<unknown>(null);
+const clientAdd = ref(false);
+const clientLoader = ref(false);
+const tab = ref("tab-1");
+const opened = ref<unknown[]>([]);
+const currentActiveCard = ref("");
+const clients = ref<DaemonClient[]>([]);
+
+const nameExcludesValues = computed(() => nameExcludes.value.map((f) => f.Value));
+const subExcludesValues = computed(() => subExcludes.value.map((f) => f.Value));
+const logExcludesValues = computed(() => logExcludes.value.map((f) => f.Value));
+const logIncludesValues = computed(() => logIncludes.value.map((f) => f.Value));
+
+// Nuxt's async fetch() hook; Vue 3 has no equivalent, so it runs from mounted().
+async function refresh() {
+  loading.value = true;
+  error.value = false;
+  try {
+    await getClients();
+    await getFields();
+  } catch (e) {
+    console.error(e);
+    error.value = true;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function enableBanner() {
+  scheduleModified.value = true;
+}
+
+async function importConfig() {
+  try {
+    importLoader.value = true;
+    setTimeout(() => {
+      importLoader.value = false;
+    }, 400);
+    const lines = importContent.value.split("\n").filter((c) => c != "");
+    const content = lines.map((f) => ({ Value: f }));
+    console.log(content);
+    importError.value = "";
+    await post(`${url.value}/fields/${importType.value}/`, content);
+    reloadData(importType.value as FieldType);
+    importType.value = "";
+    importDialog.value = false;
+    importContent.value = "";
+  } catch (e) {
+    importError.value = String(e);
+  }
+}
+
+function exportConfig() {
+  console.log(exportType.value);
+  exportDialog.value = true;
+  switch (exportType.value) {
+    case "name_exclude":
+      exportContent.value = nameExcludesValues.value.join("\n");
+      break;
+    case "sub_exclude":
+      exportContent.value = subExcludesValues.value.join("\n");
+      break;
+    case "log_exclude":
+      exportContent.value = logExcludesValues.value.join("\n");
+      break;
+    case "log_include":
+      exportContent.value = logIncludesValues.value.join("\n");
+      break;
+  }
+}
+
+async function modifyFields(event: FieldMutation, fieldType: FieldType) {
+  console.log("emitted " + event);
+  switch (event.mode) {
+    case "create":
       try {
-        await this.getClients();
-        await this.getFields();
-      } catch (err) {
-        console.error(err);
-        this.error = true;
-      } finally {
-        this.loading = false;
+        await post(`${url.value}/fields/${fieldType}/`, [event.obj]);
+        await reloadData(fieldType);
+      } catch (e) {
+        console.error(e);
       }
-    },
-    enableBanner() {
-      this.scheduleModified = true;
-    },
-    async importConfig() {
+      break;
+    case "update":
       try {
-        this.importLoader = true;
+        await put(`${url.value}/fields/${fieldType}/`, [event.obj]);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "delete":
+      console.log(event);
+      try {
+        await del(`${url.value}/fields/${fieldType}/${event.obj.ID}/`);
+        await reloadData(fieldType);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "deleteMany":
+      deleteProgress.value = 0;
+      deleting.value = true;
+      console.log(event);
+      try {
+        for (const [idx, obj] of event.ary.entries()) {
+          await del(`${url.value}/fields/${fieldType}/${obj.ID}/`);
+          if (idx % 5 == 0) {
+            deleteProgress.value = Math.round((idx / event.ary.length) * 100);
+          }
+        }
+        deleteProgress.value = 100;
+        await reloadData(fieldType);
         setTimeout(() => {
-          this.importLoader = false;
-        }, 400);
-        let content = this.importContent.split("\n").filter((c) => c != "");
-        content = content.map((f) => ({ Value: f }));
-        console.log(content);
-        this.importError = "";
-        await post(`${this.url}/fields/${this.importType}/`, content);
-        this.reloadData(this.importType);
-        this.importType = "";
-        this.importDialog = false;
-        this.importContent = "";
-      } catch (err) {
-        this.importError = err.toString();
+          deleting.value = false;
+        }, 500);
+      } catch (e) {
+        console.error(e);
       }
-    },
-    exportConfig() {
-      console.log(this.exportType);
-      this.exportDialog = true;
-      switch (this.exportType) {
-        case "name_exclude":
-          this.exportContent = this.nameExcludesValues.join("\n");
-          break;
-        case "sub_exclude":
-          this.exportContent = this.subExcludesValues.join("\n");
-          break;
-        case "log_exclude":
-          this.exportContent = this.logExcludesValues.join("\n");
-          break;
-        case "log_include":
-          this.exportContent = this.logIncludesValues.join("\n");
-          break;
-      }
-    },
-    async modifyFields(event, fieldType) {
-      console.log("emitted " + event);
-      switch (event.mode) {
-        case "create":
-          try {
-            await post(`${this.url}/fields/${fieldType}/`, [event.obj]);
-            await this.reloadData(fieldType);
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "update":
-          try {
-            await put(`${this.url}/fields/${fieldType}/`, [event.obj]);
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "delete":
-          console.log(event);
-          try {
-            await del(`${this.url}/fields/${fieldType}/${event.obj.ID}/`);
-            await this.reloadData(fieldType);
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "deleteMany":
-          this.deleteProgress = 0;
-          this.deleting = true;
-          console.log(event);
-          try {
-            for (const [idx, obj] of event.ary.entries()) {
-              await del(`${this.url}/fields/${fieldType}/${obj.ID}/`);
-              if (idx % 5 == 0) {
-                this.deleteProgress = Math.round((idx / event.ary.length) * 100);
-              }
-            }
-            this.deleteProgress = 100;
-            await this.reloadData(fieldType);
-            setTimeout(() => {
-              this.deleting = false;
-            }, 500);
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-      }
-    },
-    async getFields() {
-      try {
-        this.nameExcludes = await get(`${this.url}/fields/name_exclude/`);
-        this.subExcludes = await get(`${this.url}/fields/sub_exclude/`);
-        this.logExcludes = await get(`${this.url}/fields/log_exclude/`);
-        this.logIncludes = await get(`${this.url}/fields/log_include/`);
+      break;
+  }
+}
 
-        if (typeof (this.nameExcludes) == "string") {
-          this.nameExcludes = [];
-        }
-        if (typeof (this.subExcludes) == "string") {
-          this.subExcludes = [];
-        }
-        if (typeof (this.logExcludes) == "string") {
-          this.logExcludes = [];
-        }
-        if (typeof (this.logIncludes) == "string") {
-          this.logIncludes = [];
-        }
+/**
+ * The daemon replies with the literal string "null\n" (not JSON null) when a field
+ * list is empty, which destr hands back as a string. Every read guards on that.
+ */
+async function fetchField(type: FieldType): Promise<Field[]> {
+  const result = await get<Field[] | string>(`${url.value}/fields/${type}/`);
+  if (typeof result == "string") {
+    return [];
+  }
+  return result;
+}
 
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    async reloadData(type) {
-      console.log("fetching reload data for " + type);
-      switch (type) {
-        case "name_exclude":
-          try {
-            this.nameExcludes = await get(`${this.url}/fields/${type}/`);
-            if (typeof (this.nameExcludes) == "string") {
-              this.nameExcludes = [];
-            }
-            console.log("name excludes: ", this.nameExcludes);
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "sub_exclude":
-          try {
-            this.subExcludes = await get(`${this.url}/fields/${type}/`);
-            if (typeof (this.subExcludes) == "string") {
-              this.subExcludes = [];
-            }
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "log_exclude":
-          try {
-            this.logExcludes = await get(`${this.url}/fields/${type}/`);
-            if (typeof (this.logExcludes) == "string") {
-              this.logExcludes = [];
-            }
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-        case "log_include":
-          try {
-            this.logIncludes = await get(`${this.url}/fields/${type}/`);
-            if (typeof (this.logIncludes) == "string") {
-              this.logIncludes = [];
-            }
-          } catch (err) {
-            console.error(err);
-          }
-          break;
-      }
-    },
-    timeout(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-    sortClients() {
-      this.clients.sort(function (x, y) {
-        if (x.Priority < y.Priority) {
-          return -1;
-        } else if (x.Priority > y.Priority) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
-    },
-    async editClient(client) {
-      this.clientLoader = true;
-      this.scheduleModified = false;
-      await this.timeout(300);
+async function getFields() {
+  try {
+    nameExcludes.value = await fetchField("name_exclude");
+    subExcludes.value = await fetchField("sub_exclude");
+    logExcludes.value = await fetchField("log_exclude");
+    logIncludes.value = await fetchField("log_include");
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function reloadData(type: FieldType) {
+  console.log("fetching reload data for " + type);
+  switch (type) {
+    case "name_exclude":
       try {
-        let result = await put(`${this.url}/clients/`, client);
-      } catch (err) {
-        console.log(err);
+        nameExcludes.value = await fetchField(type);
+        console.log("name excludes: ", nameExcludes.value);
+      } catch (e) {
+        console.error(e);
       }
-      this.sortClients();
-      // await this.getClients();
-      this.clientLoader = false;
-    },
-    async addClient() {
-      this.err = null;
+      break;
+    case "sub_exclude":
       try {
-        this.clientLoader = true;
-        let result = await post(`${this.url}/clients/`, this.newClient);
-        await this.timeout(300);
-        this.newClient.Name = "";
-        this.clientAdd = false;
-      } catch (err) {
-        console.log(err);
-        this.err = err;
+        subExcludes.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
       }
-      this.sortClients();
-      // await this.getClients();
-      this.clientLoader = false;
-    },
-    async deleteClient(client) {
-      this.err = null;
-      const jobs = await this.getJobsForClient(client);
-      if (jobs.length > 0) {
-        this.err = `This client still has ${jobs.length} jobs. Please reassign them first!`;
-        return;
-      }
-      this.clientLoader = true;
-      await this.timeout(300);
-      this.clients.splice(this.clients.indexOf(client), 1);
-      delete client.Selected;
-      delete client.active;
+      break;
+    case "log_exclude":
       try {
-        let result = await del(`${this.url}/clients/${client.ID}`);
-      } catch (err) {
-        console.log(err);
+        logExcludes.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
       }
-      // await this.getClients();
-      this.clientLoader = false;
-      client.Selected = false;
-    },
-    resolveClients: async function () {
-      // App-origin call: the leading slash was missing in the Nuxt version, which
-      // only worked because Nuxt resolved it against the page URL.
-      const unresolvedClients = await get("/api/clients");
-      let promises = [];
-      for (let client of unresolvedClients) {
-        for (let address of client.Addresses) {
-          try {
-            let promise = new Promise(async (resolve, reject) => {
-              let response;
-              try {
-                response = await get(address + "/alive");
-              } catch (err) {
-                reject({ address: "none", response: {} });
-                return;
-              }
-              resolve({ address: address, response: response });
-            });
-            promises.push(promise);
-          } catch (error) {
-            console.log(`$failed to create promises: ${error}`);
-          }
-        }
+      break;
+    case "log_include":
+      try {
+        logIncludes.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
       }
-      return await Promise.any(promises);
-    },
-    getClients: async function () {
-      let resolution = await this.resolveClients();
-      if (resolution.address != "none") {
-        this.url = resolution.address;
-        let clients = await get(this.url + "/clients/");
-        clients.forEach((c) => (c.Selected = false));
-        this.clients = clients;
-      }
-    },
-    getJobsForClient: async function (client) {
-      const jobs = await this.getJobs();
-      return jobs.filter((j) => {
-        return client.ID === j.AssignedClient.ID;
-      });
-    },
-    getJobs: async function () {
-      return get(this.url + "/jobs/");
-    },
-  },
-  props: {},
-};
+      break;
+  }
+}
+
+function timeout(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function sortClients() {
+  clients.value.sort(function (x, y) {
+    if (x.Priority < y.Priority) {
+      return -1;
+    } else if (x.Priority > y.Priority) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+}
+
+async function editClient(client: DaemonClient) {
+  clientLoader.value = true;
+  scheduleModified.value = false;
+  await timeout(300);
+  try {
+    await put(`${url.value}/clients/`, client);
+  } catch (e) {
+    console.log(e);
+  }
+  sortClients();
+  // await getClients();
+  clientLoader.value = false;
+}
+
+async function addClient() {
+  err.value = null;
+  try {
+    clientLoader.value = true;
+    await post(`${url.value}/clients/`, newClient.value);
+    await timeout(300);
+    newClient.value.Name = "";
+    clientAdd.value = false;
+  } catch (e) {
+    console.log(e);
+    err.value = e;
+  }
+  sortClients();
+  // await getClients();
+  clientLoader.value = false;
+}
+
+async function deleteClient(client: DaemonClient) {
+  err.value = null;
+  const jobs = await getJobsForClient(client);
+  if (jobs.length > 0) {
+    err.value = `This client still has ${jobs.length} jobs. Please reassign them first!`;
+    return;
+  }
+  clientLoader.value = true;
+  await timeout(300);
+  clients.value.splice(clients.value.indexOf(client), 1);
+  delete client.Selected;
+  delete client.active;
+  try {
+    await del(`${url.value}/clients/${client.ID}`);
+  } catch (e) {
+    console.log(e);
+  }
+  // await getClients();
+  clientLoader.value = false;
+  client.Selected = false;
+}
+
+/**
+ * Races EVERY address of EVERY client and keeps the single first responder: this page
+ * only needs one reachable daemon, because /clients and /fields are cluster-wide.
+ * The per-client race that index.vue and config.vue run is a different algorithm.
+ */
+async function getClients() {
+  const resolution = await resolveAnyAddress();
+  if (resolution.address != "none") {
+    url.value = resolution.address;
+    const fetched = await get<DaemonClient[]>(url.value + "/clients/");
+    fetched.forEach((c) => (c.Selected = false));
+    clients.value = fetched;
+  }
+}
+
+async function getJobsForClient(client: DaemonClient): Promise<Job[]> {
+  const jobs = await getJobs();
+  return jobs.filter((j) => {
+    return client.ID === j.AssignedClient.ID;
+  });
+}
+
+function getJobs(): Promise<Job[]> {
+  return get<Job[]>(url.value + "/jobs/");
+}
+
+onMounted(() => {
+  refresh();
+});
 </script>
 
 <!-- The original declared lang="scss" but the block is plain CSS with no SCSS

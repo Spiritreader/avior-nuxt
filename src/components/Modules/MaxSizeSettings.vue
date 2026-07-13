@@ -24,31 +24,38 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {},
-  mounted() {},
-  data() {
-    return {
-      expand: false,
-      settingsInternal: this.settings,
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    selectedFormat: {
-      handler: function () {
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-};
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { MaxSizeSettings as MaxSizeSettingsType, ModuleName, ModuleSettingsUpdate } from "@/types";
+
+const props = defineProps<{
+  settings: MaxSizeSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const expand = ref(false);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<MaxSizeSettingsType>(props.settings);
+
+onMounted(() => {});
+
+/**
+ * DEAD WATCHER -- preserved from the original.
+ * The Options API version watched `selectedFormat`, which this component never
+ * declared, so the handler never ran and "newdata" was never emitted. Nothing
+ * writes this ref, so it stays just as dead.
+ */
+const selectedFormat = ref(0);
+watch(selectedFormat, () => {
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>

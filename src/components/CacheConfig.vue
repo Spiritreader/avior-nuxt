@@ -71,69 +71,89 @@
   </v-container>
 </template>
 
-  <script>
-export default {
-  mounted() {
-    this.init();
-  },
-  methods: {
-    init() {
-      if (this.redisConfig) {
+  <script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { RedisConfig } from "@/types";
 
-        const redisFields = {
-          // fill with redisConfig
-          enabled: this.redisConfig.Enabled,
-          url: this.redisConfig.Host,
-          pass: this.redisConfig.Password,
-          db: this.redisConfig.DB,
-          ttl: this.redisConfig.CacheTtl / 60000000000,
-          prefix: this.redisConfig.ChannelPrefix,
-        }
-        this.redisFields = redisFields;
-      }
-    },
-    addElement(event) {},
-    removeElement(index) {
-      this.list.splice(index, 1);
-    },
+interface RedisFields {
+  enabled: boolean;
+  url: string;
+  pass: string;
+  /** The DB text-field writes a string here; the daemon sends a number. Both are live. */
+  db: number | string;
+  /** Minutes. The text-field writes a string here, which the watcher coerces on multiply. */
+  ttl: number;
+  prefix: string;
+}
+
+const props = defineProps<{
+  //  "Redis": {
+  //    "Enabled": true,
+  //    "Host": "10.10.10.96:6379",
+  //    "Password": "",
+  //    "DB": 0,
+  //    "CacheTtl": 86400000000000,
+  //    "ChannelPrefix": "avior"
+  //  },
+  redisConfig?: RedisConfig;
+}>();
+
+const emit = defineEmits<{
+  newdata: [config: RedisConfig];
+}>();
+
+const redisFields = ref<RedisFields>({
+  enabled: false,
+  url: "",
+  pass: "",
+  db: "",
+  ttl: 1440,
+  prefix: "",
+});
+const showPw = ref(false);
+
+function init() {
+  if (props.redisConfig) {
+    const fields: RedisFields = {
+      // fill with redisConfig
+      enabled: props.redisConfig.Enabled,
+      url: props.redisConfig.Host,
+      pass: props.redisConfig.Password,
+      db: props.redisConfig.DB,
+      ttl: props.redisConfig.CacheTtl / 60000000000,
+      prefix: props.redisConfig.ChannelPrefix,
+    };
+    redisFields.value = fields;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function addElement(event: Event) {}
+
+// NOTE: `list` is not a prop of this component. Calling removeElement throws --
+// exactly as it did before the port. Nothing calls it; kept verbatim.
+function removeElement(index: number) {
+  const self = props as unknown as { list: unknown[] };
+  self.list.splice(index, 1);
+}
+
+onMounted(() => {
+  init();
+});
+
+watch(
+  redisFields,
+  () => {
+    const newRedisConfig: RedisConfig = {
+      Enabled: redisFields.value.enabled,
+      Host: redisFields.value.url,
+      Password: redisFields.value.pass,
+      DB: redisFields.value.db,
+      CacheTtl: redisFields.value.ttl * 60000000000,
+      ChannelPrefix: redisFields.value.prefix,
+    };
+    emit("newdata", newRedisConfig);
   },
-  data: () => ({
-    redisFields: {
-      enabled: false,
-      url: "",
-      pass: "",
-      db: "",
-      ttl: 1440,
-      prefix: "",
-    },
-    showPw: false,
-  }),
-  props: {
-    //  "Redis": {
-    //    "Enabled": true,
-    //    "Host": "10.10.10.96:6379",
-    //    "Password": "",
-    //    "DB": 0,
-    //    "CacheTtl": 86400000000000,
-    //    "ChannelPrefix": "avior"
-    //  },
-    redisConfig: Object,
-  },
-  watch: {
-    redisFields: {
-      handler: function () {
-        const newRedisConfig = {
-          Enabled: this.redisFields.enabled,
-          Host: this.redisFields.url,
-          Password: this.redisFields.pass,
-          DB: this.redisFields.db,
-          CacheTtl: this.redisFields.ttl * 60000000000,
-          ChannelPrefix: this.redisFields.prefix,
-        }
-        this.$emit("newdata", newRedisConfig);
-      },
-      deep: true,
-    },
-  },
-};
+  { deep: true }
+);
 </script>

@@ -121,117 +121,128 @@ If you don't specify a profile, only the post arguments will be used."
   </v-container>
 </template>
 
-<script>
-export default {
-  methods: {
-    refresh() {
-      if (!this.new) {
-        this.disabledTag = true;
-      } else {
-        this.disabledTag = false;
-      }
-      this.preArgumentsString = "";
-      this.postArgumentsString = "";
-      this.stereoArgumentsString = "";
-      this.multiChArgumentsString = "";
-      this.stashString = "";
-      console.log("mounted");
-      console.log(this.content);
-      this.tagInternal = this.tag;
-      if (this.content.PreArguments) {
-        this.content.PreArguments.forEach((l) => (this.preArgumentsString += l + "\n"));
-      }
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { EncoderConfigEntry } from "@/types";
 
-      if (this.content.PostArguments) {
-        this.content.PostArguments.forEach((l) => (this.postArgumentsString += l + "\n"));
-      }
-      if (this.content.Stash) {
-        this.content.Stash.forEach((l) => (this.stashString += l + "\n"));
-      }
-      if (this.content.StereoArguments) {
-        this.content.StereoArguments.forEach((l) => (this.stereoArgumentsString += l + "\n"));
-      }
-      if (this.content.MultiChArguments) {
-        this.content.MultiChArguments.forEach((l) => (this.multiChArgumentsString += l + "\n"));
-      }
-      this.outDirectory = this.content.OutDirectory;
-      if (this.new) {
-        this.disabledTag = false;
-      }
-    },
-    isNew() {
-      return this.new;
-    },
-    remove() {
-      this.deleted = true;
-    },
-    editAll() {
-      if (!this.disabledTag) {
-        // in case you're ever wondering what filter(e => e) does again and why it seems so pointless
-        // it prevents empty lines from being added to the array
-        // which would result in a lot of empty lines in the textareas
-        // and cause issues with the encoding of files because ffmpeg REALLY DISLIKES empty lines
-        this.content.PreArguments = this.preArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
-        this.content.PostArguments = this.postArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
-        this.content.MultiChArguments = this.multiChArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
-        this.content.StereoArguments = this.stereoArgumentsString.trim().split("\n").filter(e => e).map(s => s.trim());
+const props = defineProps<{
+  allowNew: boolean;
+  // `new` is a reserved word, but a perfectly legal prop name.
+  new: boolean;
+  id: number;
+  tag: string;
+  content: Partial<EncoderConfigEntry>;
+}>();
 
-        this.content.Stash = this.stashString.trim().split("\n");
-        this.content.OutDirectory = this.outDirectory;
-        console.log(this.content.PreArguments);
-        this.$emit("newdata", {
-          tag: this.tagInternal,
-          content: this.content,
-          id: this.id,
-        });
-        this.disabledTag = true;
-        this.showSaveHint = true;
-      } else {
-        this.disabledTag = false;
-      }
-    },
-  },
-  mounted() {
-    this.refresh();
-  },
-  data: () => ({
-    showSaveHint: false,
-    deleteConfirm: false,
-    disabledTag: true,
-    tagInternal: "",
-    outDirectory: "",
-    preArgumentsString: "",
-    postArgumentsString: "",
-    stashString: "",
-    stereoArgumentsString: "",
-    multiChArgumentsString: "",
-    deleted: false,
-  }),
-  props: {
-    allowNew: Boolean,
-    new: Boolean,
-    id: Number,
-    tag: String,
-    content: Object,
-  },
-  watch: {
-    deleted: {
-      handler: function () {
-        this.$emit("deleted", this.tag);
-      },
-    },
-    id: {
-      handler: function () {
-        this.refresh();
-      },
-    },
-    disabledTag: {
-      handler: function () {
-        this.$emit("isEdit", this.disabledTag);
-      },
-    },
-  },
-};
+const emit = defineEmits<{
+  (e: "newdata", payload: { tag: string; content: Partial<EncoderConfigEntry>; id: number }): void;
+  (e: "deleted", tag: string): void;
+  (e: "isEdit", disabledTag: boolean): void;
+}>();
+
+const showSaveHint = ref(false);
+const deleteConfirm = ref(false);
+const disabledTag = ref(true);
+const tagInternal = ref("");
+// May be undefined for the synthetic "New Template..." row, exactly as before.
+const outDirectory = ref<string | undefined>("");
+const preArgumentsString = ref("");
+const postArgumentsString = ref("");
+const stashString = ref("");
+const stereoArgumentsString = ref("");
+const multiChArgumentsString = ref("");
+const deleted = ref(false);
+
+function refresh() {
+  if (!props.new) {
+    disabledTag.value = true;
+  } else {
+    disabledTag.value = false;
+  }
+  preArgumentsString.value = "";
+  postArgumentsString.value = "";
+  stereoArgumentsString.value = "";
+  multiChArgumentsString.value = "";
+  stashString.value = "";
+  console.log("mounted");
+  console.log(props.content);
+  tagInternal.value = props.tag;
+  if (props.content.PreArguments) {
+    props.content.PreArguments.forEach((l) => (preArgumentsString.value += l + "\n"));
+  }
+
+  if (props.content.PostArguments) {
+    props.content.PostArguments.forEach((l) => (postArgumentsString.value += l + "\n"));
+  }
+  if (props.content.Stash) {
+    props.content.Stash.forEach((l) => (stashString.value += l + "\n"));
+  }
+  if (props.content.StereoArguments) {
+    props.content.StereoArguments.forEach((l) => (stereoArgumentsString.value += l + "\n"));
+  }
+  if (props.content.MultiChArguments) {
+    props.content.MultiChArguments.forEach((l) => (multiChArgumentsString.value += l + "\n"));
+  }
+  outDirectory.value = props.content.OutDirectory;
+  if (props.new) {
+    disabledTag.value = false;
+  }
+}
+
+function isNew() {
+  return props.new;
+}
+
+function remove() {
+  deleted.value = true;
+}
+
+function editAll() {
+  if (!disabledTag.value) {
+    // in case you're ever wondering what filter(e => e) does again and why it seems so pointless
+    // it prevents empty lines from being added to the array
+    // which would result in a lot of empty lines in the textareas
+    // and cause issues with the encoding of files because ffmpeg REALLY DISLIKES empty lines
+    props.content.PreArguments = preArgumentsString.value.trim().split("\n").filter(e => e).map(s => s.trim());
+    props.content.PostArguments = postArgumentsString.value.trim().split("\n").filter(e => e).map(s => s.trim());
+    props.content.MultiChArguments = multiChArgumentsString.value.trim().split("\n").filter(e => e).map(s => s.trim());
+    props.content.StereoArguments = stereoArgumentsString.value.trim().split("\n").filter(e => e).map(s => s.trim());
+
+    // NOTE: no `.filter(e => e)` here, unlike the four above. That asymmetry is
+    // in the original and is preserved deliberately.
+    props.content.Stash = stashString.value.trim().split("\n");
+    props.content.OutDirectory = outDirectory.value;
+    console.log(props.content.PreArguments);
+    emit("newdata", {
+      tag: tagInternal.value,
+      content: props.content,
+      id: props.id,
+    });
+    disabledTag.value = true;
+    showSaveHint.value = true;
+  } else {
+    disabledTag.value = false;
+  }
+}
+
+onMounted(() => {
+  refresh();
+});
+
+watch(deleted, () => {
+  emit("deleted", props.tag);
+});
+
+watch(
+  () => props.id,
+  () => {
+    refresh();
+  }
+);
+
+watch(disabledTag, () => {
+  emit("isEdit", disabledTag.value);
+});
 </script>
 
 <style>

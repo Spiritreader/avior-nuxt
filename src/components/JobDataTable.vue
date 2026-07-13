@@ -57,87 +57,103 @@
   </div>
 </template>
 
-<script>
-export default {
-  emits: ["deletejob", "updateselected", "editJobDialog"],
-  props: {
-    currentClient: Object,
-    clients: Array,
-  },
-  data() {
-    return {
-      // edit item data
-      editItem: {
-        Path: "",
-        Name: "",
-        Subtitle: "",
-        CustomParameters: "",
-        AssignedClient: {
-          ID: "",
-          Name: "",
-        },
-        EditJobDialog: false,
-        EditingJob: false,
-        DeleteJobDialog: false,
-        DeletingJob: false,
-      },
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import type { DaemonClient, Job, JobSelectionUpdate } from "@/types";
 
-      selectedRows: [],
-      headers: [
-        {
-          title: "Name",
-          align: "start",
-          sortable: false,
-          key: "Name",
-        },
-        { title: "Actions", key: "actions", sortable: false, align: "end" },
-      ],
-    };
+// jobs.vue always attaches `Jobs` before rendering this component, and the
+// (untouched) template dereferences `currentClient.Jobs.length` unguarded.
+type JobClient = DaemonClient & { Jobs: Job[] };
+
+const props = defineProps<{
+  currentClient: JobClient;
+  clients: DaemonClient[];
+}>();
+
+const emit = defineEmits<{
+  (e: "deletejob", job: Job): void;
+  (e: "updateselected", payload: JobSelectionUpdate): void;
+  (e: "editJobDialog", job: Job): void;
+}>();
+
+// Edit item data. This placeholder is NOT a valid Job -- it has no ID, and its
+// AssignedClient is {ID, Name} rather than {Ref, ID, DB}. Preserved verbatim; it is only
+// ever a placeholder, because setDeleteItem() swaps in a real Job (which is what opens
+// the dialog) before anything reads it. Hence the cast rather than a widened type.
+const editItem = ref<Job>({
+  Path: "",
+  Name: "",
+  Subtitle: "",
+  CustomParameters: "",
+  AssignedClient: {
+    ID: "",
+    Name: "",
   },
-  methods: {
-    setEditItem: function (item) {
-      this.$emit("editJobDialog", item);
-    },
-    setDeleteItem: function (item) {
-      item.DeleteJobDialog = true;
-      this.editItem = item;
-    },
-    closeDeleteJobDialog: function (job) {
-      job.DeleteJobDialog = false;
-      job.DeletingJob = false;
-    },
-    filteredJob: function (job) {
-      const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeletingJob"];
-      const filtered = Object.keys(job)
-        .filter((key) => !filter.includes(key))
-        .reduce((obj, key) => {
-          obj[key] = job[key];
-          return obj;
-        }, {});
-      return filtered;
-    },
-    emitSelected() {
-      this.$emit("updateselected", {
-        client: this.currentClient.ID,
-        selected: this.selectedRows,
-      });
-    },
+  EditJobDialog: false,
+  EditingJob: false,
+  DeleteJobDialog: false,
+  DeletingJob: false,
+} as unknown as Job)
+
+const selectedRows = ref<Job[]>([]);
+const headers: any[] = [
+  {
+    title: "Name",
+    align: "start",
+    sortable: false,
+    key: "Name",
   },
-  watch: {
-    currentClient: function () {
-      this.selectedRows = [];
-    },
-    // Vuetify 4's data table owns selection: `v-model` holds the selected rows
-    // (raw job objects, thanks to `return-object`), and shift-click range
-    // selection plus select-all are handled natively by VDataTable's select
-    // strategy. The Vuetify 2 version had to reimplement both by hand off the
-    // `item-selected` / `toggle-select-all` events, which no longer exist.
-    // All that is left to do is forward the current selection to the parent.
-    selectedRows: function () {
-      this.emitSelected();
-    },
-  },
-};
+  { title: "Actions", key: "actions", sortable: false, align: "end" },
+];
+
+function setEditItem(item: Job) {
+  emit("editJobDialog", item);
+}
+
+function setDeleteItem(item: Job) {
+  item.DeleteJobDialog = true;
+  editItem.value = item;
+}
+
+function closeDeleteJobDialog(job: Job) {
+  job.DeleteJobDialog = false;
+  job.DeletingJob = false;
+}
+
+function filteredJob(job: Record<string, unknown>) {
+  const filter = ["EditJobDialog", "EditingJob", "DeleteJobDialog", "DeletingJob"];
+  const filtered = Object.keys(job)
+    .filter((key) => !filter.includes(key))
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = job[key];
+      return obj;
+    }, {});
+  return filtered;
+}
+
+function emitSelected() {
+  emit("updateselected", {
+    client: props.currentClient.ID,
+    selected: selectedRows.value,
+  });
+}
+
+watch(
+  () => props.currentClient,
+  () => {
+    selectedRows.value = [];
+  }
+);
+
+// Vuetify 4's data table owns selection: `v-model` holds the selected rows
+// (raw job objects, thanks to `return-object`), and shift-click range
+// selection plus select-all are handled natively by VDataTable's select
+// strategy. The Vuetify 2 version had to reimplement both by hand off the
+// `item-selected` / `toggle-select-all` events, which no longer exist.
+// All that is left to do is forward the current selection to the parent.
+watch(selectedRows, () => {
+  emitSelected();
+});
 </script>
 <style>
 .noselect {

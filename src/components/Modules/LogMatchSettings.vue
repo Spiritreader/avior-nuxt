@@ -39,54 +39,54 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {
-    accIcon(value) {
-      if (value == 0) {
-        return "mdi-circle-outline";
-      } else if (value == 1) {
-        return "mdi-circle-slice-4";
-      } else if (value == 2) {
-        return "mdi-circle-slice-8";
-      }
-    },
-  },
-  mounted() {
-    this.selected = this.steps.indexOf(this.settingsInternal.Mode);
-  },
-  data() {
-    return {
-      expand: false,
-      selected: 0,
-      settingsInternal: this.settings,
-      steps: ["include", "neutral", "exclude"],
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    selected: {
-      handler: function () {
-        this.settingsInternal.Mode = this.steps[this.selected];
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-  computed: {
-    stepTicks() {
-      return this.steps.reduce((acc, label, index) => {
-        acc[index] = label;
-        return acc;
-      }, {});
-    },
-  },
-};
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import type { LogMatchSettings as LogMatchSettingsType, ModuleName, ModuleSettingsUpdate } from "@/types";
+
+const props = defineProps<{
+  settings: LogMatchSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const expand = ref(false);
+const selected = ref(0);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<LogMatchSettingsType>(props.settings);
+const steps = ref<string[]>(["include", "neutral", "exclude"]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function accIcon(value: any) {
+  if (value == 0) {
+    return "mdi-circle-outline";
+  } else if (value == 1) {
+    return "mdi-circle-slice-4";
+  } else if (value == 2) {
+    return "mdi-circle-slice-8";
+  }
+}
+
+const stepTicks = computed<Record<number, string>>(() => {
+  return steps.value.reduce<Record<number, string>>((acc, label, index) => {
+    acc[index] = label;
+    return acc;
+  }, {});
+});
+
+onMounted(() => {
+  selected.value = steps.value.indexOf(settingsInternal.value.Mode);
+});
+
+watch(selected, () => {
+  settingsInternal.value.Mode = steps.value[selected.value];
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>

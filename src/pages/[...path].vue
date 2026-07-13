@@ -5,14 +5,10 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      pageNotFound: "404 Not Found",
-    };
-  },
-};
+<script setup lang="ts">
+import { ref } from "vue";
+
+const pageNotFound = ref("404 Not Found");
 </script>
 
 <style scoped>

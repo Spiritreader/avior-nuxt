@@ -332,7 +332,7 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { get, put } from "@/api/http";
 import CacheConfig from "@/components/CacheConfig.vue";
 import EncoderConfig from "@/components/EncoderConfig.vue";
@@ -350,231 +350,218 @@ import MaxSizeSettings from "@/components/Modules/MaxSizeSettings.vue";
 import ResolutionSettings from "@/components/Modules/ResolutionSettings.vue";
 import SizeApproxSettings from "@/components/Modules/SizeApproxSettings.vue";
 
-export default {
-  components: {
-    CacheConfig,
-    EncoderConfig,
-    Property,
-    SimpleList,
-    Module,
-    AgeSettings,
-    AudioSettings,
-    DuplicateLengthCheckSettings,
-    ErrorReplaceSettings,
-    ErrorSkipSettings,
-    LengthSettings,
-    LogMatchSettings,
-    MaxSizeSettings,
-    ResolutionSettings,
-    SizeApproxSettings,
-  },
-  data: () => ({
-    configExportDialog: false,
-    configImportConfirm: false,
-    configImportString: "",
-    configImportError: null,
-    encoderPriority: ["IDLE", "BELOW_NORMAL", "NORMAL", "ABOVE_NORMAL", "HIGH"],
-    err: "",
-    selectedEncoderConfigTag: "",
-    selectedEncoderConfig: {},
-    allowUploadConfig: true,
-    saving: false,
-    loading: false,
-    // Stands in for Nuxt's $fetchState.pending: true only for the initial
-    // client-list fetch, not for the per-client config load (that is `loading`).
-    fetchPending: false,
-    items: [],
-    config: {},
-    selectedClient: {},
-    selectedTab: "General",
-    selectedMediaPath: {},
-    configHeaders: ["General", "Audio Formats", "Resolutions", "Modules", "Encoder"],
-    newMediaPath: "",
-    mediaPathEditButtons: false,
-  }),
-  computed: {
-    clientIsSelected() {
-      return this.selectedClient && Object.keys(this.selectedClient).length !== 0;
-    },
-    resolutionArray() {
-      let ary = [];
-      let idx = 0;
-      for (let prop of Object.entries(this.config.Resolutions)) {
-        if (prop[0] === "") {
-          ary.push({ tag: prop[0], resolution: prop[1], id: idx, new: true });
-        } else {
-          ary.push({ tag: prop[0], resolution: prop[1], id: idx, new: false });
-        }
+import { computed, onMounted, ref } from "vue";
+import { useClientResolution } from "@/composables/useClientResolution";
+import type {
+  Client,
+  Config,
+  EncoderConfigEntry,
+  EncoderConfigEntryRow,
+  ModuleSettingsUpdate,
+  PropertyEntry,
+  RedisConfig,
+} from "@/types";
 
-        idx++;
-      }
-      return ary;
-    },
-    encoderConfigArray() {
-      let ary = [];
-      let idx = 0;
-      for (let prop of Object.entries(this.config.EncoderConfig)) {
-        if (prop[0] === "") {
-          ary.push({ tag: prop[0], content: prop[1], id: idx, new: true });
-        } else {
-          ary.push({ tag: prop[0], content: prop[1], id: idx, new: false });
-        }
+const { resolveClient } = useClientResolution();
 
-        idx++;
-      }
-      ary.unshift({ tag: "New Template...", content: {}, id: -1, new: true });
-      return ary;
-    },
-    configExportString() {
-      return JSON.stringify(this.config, null, 1);
-    },
-  },
-  mounted() {
-    this.refresh();
-  },
-  methods: {
-    /**
-     * Replaces Nuxt's async fetch() hook. Called from mounted().
-     */
-    async refresh() {
-      this.fetchPending = true;
-      this.loading = true;
-      this.items = await get("/api/clients");
-      this.loading = false;
-      this.fetchPending = false;
-    },
-    /**
-     * Tries to resolve the first available IP address from all clients returned by the api.
-     * @returns a list of resolved client objects with a HostName, Address and Reachable property.
-     * The address provided when Reachable is false is not a correct resolve!
-     */
-    tryResolveClient: async function (client) {
-      let promises = [];
-      for (let address of client.Addresses) {
-        try {
-          let promise = new Promise(async (resolve, reject) => {
-            let response;
-            try {
-              response = await get(address + "/alive");
-            } catch (err) {
-              reject({ address: "none", response: {} });
-              return;
-            }
-            resolve({ address: address, response: response });
-          });
-          promises.push(promise);
-        } catch (error) {
-          console.log(`$failed to create promises: ${error}`);
-        }
-      }
-      let resolution;
-      const resolvedClient = {
-        HostName: client.Name,
-      };
-      try {
-        resolution = await Promise.any(promises);
-        resolvedClient.Reachable = true;
-        resolvedClient.Address = resolution.address;
-      } catch {
-        resolvedClient.Reachable = false;
-        resolvedClient.Address = client.Addresses[0];
-      }
-      // Vue 3's proxy reactivity tracks plain property addition; $set is gone.
-      this.selectedClient.Address = resolvedClient.Address;
-      return resolvedClient;
-    },
-    importConfig() {
-      try {
-        let json = JSON.parse(this.configImportString);
-        this.config = json;
-        this.configImportConfirm = false;
-        this.configImportError = "";
-      } catch (err) {
-        this.configImportError = `Invalid JSON: ${err.toString()}`;
-        console.log(`invalid json: ${err}`);
-      }
-    },
-    async saveConfig() {
-      this.saving = true;
-      console.log(this.selectedClient.Address);
-      try {
-        await put(`${this.selectedClient.Address.trim()}/config`, this.config);
-        setTimeout(() => {
-          this.saving = false;
-        }, 500);
-      } catch (err) {
-        console.log(err);
-        this.err = "there was an error saving the configuration";
-        this.saving = false;
-      }
-    },
-    loadEncoderConfig(tag) {
-      // VSelect has no `change` event in Vuetify 4, so this is wired to
-      // @update:model-value, which hands the new tag in directly.
-      const wanted = tag === undefined ? this.selectedEncoderConfigTag : tag;
-      this.selectedEncoderConfig = this.encoderConfigArray.find((cfg) => cfg.tag == wanted);
-    },
-    async configLoad(client) {
-      this.loading = true;
-      this.err = false;
-      const resolvedClient = await this.tryResolveClient(client);
-      console.log(
-        `Trying to get result for ${resolvedClient.Reachable ? "reachable" : "previously unreachable"} with ip ${resolvedClient.Address}`
-      );
-      try {
-        this.config = await get(`${resolvedClient.Address}/config/`);
-        if (this.selectedEncoderConfigTag) {
-          this.loadEncoderConfig();
-        }
-      } catch (err) {
-        this.err = err;
-        console.log(`couldn't load config for client ${resolvedClient.Address}, err: ${this.err}`);
-      }
-      this.loading = false;
-    },
-    addResolution() {
-      this.config.Resolutions[""] = "";
-    },
-    handleRedisConfigUpdate: function (e) {
-      console.log("good old jannis");
-      this.config.Redis = e;
-    },
-    handleMediaPathData: function (e) {
-      this.config.MediaPaths = e;
-    },
-    handleAudioFormatStereoData: function (e) {
-      this.config.AudioFormats.StereoTags = e;
-    },
-    handleAudioFormatMultiData: function (e) {
-      this.config.AudioFormats.MultiTags = e;
-    },
-    handleResolutionContentData: function (e) {
-      this.config.Resolutions[e.tag] = e.content;
-    },
-    handleResolutionDelete: function (e) {
-      delete this.config.Resolutions[e];
-    },
-    handleResolutionTagEdit: function (e) {
-      let resConfig = this.resolutionArray;
-      resConfig[e.id].tag = e.tag;
-      let obj = {};
-      resConfig.forEach((r) => (obj[r.tag] = r.resolution));
-      this.config.Resolutions = obj;
-    },
-    handleModuleSettings: function (e) {
-      this.config.Modules[e.Name].Settings = e.Settings;
-    },
-    handleEncoderSettingsData: function (e) {
-      this.config.EncoderConfig[e.tag] = e.content;
-    },
-    handleEncoderSettingsDelete: function (e) {
-      delete this.config.EncoderConfig[e];
-    },
-    handleEncoderSettingsEditActive: function (e) {
-      this.allowUploadConfig = e;
-    },
-  },
-};
+const configExportDialog = ref(false);
+const configImportConfirm = ref(false);
+const configImportString = ref("");
+const configImportError = ref<string | null>(null);
+const encoderPriority = ref(["IDLE", "BELOW_NORMAL", "NORMAL", "ABOVE_NORMAL", "HIGH"]);
+// `err` is assigned a string, an Error and `false` at different points in the
+// original. The template only ever tests `err != ''`, so the union is kept as-is.
+const err = ref<unknown>("");
+const selectedEncoderConfigTag = ref("");
+const selectedEncoderConfig = ref<EncoderConfigEntryRow>({} as EncoderConfigEntryRow);
+const allowUploadConfig = ref(true);
+const saving = ref(false);
+const loading = ref(false);
+// Stands in for Nuxt's $fetchState.pending: true only for the initial
+// client-list fetch, not for the per-client config load (that is `loading`).
+const fetchPending = ref(false);
+const items = ref<Client[]>([]);
+// Starts as an empty object: the template gates every `config.*` read behind
+// `v-if="config == null || config == {} || loading"`, so nothing dereferences it
+// before configLoad() replaces it with a real Config.
+const config = ref<Config>({} as Config);
+const selectedClient = ref<Client>({} as Client);
+const selectedTab = ref("General");
+const configHeaders = ref(["General", "Audio Formats", "Resolutions", "Modules", "Encoder"]);
+
+const clientIsSelected = computed(() => {
+  return selectedClient.value && Object.keys(selectedClient.value).length !== 0;
+});
+
+const resolutionArray = computed<PropertyEntry[]>(() => {
+  const ary: PropertyEntry[] = [];
+  let idx = 0;
+  for (const prop of Object.entries(config.value.Resolutions)) {
+    if (prop[0] === "") {
+      ary.push({ tag: prop[0], resolution: prop[1], id: idx, new: true });
+    } else {
+      ary.push({ tag: prop[0], resolution: prop[1], id: idx, new: false });
+    }
+
+    idx++;
+  }
+  return ary;
+});
+
+const encoderConfigArray = computed<EncoderConfigEntryRow[]>(() => {
+  const ary: EncoderConfigEntryRow[] = [];
+  let idx = 0;
+  for (const prop of Object.entries(config.value.EncoderConfig)) {
+    if (prop[0] === "") {
+      ary.push({ tag: prop[0], content: prop[1], id: idx, new: true });
+    } else {
+      ary.push({ tag: prop[0], content: prop[1], id: idx, new: false });
+    }
+
+    idx++;
+  }
+  ary.unshift({ tag: "New Template...", content: {}, id: -1, new: true });
+  return ary;
+});
+
+const configExportString = computed(() => JSON.stringify(config.value, null, 1));
+
+/**
+ * Replaces Nuxt's async fetch() hook. Called from mounted().
+ */
+async function refresh() {
+  fetchPending.value = true;
+  loading.value = true;
+  items.value = await get<Client[]>("/api/clients");
+  loading.value = false;
+  fetchPending.value = false;
+}
+
+/**
+ * Races one client's addresses and writes the winner back onto the selected client.
+ *
+ * The write-back is NOT incidental: saveConfig() reads `selectedClient.Address`, and
+ * nothing else ever sets it (it is not part of the Mongo document). This side effect
+ * is the reason config.vue's copy of the race could not simply be swapped for the
+ * shared one -- the shared resolveClient() supplies the resolution, and the write-back
+ * stays here where it belongs.
+ */
+async function tryResolveClient(client: Client) {
+  const resolvedClient = await resolveClient(client);
+  // Vue 3's proxy reactivity tracks plain property addition; $set is gone.
+  selectedClient.value.Address = resolvedClient.Address;
+  return resolvedClient;
+}
+
+function importConfig() {
+  try {
+    const json = JSON.parse(configImportString.value);
+    config.value = json;
+    configImportConfirm.value = false;
+    configImportError.value = "";
+  } catch (err) {
+    configImportError.value = `Invalid JSON: ${String(err)}`;
+    console.log(`invalid json: ${err}`);
+  }
+}
+
+async function saveConfig() {
+  saving.value = true;
+  console.log(selectedClient.value.Address);
+  try {
+    await put(`${selectedClient.value.Address!.trim()}/config`, config.value);
+    setTimeout(() => {
+      saving.value = false;
+    }, 500);
+  } catch (error) {
+    console.log(error);
+    err.value = "there was an error saving the configuration";
+    saving.value = false;
+  }
+}
+
+function loadEncoderConfig(tag?: string) {
+  // VSelect has no `change` event in Vuetify 4, so this is wired to
+  // @update:model-value, which hands the new tag in directly.
+  const wanted = tag === undefined ? selectedEncoderConfigTag.value : tag;
+  selectedEncoderConfig.value = encoderConfigArray.value.find((cfg) => cfg.tag == wanted) as EncoderConfigEntryRow;
+}
+
+async function configLoad(client: Client) {
+  loading.value = true;
+  err.value = false;
+  const resolvedClient = await tryResolveClient(client);
+  console.log(
+    `Trying to get result for ${resolvedClient.Reachable ? "reachable" : "previously unreachable"} with ip ${resolvedClient.Address}`
+  );
+  try {
+    config.value = await get<Config>(`${resolvedClient.Address}/config/`);
+    if (selectedEncoderConfigTag.value) {
+      loadEncoderConfig();
+    }
+  } catch (error) {
+    err.value = error;
+    console.log(`couldn't load config for client ${resolvedClient.Address}, err: ${err.value}`);
+  }
+  loading.value = false;
+}
+
+function addResolution() {
+  config.value.Resolutions[""] = "";
+}
+
+function handleRedisConfigUpdate(e: RedisConfig) {
+  console.log("good old jannis");
+  config.value.Redis = e;
+}
+
+function handleMediaPathData(e: string[]) {
+  config.value.MediaPaths = e;
+}
+
+function handleAudioFormatStereoData(e: string[]) {
+  config.value.AudioFormats.StereoTags = e;
+}
+
+function handleAudioFormatMultiData(e: string[]) {
+  config.value.AudioFormats.MultiTags = e;
+}
+
+function handleResolutionContentData(e: { tag: string; content: string }) {
+  config.value.Resolutions[e.tag] = e.content;
+}
+
+function handleResolutionDelete(e: string) {
+  delete config.value.Resolutions[e];
+}
+
+function handleResolutionTagEdit(e: { tag: string; id: number }) {
+  const resConfig = resolutionArray.value;
+  resConfig[e.id].tag = e.tag;
+  const obj: Record<string, string> = {};
+  resConfig.forEach((r) => (obj[r.tag] = r.resolution));
+  config.value.Resolutions = obj;
+}
+
+function handleModuleSettings(e: ModuleSettingsUpdate) {
+  (config.value.Modules[e.Name] as { Settings: unknown }).Settings = e.Settings;
+}
+
+function handleEncoderSettingsData(e: { tag: string; content: Partial<EncoderConfigEntry>; id: number }) {
+  config.value.EncoderConfig[e.tag] = e.content as EncoderConfigEntry;
+}
+
+function handleEncoderSettingsDelete(e: string) {
+  delete config.value.EncoderConfig[e];
+}
+
+function handleEncoderSettingsEditActive(e: boolean) {
+  allowUploadConfig.value = e;
+}
+
+onMounted(() => {
+  refresh();
+});
 </script>
 
 <!-- Plain CSS: the block uses no SCSS syntax, and `sass` is not a dependency of the

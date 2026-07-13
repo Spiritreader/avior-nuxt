@@ -98,35 +98,40 @@
   </div>
 </template>
 
-<script>
-export default {
-  methods: {},
-  mounted() {},
-  data() {
-    return {
-      min: 0,
-      max: 100,
-      expand: false,
-      expand2: false,
-      expand3: false,
-      settingsInternal: this.settings,
-    };
-  },
-  props: {
-    settings: Object,
-    name: String,
-  },
-  watch: {
-    settingsInternal: {
-      handler: function () {
-        this.$emit("newdata", {
-          Name: this.name,
-          Settings: this.settingsInternal,
-        });
-      },
-    },
-  },
-};
+<script setup lang="ts">
+import { onMounted, ref, watch } from "vue";
+import type { ModuleName, ModuleSettingsUpdate, SizeApproxSettings as SizeApproxSettingsType } from "@/types";
+
+const props = defineProps<{
+  settings: SizeApproxSettingsType;
+  name: ModuleName;
+}>();
+
+const emit = defineEmits<{
+  newdata: [update: ModuleSettingsUpdate];
+}>();
+
+const min = ref(0);
+const max = ref(100);
+const expand = ref(false);
+const expand2 = ref(false);
+const expand3 = ref(false);
+// Same object reference as the prop, deliberately not a copy.
+const settingsInternal = ref<SizeApproxSettingsType>(props.settings);
+
+onMounted(() => {});
+
+/**
+ * NOT deep -- exactly like the Options API original, which declared this watcher
+ * without `deep: true`. It therefore only fires if settingsInternal is reassigned
+ * (it never is), not when its fields are edited. Kept as-is.
+ */
+watch(settingsInternal, () => {
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+});
 </script>
 
 <style>
