@@ -1,8 +1,24 @@
 <template>
   <v-container>
     <v-list-subheader class="mx-0 px-0">Cache Config</v-list-subheader>
-    <v-row justify="start" class="px-3 mb-0">
-      <v-checkbox v-model="redisFields.enabled" hide-details :label="`Enable Job Caching`"></v-checkbox>
+    <!--
+      The checkbox has to sit flush with the "Cache Config" subheader above it and the
+      Redis URL field below it. Two things push it in under Vuetify 4:
+
+      The row's px-3 used to be cancelled by .v-row's -12px margin, which v4 dropped, so
+      those 12px now count. And v4's checkbox reserves an 8px ripple gutter inside the
+      control, so its glyph no longer starts at the component's own left edge.
+
+      ml-n2 takes back the 8px. Measured: glyph, subheader and text field now share a
+      left edge, as they do in the reference.
+    -->
+    <v-row justify="start" class="mb-0">
+      <v-checkbox
+        v-model="redisFields.enabled"
+        hide-details
+        class="ml-n2"
+        :label="`Enable Job Caching`"
+      ></v-checkbox>
     </v-row>
     <v-expand-transition>
       <div v-if="redisFields.enabled">

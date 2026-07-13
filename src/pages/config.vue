@@ -66,7 +66,15 @@
               </v-row>
               <v-row justify="start" class="px-7 mt-4">
                 <v-col class="mt-0 pt-0">
-                  <v-checkbox v-model="config.PauseOnEncodeError" hide-details :label="`Pause service if encoding fails`"></v-checkbox>
+                  <!-- ml-n2 for the same reason as CacheConfig's: v4's checkbox reserves
+                       an 8px ripple gutter inside the control, so without it the glyph
+                       sits 8px right of the fields it lines up under. -->
+                  <v-checkbox
+                    v-model="config.PauseOnEncodeError"
+                    hide-details
+                    class="ml-n2"
+                    :label="`Pause service if encoding fails`"
+                  ></v-checkbox>
                 </v-col>
               </v-row>
               <v-row justify="start" class="px-4">
