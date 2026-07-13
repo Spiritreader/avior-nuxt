@@ -37,6 +37,27 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
+    '/config': RouteRecordInfo<
+      '/config',
+      '/config',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/globalconfig': RouteRecordInfo<
+      '/globalconfig',
+      '/globalconfig',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/jobs': RouteRecordInfo<
+      '/jobs',
+      '/jobs',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/settings': RouteRecordInfo<
       '/settings',
       '/settings',
@@ -66,6 +87,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/[...path].vue': {
       routes:
         | '/[...path]'
+      views:
+        | never
+    }
+    'src/pages/config.vue': {
+      routes:
+        | '/config'
+      views:
+        | never
+    }
+    'src/pages/globalconfig.vue': {
+      routes:
+        | '/globalconfig'
+      views:
+        | never
+    }
+    'src/pages/jobs.vue': {
+      routes:
+        | '/jobs'
       views:
         | never
     }
