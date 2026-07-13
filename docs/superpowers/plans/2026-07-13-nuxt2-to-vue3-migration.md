@@ -23,7 +23,8 @@ Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.m
 - Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
-- Ports during coexistence: Nuxt dev on 3000, Vite dev on 5173, Express standalone on 10009. These must not collide.
+- The old Nuxt app CANNOT run from this working tree once Task 3 lands. Vue 2 and Vue 3 are the same package name at two versions and cannot both occupy `node_modules/vue`, and `shamefullyHoist: true` (required by Nuxt 2) forces the collision; Vuetify 2 and 4 collide identically. The old app runs from a separate git worktree at `../avior-nuxt-reference`, pinned to commit `baff6fe`, with its own `node_modules`. That worktree is the visual reference for every port task.
+- Ports: Vite dev on 5173, Express standalone on 10009. The reference worktree's Nuxt picks its own port and prints it.
 - `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
 - Server stack is Mongoose 9, Express 5, Node 24 (Task 2b). The upstream MongoDB was upgraded, and Mongoose 9 requires Node >= 20.19. Express 5 rejects a bare `'*'` path — the SPA fallback is `'/*splat'`. Do not reintroduce `body-parser`; Express has the parsers built in.
 - MongoDB at 10.11.194.75 is NOT reachable from the development machine. A hanging or 500-ing `/api/clients` locally is the environment, not a bug. Never claim a successful query.
@@ -53,7 +54,7 @@ Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 4. Every o
 | `v-data-table` `headers: [{ text, value }]` | `headers: [{ title, key }]` |
 | `v-data-table` slot `#item.foo` | `#item.foo` still, but `foo` now matches the header `key` |
 | `v-data-table` `:items-per-page` etc. | unchanged, but check the component renders before assuming |
-| `<v-time-picker>` | still in Vuetify labs — needs an explicit labs import (see Task 3) |
+| `<v-time-picker>` | exists and is STABLE in Vuetify 4 (it was in labs in Vuetify 3). No labs import, no manual registration — `vite-plugin-vuetify` auto-imports it. |
 
 ### Template: additional Vuetify 4 changes
 
@@ -96,7 +97,15 @@ There is no test suite. Verification means:
 
 1. `pnpm dev` (Vite, port 5173) and `pnpm dev:api` (Express, port 10009) both running.
 2. Open the ported page in the browser.
-3. Open the old Nuxt app (`pnpm dev:nuxt`, port 3000) at the same page, side by side.
+3. Open the OLD Nuxt app at the same page, side by side. It runs from a separate git worktree, NOT from this one:
+
+```bash
+cd ../avior-nuxt-reference && pnpm dev
+```
+
+The reference worktree is pinned to commit `baff6fe`, the last commit where Nuxt still worked, and has its own isolated `node_modules`. It must exist; if it does not, recreate it with `git worktree add ../avior-nuxt-reference baff6fe --detach && cd ../avior-nuxt-reference && pnpm install`. It prints the port it chose — read it from the output rather than assuming.
+
+Nuxt CANNOT run from the main working tree any more, and `pnpm dev:nuxt` no longer exists. Vue 2 and Vue 3 are the same package name at two versions, so they cannot both occupy `node_modules/vue` — and `shamefullyHoist: true` (which Nuxt 2 itself requires) forces exactly that collision. Vuetify 2 and 4 collide the same way. This is not a bug to fix; it is why the reference lives in its own worktree.
 4. Compare them, applying the right standard. What must match: every element is present, the hierarchy and grouping are the same, every interaction works, and the same data appears. What will NOT match, by design, because Vuetify 4 is Material Design 3: font sizes and weights, shadow depths, button label casing, exact spacing and breakpoints. Do not chase those. If you cannot tell whether a difference is intentional MD3 or a real regression, say so in your report rather than guessing — a wrong guess in either direction is worse than an open question.
 5. Check the browser console. Zero errors and zero Vue warnings. Vuetify warns loudly about removed props, so a clean console is a real signal here — this, rather than pixel comparison, is now the sharpest tool for catching a bad port.
 
@@ -489,7 +498,7 @@ These are added alongside the Nuxt dependencies. The two dependency trees coexis
 
 ```bash
 pnpm add vue@^3.5 vue-router@^4.6 vuetify@^4.1 @mdi/font
-pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify@^2.1 unplugin-vue-router typescript vue-tsc @types/node
+pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify@^2.1 unplugin-vue-router typescript@^5 vue-tsc @types/node
 ```
 
 Two of these pins are deliberate and must not be "upgraded":
@@ -497,6 +506,8 @@ Two of these pins are deliberate and must not be "upgraded":
 `vuetify@^4.1` — Vuetify 4 is the current release (4.1.4) and is still a Vue 3 library; its peer dependency is `vue: ^3.5.0`. Do not install Vuetify 3.
 
 `vue-router@^4.6` — vue-router 5 exists, but `unplugin-vue-router@0.19.2` (the newest) declares `vue-router: ^4.6.0` as its peer. Since this project uses file-based routing, vue-router 4.6.x is required. Installing vue-router 5 will break routing. If a future unplugin-vue-router supports v5, that is a separate change, not this task.
+
+`typescript@^5` — TypeScript 7 exists, and `vue-tsc` declares its peer as `typescript: >=5.0.0`, which TS 7 satisfies semantically. It does not work: `vue-tsc` 3.x cannot consume TS 7 and `pnpm typecheck` dies with `ERR_PACKAGE_PATH_NOT_EXPORTED`. The peer range is a lie; pin to 5.x.
 
 Record the resolved versions from the pnpm output in the commit message.
 
@@ -619,13 +630,11 @@ Strict mode is off for now. Components are still JavaScript until Task 14; turni
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
-import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
+// VTimePicker graduated out of labs in Vuetify 4 and lives in the stable
+// entry point, so vite-plugin-vuetify auto-imports it. Importing it from
+// vuetify/labs/VTimePicker (its Vuetify 3 location) breaks the dev server.
 export default createVuetify({
-  // VTimePicker is still in Vuetify labs and is not auto-imported by
-  // vite-plugin-vuetify. globalconfig.vue needs it for the client
-  // availability window.
-  components: { VTimePicker },
   theme: {
     defaultTheme: 'dark',
     themes: {
@@ -1233,7 +1242,7 @@ The `async fetch()` at line 278 becomes `refresh()` from `mounted()`. The many `
 
 - [ ] Step 3: Verify the time picker specifically
 
-`VTimePicker` is registered from `vuetify/labs/VTimePicker` in Task 3. If it fails to render, the labs import is the first thing to check. Being in labs, its props may differ from the Vuetify 2 component — read the labs docs rather than assuming.
+`VTimePicker` is STABLE in Vuetify 4 (it was in labs in Vuetify 3), so it is auto-imported and needs no registration. This was the component flagged as the likeliest blocker in this migration; that risk has evaporated. Its props may still differ from the Vuetify 2 component — check them rather than assuming.
 
 The availability window (`client.AvailabilityStart` / `client.AvailabilityEnd`) is what it drives. Set a start and end time, save, reload, and confirm the values persist and display identically to the old app.
 

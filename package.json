@@ -9,9 +9,6 @@
     "preview": "vite preview",
     "dev:api": "node server/index.js",
     "start": "node server/index.js",
-    "dev:nuxt": "nuxt",
-    "build:nuxt": "nuxt build",
-    "start:nuxt": "nuxt start",
     "typecheck": "vue-tsc --noEmit",
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "lint": "pnpm lint:js"
@@ -41,7 +38,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-nuxt": "^1.0.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "unplugin-vue-router": "^0.19.2",
     "vite": "^8.1.4",
     "vite-plugin-vuetify": "^2.1.3",
