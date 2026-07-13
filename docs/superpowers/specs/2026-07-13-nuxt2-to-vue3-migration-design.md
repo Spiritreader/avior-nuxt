@@ -179,6 +179,8 @@ Collected up front because they drive most of stages 4-9. Every item below is pr
 - Theme configuration format: colors now nest under `themes.dark.colors`.
 - Icons: `@mdi/font` was supplied by `@nuxtjs/vuetify` and must now be installed and registered explicitly.
 
+One Vue 3 core breaking change also applies, separate from Vuetify. The component `v-model` contract changes from the `value` prop plus `input` event to `modelValue` plus `update:modelValue`. Only `TextDataTable.vue` is affected: it declares `value: Array` and is bound with `v-model` four times in `globalconfig.vue`. Its `$emit("input")` calls are already commented out, so the binding is effectively one-way and only the prop rename is required.
+
 ## Execution model
 
 Implementation runs through workflows with subagent-driven development, fanning out where stages are genuinely independent.
