@@ -42,33 +42,77 @@ the git history.
 
 ---
 
-## STILL BROKEN
+## STATUS
 
-### 1. Global config toolbar: user says the buttons have "no mx to the right"
-Reported after the toolbar padding fix landed. Measured against the reference at 1600px
-and the two apps AGREE: search field inset 16px from the card's left edge, last button
-inset 24px from the right, both in old and new. So either the complaint is about
-something else in that toolbar, or it only shows at a different viewport width.
-Reproduce at the user's width before changing anything.
+The user has walked every page and signed the app off as usable. What follows is the
+small residue plus the patterns worth knowing before touching the layout again.
 
-### 2. Adjacent button gaps that shifted (measured, not yet fixed)
+## STILL OPEN (minor, measured, nobody has complained since)
+
+### 1. Adjacent button gaps that shifted
 Vue 3's compiler condenses away the whitespace-only text nodes between elements that
 Vue 2 kept. Buttons are `inline-flex`, so a bare HTML space between two of them used to
-render as a 4px gap. Any pair that got its spacing that way now touches. Swept every
-page and tab; these two still differ:
+render as a 4px gap, and any pair that got its spacing that way now touches. Fixed on
+config and globalconfig (Import/Export). Swept every page and tab; these two still
+differ and were left alone:
 
 | Where | Old gap | New gap |
 |---|---|---|
 | `/` — refresh icon → "Ping Offline" | 8px | 32px |
 | `/jobs` — New → Reassign → Delete | 20px | 16px |
 
-The `/` one is the odd one: the new gap is BIGGER, so it is not the whitespace cause and
-needs its own look.
+The `/` one is the odd one out: its gap got BIGGER, so the whitespace rule does not
+explain it and it needs its own look.
 
-### 3. Whole-app sweep not done
-The pages NOT yet walked in detail: `/jobs` (beyond the system bar and the button gap
-above), `/settings`, config → General, config → Encoder. Expect more of the same class
-of issue.
+### 2. Global config toolbar: "buttons have no mx to the right"
+Reported once, then not raised again. Measured against the reference at 1600px and the
+two apps AGREE: search field inset 16px from the card's left edge, last button inset
+24px from the right, in both. Either it was about something else, or it only shows at a
+different viewport width. Reproduce at the user's width before changing anything.
+
+---
+
+## The two things that caused most of this
+
+Worth reading before any further layout work — nearly every issue in the table below is
+one of these two.
+
+### Vuetify 4 rebuilt the grid on flexbox `gap`
+Vuetify 2's `.v-row` carried a `-12px` margin and its `.v-col` carried 12px of padding.
+Vuetify 4's row has NO negative margin, its col has NO padding, and it adds a **24px
+margin between consecutive rows**. Consequences, all of which bit:
+
+- Markup that leaned on the negative margin cancelling a container's padding gains
+  height (resolution rows, the expanded client panel, module SETTINGS gaps).
+- A `v-col` with **no `v-row` parent collapses entirely** — v4 computes a column's
+  flex-basis from custom properties that `.v-row` declares, so with no row the calc is
+  invalid and the column shrink-wraps to its content. This hit the audio-format lists
+  and the encoder Tag field. A DOM sweep for it has a blind spot: `v-window-item` mounts
+  lazily and some components only render once a selection is made, so a bare `.v-col`
+  can be absent from the DOM at scan time. Grep the templates as well.
+- Anything positioned with a fixed margin tuned against the old 12px col padding is now
+  off (the encoder help buttons).
+
+### `hideDetails: 'auto'` removed dead space AND accidental space
+Vuetify 4 permanently reserves ~26px under every input for a validation message it may
+never show. Collapsing that (plugins/vuetify.ts) was right — it was dead space nearly
+everywhere. But a few layouts were quietly leaning on it for their spacing, and each
+broke in a different way:
+
+- the two encoder selects overlapped;
+- the encoder select ran into the card's bottom border;
+- the client select stopped pushing the tab bar down (22px);
+- the module settings fields got STRETCHED by the help button (see below);
+- the slider tick labels went flush against the card edge.
+
+If you find a cramped, overlapping, or spilling field, suspect this first.
+
+The stretched-field one is the sneakiest and I misdiagnosed it twice: the settings row
+is a flex container, so it defaults to `align-items: stretch`, and the help button's
+margins made it TALLER than the 56px field — so the field stretched to the button, and
+the dead space underneath the value looked exactly like a leftover validation slot.
+Vuetify 2 hid it because its field reserved a message slot and was therefore taller than
+the button. `align-center` on the row is the fix.
 
 ---
 
@@ -104,6 +148,15 @@ unknown attributes on a Vue component fall through to `$attrs` with no type erro
 | Module cards had no contrast | Cards are `#242424` on the card surface `#212121` — a few values apart, so they read as one flat slab. The modules pane uses the theme `background` token (`#121212`). | `b7c6e0d` |
 | Import/Export buttons touching | The original never declared a gap — it got 4px from the whitespace text node between two `inline-flex` buttons. Vue 3's compiler condenses whitespace-only nodes between elements away. Declared explicitly. | `b7c6e0d` |
 | Expanded client panel 286px, not 204px | The switch reserved a 26px validation slot (`VSwitch` → `hideDetails: 'auto'`), AND v4 puts a **24px margin between consecutive rows** (`.v-row + .v-row`) where v2 gave them `-12px` — so the original's `pt-4`, which existed to compensate for that negative margin, stacked on top of a gap that already existed. | `89b9f36` |
+| Log text lost its left margin, rows too far apart | A porting error, not a Vuetify default. The original kept the list item's default `px-4` and put `pa-0 pr-2` on the inner `<v-list-item-content>`; v4 deleted that wrapper so the port moved `pa-0` onto the list item, killing the horizontal padding AND adding vertical padding on top of `my-2`. `py-0 pr-2`. | `210b2a2` |
+| Job rows / settings client rows cramped | Vuetify 2 sized a list item from what was inside its `v-list-item-content`, so a title + subtitle automatically got the taller two-line box. v4 deleted that wrapper and must be told: `lines="two"`. The five log rows in Client.vue are subtitle-only and stay single-line. | `210b2a2`, `40716a3` |
+| Home icon 12px below the buttons | The original's `pt-3` existed because v2's `v-list-item-icon` was TOP-aligned. v4's `#prepend` is already centred, so the padding just dropped it. | `210b2a2` |
+| Disabled buttons rendered as ENABLED | v2 neutralised them (`bg rgba(255,255,255,.12)`, `text rgba(255,255,255,.3)`); v4 keeps the button's own colour, so /settings' Submit sat in solid blue and the data-table's delete glowed red while unclickable. Restored app-wide in `vuetify2-compat.css` with v2's literal dark values (the theme is dark-only). | `40716a3` |
+| Checkbox glyph 20px right of its column | Two causes stacked: the row's `px-3` was no longer cancelled by `.v-row`'s dropped `-12px` margin, and v4's checkbox reserves an **8px ripple gutter inside the control** so its glyph no longer starts at the component's left edge. `ml-n2` takes that back. | `5f4c501` |
+| Encoder Tag field collapsed / misaligned / buttons off-centre | `v-col` with no `v-row` (see grid section), then the new row needed `px-3` because v4's col has no padding, then the buttons' `mt-3` could not centre them without it — `d-flex align-center` on the column instead. | `d3d956e`, `78293bb` |
+| Module setting fields stretched tall | See the `hideDetails` section — flex `align-items: stretch` plus a help button made taller than the field by its own margins. All five fields now measure 56px, as in the reference. | `793452d` |
+| Card titles cramped | v4 halved a card title's vertical padding (`16px` → `8px 16px`, 64px → 44px) on EVERY card. Restored as a `VCardTitle` default **class** (`py-4`), not a CSS rule — the components that deliberately zero it (Module.vue's header, Client.vue's four log headers) carry `pb-0`, which beats `py-4` on source order as a fellow utility. An unlayered CSS override would have outranked and broken all five. | `26c033e` |
+| Module cards had no contrast (again) | `bg-background` (#121212) made the pane the same colour as the page. A dedicated `module-pane` token (#1A1A1A) sits between the page and the cards (#242424). | `793452d` |
 
 ---
 
