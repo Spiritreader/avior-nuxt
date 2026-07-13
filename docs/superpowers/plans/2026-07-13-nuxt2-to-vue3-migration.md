@@ -1346,6 +1346,7 @@ RUN pnpm install --frozen-lockfile --prod
 COPY server ./server
 COPY --from=build /app/dist ./dist
 
+ENV NODE_ENV=production
 ENV PORT=10009
 ENV MONGO_URL=mongodb://10.11.194.75/Avior
 EXPOSE 10009
@@ -1365,6 +1366,22 @@ docker run --rm -p 10009:10009 avior-cutover
 Expected: the container starts, logs `avior listening on http://0.0.0.0:10009`, and `http://localhost:10009` serves the app. Navigate to `/jobs` and hard-refresh — it must still load, proving the SPA fallback route works. The footer must show the seven-character commit hash rather than "dev", proving `VITE_COMMIT_SHA` reached the build.
 
 If Docker is not available here, say so and flag it for the user rather than marking this step done.
+
+- [ ] Step 8b: Close the findings carried over from the Task 2/2b review
+
+These were deferred to this task on purpose, because this is where `server/index.js` becomes the production process.
+
+`NODE_ENV=production` is set in the runtime stage of the Dockerfile above. This is not cosmetic: without it Express runs in development mode and its default error handler puts stack traces with absolute filesystem paths into HTTP response bodies. Confirm it is present.
+
+Add an `engines` field to `package.json`, since Mongoose 9 requires Node >= 20.19 and nothing currently enforces that:
+
+```json
+  "engines": {
+    "node": ">=20.19"
+  },
+```
+
+`README.md` documents mounting a `config.json` over `api/config.json` to override the Mongo URL. That file no longer exists — Task 2 moved the setting to the `MONGO_URL` environment variable. An operator following the current README would mount a file that is silently ignored and get the default database instead of theirs. Task 15 rewrites the README, but this specific instruction is actively harmful, so remove or correct it here rather than waiting.
 
 - [ ] Step 9: Commit
 
