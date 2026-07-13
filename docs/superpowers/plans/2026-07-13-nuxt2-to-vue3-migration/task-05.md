@@ -23,7 +23,7 @@ Read the constraints below before starting; they are not optional.
 - Ports: Vite dev on 5173, Express standalone on 10009. The reference worktree's Nuxt picks its own port and prints it.
 - `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
 - Server stack is Mongoose 9, Express 5, Node 24 (Task 2b). The upstream MongoDB was upgraded, and Mongoose 9 requires Node >= 20.19. Express 5 rejects a bare `'*'` path — the SPA fallback is `'/*splat'`. Do not reintroduce `body-parser`; Express has the parsers built in.
-- MongoDB at 10.11.194.75 is NOT reachable from the development machine. A hanging or 500-ing `/api/clients` locally is the environment, not a bug. Never claim a successful query.
+- MongoDB IS reachable at `mongodb://192.168.178.75:27017/Avior` and returns five real clients. The Avior daemons are NOT reachable (connection refused), so pages will load the real client list from Mongo and then show every client as offline. That is the environment, not a bug.
 
 ## Ported-file conventions
 
@@ -44,7 +44,9 @@ Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 4. Every o
 | `<v-tabs-slider>` | removed — no replacement tag; slider is styled via props on `v-tabs` |
 | `<v-subheader>` | `<v-list-subheader>` |
 | `<v-layout>` / `<v-flex>` | `<v-row>` / `<v-col>` |
-| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 4 computes layout geometry itself |
+| `app`, `clipped`, `clipped-left`, `fixed` props on `v-app-bar` / `v-navigation-drawer` | removed — Vuetify 4 computes layout geometry itself |
+| `app` on `v-footer` | KEPT in Vuetify 4. `VFooter` is an opt-in layout item: without `app` it becomes an ordinary flex child, stretches to fill (measured: 320px tall), and shoves the page content up. It emits NO warning, so only a screenshot catches this. Use `<v-footer app absolute>`. |
+| `color="grey lighten-1"` (space-separated) | `color="grey-lighten-1"` (hyphenated). The v2 space form silently emits a broken class in v4. |
 | `dark` prop on any component | removed — the theme handles it; simply delete the attribute |
 | `:mini-variant="x"` on `v-navigation-drawer` | `:rail="x"` |
 | `v-data-table` `headers: [{ text, value }]` | `headers: [{ title, key }]` |
@@ -112,7 +114,7 @@ diff docs/superpowers/baselines/<page>.txt /tmp/insp/new-<page>/structure.txt
 5. `console.txt` must contain zero `[error]` and zero `[pageerror]` lines from your page. Vuetify warns loudly about removed props, so a clean console is the sharpest automatic signal that a port is correct. Note the reference app itself logs `Request timed out` errors because the database and daemons are unreachable from this machine — those are environmental and expected in both apps.
 6. Look at `screenshot.png`. Report anything structurally wrong.
 
-KNOWN GAP, do not paper over it: MongoDB (10.11.194.75) and the Avior daemons are unreachable from this machine, so both the reference and the new app render their EMPTY state. The baselines therefore capture the page shell, navigation, and static controls — but NOT populated data tables, client cards, or anything that requires a successful fetch. A `v-data-table` that renders zero rows in both apps proves nothing about its column mapping. Say so in your report rather than claiming a page is fully verified. Data-dependent behaviour must be checked by the user on the real network.
+KNOWN GAP, do not paper over it: MongoDB is reachable and the baselines contain its five real clients, so anything driven by the client registry — the `/settings` list, the client selectors, the client cards — IS covered. The Avior DAEMONS are not reachable (connection refused), so anything requiring a live daemon is not: job tables, per-client configs, encoder settings, and log views all render their empty or offline state in both apps. A `v-data-table` showing zero job rows in both proves nothing about its column mapping. Say so in your report rather than claiming a page is fully verified. Daemon-dependent behaviour must be checked by the user on the real network.
 
 To regenerate a baseline (only if asked): run the reference worktree (`cd ../avior-nuxt-reference && pnpm dev`, note the port it prints) and point the inspector at it.
 

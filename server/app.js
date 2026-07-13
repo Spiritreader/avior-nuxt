@@ -3,7 +3,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const Client = require('./schema.js')
 
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://10.11.194.75/Avior'
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://192.168.178.75:27017/Avior'
 
 // serverSelectionTimeoutMS bounds the initial connect. bufferTimeoutMS bounds
 // queries issued while disconnected: Mongoose buffers those, so they never

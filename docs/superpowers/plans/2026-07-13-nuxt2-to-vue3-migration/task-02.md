@@ -23,7 +23,7 @@ Read the constraints below before starting; they are not optional.
 - Ports: Vite dev on 5173, Express standalone on 10009. The reference worktree's Nuxt picks its own port and prints it.
 - `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
 - Server stack is Mongoose 9, Express 5, Node 24 (Task 2b). The upstream MongoDB was upgraded, and Mongoose 9 requires Node >= 20.19. Express 5 rejects a bare `'*'` path — the SPA fallback is `'/*splat'`. Do not reintroduce `body-parser`; Express has the parsers built in.
-- MongoDB at 10.11.194.75 is NOT reachable from the development machine. A hanging or 500-ing `/api/clients` locally is the environment, not a bug. Never claim a successful query.
+- MongoDB IS reachable at `mongodb://192.168.178.75:27017/Avior` and returns five real clients. The Avior daemons are NOT reachable (connection refused), so pages will load the real client list from Mongo and then show every client as offline. That is the environment, not a bug.
 
 ---
 
@@ -43,7 +43,7 @@ Files:
 Interfaces:
 - Produces: `server/app.js` default-exports a configured Express `app` with routes `GET /clients`, `POST /clients`, `POST /clients/delete` mounted at the app root (Nuxt mounts it under `/api`; the standalone server mounts it under `/api` too, so the browser-facing paths are identical either way).
 - Produces: `server/index.js`, runnable via `node server/index.js`, listening on `process.env.PORT || 10009`.
-- Produces: `MONGO_URL` environment variable, defaulting to `mongodb://10.11.194.75/Avior`.
+- Produces: `MONGO_URL` environment variable, defaulting to `mongodb://192.168.178.75:27017/Avior`.
 
 - [ ] Step 1: Move the Mongoose schema
 
@@ -64,7 +64,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const Client = require('./schema.js')
 
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://10.11.194.75/Avior'
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://192.168.178.75:27017/Avior'
 
 // serverSelectionTimeoutMS bounds the initial connect. bufferTimeoutMS bounds
 // queries issued while disconnected: Mongoose buffers those, so they never
@@ -197,7 +197,7 @@ In `package.json`, add to `scripts`:
 In `Dockerfile`, add below the `NUXT_ENV_CURRENT_GIT_SHA` line:
 
 ```dockerfile
-ENV MONGO_URL=mongodb://10.11.194.75/Avior
+ENV MONGO_URL=mongodb://192.168.178.75:27017/Avior
 ```
 
 - [ ] Step 8: Verify the Nuxt-hosted path still works

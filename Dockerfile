@@ -11,7 +11,7 @@ RUN corepack enable && corepack prepare pnpm@11.12.0 --activate
 COPY . /app
 
 ENV NUXT_ENV_CURRENT_GIT_SHA=${COMMIT}
-ENV MONGO_URL=mongodb://10.11.194.75/Avior
+ENV MONGO_URL=mongodb://192.168.178.75:27017/Avior
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm build

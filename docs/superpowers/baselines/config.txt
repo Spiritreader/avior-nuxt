@@ -1,4 +1,4 @@
-# http://100.64.124.194:8453/config
+# http://100.64.124.194:4169/config
 
 title: Avior - powered by Walzen Group
 

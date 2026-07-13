@@ -1,4 +1,4 @@
-# http://100.64.124.194:8453/settings
+# http://100.64.124.194:4169/settings
 
 title: Avior - powered by Walzen Group
 

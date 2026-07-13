@@ -1,8 +1,8 @@
-# http://100.64.124.194:8453/
+# http://100.64.124.194:4169/
 
 title: Avior - powered by Walzen Group
 
-body text length: 128
+body text length: 263
 
 table rows: 0
 
@@ -19,7 +19,28 @@ table rows: 0
 ## tabs (0)
   (none)
 
-## buttons (5)
+## buttons (26)
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
   - <icon>
   - <icon>
   - <icon>
@@ -48,12 +69,15 @@ table rows: 0
   - Global Configuration
   - Frontend Settings
 
-## vuetify components rendered (11)
+## vuetify components rendered (14)
   - v-app-bar
   - v-application
   - v-btn
+  - v-btn-toggle
+  - v-card
   - v-footer
   - v-icon
+  - v-item-group
   - v-list
   - v-list-item
   - v-main
