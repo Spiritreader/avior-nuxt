@@ -33,7 +33,7 @@
     </v-expand-transition>
     <v-slider v-model="selected" :ticks="stepTicks" :max="2" show-ticks="always" tick-size="4" step="1" color="red-darken-3">
       <template v-slot:thumb-label="props">
-        <v-icon>{{ accIcon(props.value) }}</v-icon>
+        <v-icon>{{ accIcon(props.modelValue) }}</v-icon>
       </template>
     </v-slider>
   </div>

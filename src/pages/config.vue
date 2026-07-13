@@ -27,7 +27,7 @@
         </v-col>
       </v-row>
       <!-- Config Card -->
-      <v-row v-if="config == null || config == {} || loading" justify="center" class="mb-6" no-gutters>
+      <v-row v-if="config == null || loading" justify="center" class="mb-6" no-gutters>
         <v-progress-circular :size="150" :width="20" color="red-darken-3" indeterminate></v-progress-circular>
       </v-row>
       <v-row justify="center" class="mb-6" no-gutters v-else-if="err != ''">
@@ -264,17 +264,17 @@
         <v-btn
           :loading="saving"
           :disabled="!allowUploadConfig"
-          v-if="clientIsSelected && !loading && !err != ''"
+          v-if="clientIsSelected && !loading && !err"
           @click="saveConfig()"
           color="red-darken-2"
           class="mt-6 mr-6"
           >Upload Config</v-btn
         >
         <div>
-          <v-btn @click="configImportConfirm = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err != ''" class="mt-6"
+          <v-btn @click="configImportConfirm = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err" class="mt-6"
             >Import</v-btn
           >
-          <v-btn @click="configExportDialog = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err != ''" class="mt-6"
+          <v-btn @click="configExportDialog = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err" class="mt-6"
             >Export</v-btn
           >
         </div>
