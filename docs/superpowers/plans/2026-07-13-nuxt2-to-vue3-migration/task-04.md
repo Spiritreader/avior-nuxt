@@ -1,0 +1,140 @@
+# Task 4: Port the layout
+
+Part of the Nuxt 2 to Vue 3 SPA migration.
+Master plan: `docs/superpowers/plans/2026-07-13-nuxt2-to-vue3-migration.md`
+Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.md`
+
+You are being given only this task. Do not do work belonging to other tasks.
+Read the constraints below before starting; they are not optional.
+
+## Global Constraints
+
+- Package manager is pnpm. Never run `npm install` or `yarn` after Task 1.
+- `node` is not on PATH in this environment. pnpm ships its own runtime; use `pnpm env use --global lts` if a bare `node` binary is needed.
+- Behaviour is preserved. This is a framework migration, not a redesign. Any visual or functional difference from the current app is a bug unless this plan explicitly calls for it.
+- The browser calls the Avior encoding daemons directly at their absolute LAN addresses. Do not introduce a proxy for them. Only MongoDB stays behind Express.
+- App-origin API calls use relative paths (`/api/...`) in both dev and prod. No `baseURL` is configured anywhere. This is deliberate: a configured base URL is what broke before.
+- Theme: Vuetify 3 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries.
+- Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
+- There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
+- Every task ends with the app in a runnable state and a commit.
+- Ports during coexistence: Nuxt dev on 3000, Vite dev on 5173, Express standalone on 10009. These must not collide.
+
+## Ported-file conventions
+
+Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 3. Every one of them follows the same rules. Read this section before starting any of those tasks; the per-task notes list only which of these apply and any file-specific gotchas.
+
+### Template: Vuetify 2 to Vuetify 3
+
+| Vuetify 2 | Vuetify 3 |
+|---|---|
+| `<v-list-item-content>…</v-list-item-content>` | removed — unwrap the children into the `v-list-item` directly |
+| `<v-list-item-title>` | kept, but now a direct child of `v-list-item` |
+| `<v-list-item-subtitle>` | kept, but now a direct child of `v-list-item` |
+| `<v-list-item-action>` | removed — use `<template #append>` or `#prepend` on `v-list-item` |
+| `<v-list-item-icon>` | removed — use `<template #prepend>` with `<v-icon>` |
+| `<v-list-item-group v-model="x">` | removed — put `v-model:selected` on `<v-list>` and give each `v-list-item` a `:value` |
+| `<v-tabs-items v-model="tab">` | `<v-window v-model="tab">` |
+| `<v-tab-item>` | `<v-window-item>` |
+| `<v-tabs-slider>` | removed — no replacement tag; slider is styled via props on `v-tabs` |
+| `<v-subheader>` | `<v-list-subheader>` |
+| `<v-layout>` / `<v-flex>` | `<v-row>` / `<v-col>` |
+| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 3 computes layout geometry itself |
+| `dark` prop on any component | removed — the theme handles it; simply delete the attribute |
+| `:mini-variant="x"` on `v-navigation-drawer` | `:rail="x"` |
+| `v-data-table` `headers: [{ text, value }]` | `headers: [{ title, key }]` |
+| `v-data-table` slot `#item.foo` | `#item.foo` still, but `foo` now matches the header `key` |
+| `v-data-table` `:items-per-page` etc. | unchanged, but check the component renders before assuming |
+| `<v-time-picker>` | still in Vuetify labs — needs an explicit labs import (see Task 3) |
+
+### Template: Vue 3 core
+
+- Component `v-model` contract changes from `value` + `input` to `modelValue` + `update:modelValue`. This affects `TextDataTable.vue` only (Task 12).
+- `v-model` on Vuetify's own components (`v-text-field`, `v-dialog`, `v-tabs`, etc.) is unchanged from the template author's point of view. Leave those alone.
+
+### Script (Tasks 4-12 only — keep Options API and JavaScript)
+
+Do not convert scripts to `<script setup>` or TypeScript in these tasks. That is Task 14, deliberately kept separate so that a broken page has exactly one possible cause. Change only what Vue 3 genuinely breaks:
+
+- `this.$set(obj, key, val)` becomes `obj[key] = val`. `this.$delete(obj, key)` becomes `delete obj[key]`. Vue 3's reactivity is proxy-based and tracks these natively. (Task 10 only.)
+- `this.$http.$get(url)` becomes `get(url)` imported from `@/api/http`; likewise `$post`/`$put`/`$delete` become `post`/`put`/`del`. Signatures are identical, so this is a mechanical substitution.
+- Nuxt's `async fetch() {…}` hook has no Vue 3 equivalent. Rename the method to `refresh()`, move it into `methods`, and call it from `mounted()`. Any `this.$fetch()` call becomes `this.refresh()`.
+- Nuxt's `$fetchState.pending` (if present in a template) becomes a plain `loading` data property that `refresh()` sets true on entry and false on exit.
+- `process.env.commitSha` becomes `import.meta.env.VITE_COMMIT_SHA`.
+- Add explicit `import` statements for every one of our own components used in the template.
+
+### Verification for every port task
+
+There is no test suite. Verification means:
+
+1. `pnpm dev` (Vite, port 5173) and `pnpm dev:api` (Express, port 10009) both running.
+2. Open the ported page in the browser.
+3. Open the old Nuxt app (`pnpm dev:nuxt`, port 3000) at the same page, side by side.
+4. Confirm the layout matches and the page's interactions work.
+5. Check the browser console. Zero errors and zero Vue warnings. Vuetify emits loud warnings for removed props, so a clean console is a real signal here.
+
+---
+
+## Task 4: Port the layout
+
+Stage 4 of the spec. Everything else depends on this, so it goes first and alone.
+
+Files:
+- Modify: `src/App.vue` (replace placeholder with the port of `layouts/default.vue`)
+- Create: `src/pages/[...path].vue` (catch-all, replacing `layouts/error.vue`)
+- Reference (do not modify): `layouts/default.vue`, `layouts/error.vue`
+
+Interfaces:
+- Produces: the app shell — `v-app`, `v-navigation-drawer`, `v-app-bar`, `v-main` containing `<router-view />`, and `v-footer`. Every page from Task 5 onwards renders inside this.
+
+This is the highest-density Vuetify conversion in the project relative to its size. `layouts/default.vue` uses `app`, `fixed`, `clipped`, `clipped-left`, `mini-variant`, `v-list-item-content`, `v-list-item-action`, and a `dark` prop on `v-app` — nearly every removed API at once. Do not attempt a find-and-replace; read the Vuetify 3 docs for `v-navigation-drawer` and `v-app-bar` and rebuild the shell.
+
+- [ ] Step 1: Read the source
+
+Read `layouts/default.vue` in full (146 lines). Note the five nav items and their routes, the drawer/mini-variant/clipped toggles in the app bar, the scrollbar CSS, and the footer's commit-hash link.
+
+- [ ] Step 2: Port to `src/App.vue`
+
+Apply the conversion table. The specific changes required:
+
+- `<v-app dark>` becomes `<v-app>` — the theme is dark by configuration now.
+- `v-navigation-drawer`: drop `fixed` and `app`; `:mini-variant="miniVariant"` becomes `:rail="miniVariant"`.
+- `v-app-bar`: drop `fixed`, `app`, and `:clipped-left="clipped"`.
+- `v-footer`: drop `app` and `:absolute="!fixed"`.
+- The nav `v-list-item` loop: `v-list-item-action` wrapping a `v-icon` becomes `<template #prepend><v-icon>…</v-icon></template>`; `v-list-item-content` wrapping `v-list-item-title` is unwrapped so the title is a direct child.
+- `<nuxt />` inside `v-main`'s `v-container` becomes `<router-view />`.
+- `process.env.commitSha` becomes `import.meta.env.VITE_COMMIT_SHA`.
+
+The `clipped` toggle deserves a decision rather than a mechanical port: Vuetify 3 computes layout automatically and has no `clipped` concept, so the button that toggles it has nothing to toggle. Keep the button and wire it to nothing, or remove it. Remove it — a button that does nothing is worse than an absent one. Note the removal in the commit message so the user can object.
+
+Keep the `<style>` block (scrollbar styling, `.max-container-width`, `.code-font`) verbatim. It is plain CSS and carries over unchanged.
+
+- [ ] Step 3: Port the error layout to a catch-all route
+
+`layouts/error.vue` (44 lines) is Nuxt's error page. In vue-router the equivalent is a catch-all route. Read it, then create `src/pages/[...path].vue` reproducing its markup — a centered message with a link back to `/`. unplugin-vue-router maps the `[...path]` filename to a catch-all.
+
+- [ ] Step 4: Restore the real index page placeholder
+
+`src/pages/index.vue` currently says "Scaffold OK". Leave it — Task 7 replaces it. The point of this task is the shell.
+
+- [ ] Step 5: Verify
+
+Run `pnpm dev` and `pnpm dev:nuxt`. Open `http://localhost:5173` and `http://localhost:3000` side by side.
+
+Expected: identical app bar, identical nav drawer with the same five items and icons, identical footer. The drawer toggle opens and closes it. The rail (mini-variant) toggle collapses it to icons. Clicking each nav item changes the URL to `/`, `/jobs`, `/config`, `/globalconfig`, `/settings` — the pages are empty (they do not exist yet) but the route must change and the catch-all must not fire. Navigating to `http://localhost:5173/nonexistent` shows the error page.
+
+The browser console must be free of Vuetify warnings. Vuetify 3 warns loudly about removed props, so any surviving `app`/`fixed`/`clipped` shows up here.
+
+- [ ] Step 6: Commit
+
+```bash
+git add -A
+git commit -m "feat: port app layout to Vue 3 + Vuetify 3
+
+App.vue replaces layouts/default.vue; a [...path] catch-all route replaces
+layouts/error.vue.
+
+Vuetify 3 computes layout geometry itself, so the app/fixed/clipped/
+clipped-left props are gone. The app-bar button that toggled 'clipped' has
+been removed rather than left wired to nothing."
+```
