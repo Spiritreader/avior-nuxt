@@ -18,7 +18,20 @@
       <v-window v-model="tab">
         <v-window-item value="tab-1">
           <v-container class="pt-4 pb-0">
-            <v-alert border="top" color="red-lighten-2" v-show="scheduleModified">
+            <!--
+              Not a parity fix: the original was a solid red-lighten-2 slab and the user
+              asked for something less shouty. `tonal` tints the surface instead of
+              filling it, and border="start" gives the accent stripe. This is a warning,
+              not an error - nothing failed, the change just needs a client restart.
+            -->
+            <v-alert
+              v-show="scheduleModified"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              border="start"
+              class="mb-4"
+            >
               You must pause and unpause the client for the schedule changes to take effect!
             </v-alert>
             <v-btn @click="clientAdd = true" class="pl-2" color="orange-lighten-2" variant="outlined">
@@ -66,12 +79,25 @@
                   </v-list-item>
                 </template>
                 <v-list-item class="pl-6">
-                  <v-container>
+                  <!--
+                    py-0 for the same reason as Property.vue: Vuetify 2's .v-row had a
+                    -12px margin that cancelled this container's vertical padding, so it
+                    added no height. v4's row has no negative margin (gutters come from
+                    `gap`), so the padding started counting.
+                  -->
+                  <v-container class="py-0">
                     <v-row>
                       <v-switch class="pl-2" color="indigo-lighten-2" label="Can always receive jobs"
                         v-model="client.IgnoreOnline"></v-switch>
                     </v-row>
-                    <v-row class="pt-4">
+                    <!--
+                      pt-4 dropped: Vuetify 4 puts a 24px margin between consecutive
+                      rows (.v-row + .v-row), where Vuetify 2 gave them a -12px one.
+                      The original's explicit top padding was compensating for that
+                      negative margin; here it stacked on top of a gap that already
+                      exists, and the panel grew by the difference.
+                    -->
+                    <v-row>
                       <v-col class="px-2" cols="12" sm="6" md="4">
                         <v-text-field
                           :rules="[(v) => (v || '').indexOf(' ') < 0 || 'No spaces are allowed', (v) => !!v || 'Name is required']"

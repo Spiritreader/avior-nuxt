@@ -54,6 +54,7 @@ export default createVuetify({
     VAutocomplete: { variant: 'underlined', hideDetails: 'auto' },
     VFileInput: { variant: 'underlined', hideDetails: 'auto' },
     VSlider: { trackSize: 2, thumbSize: 12, density: 'compact', hideDetails: 'auto' },
+    VSwitch: { hideDetails: 'auto' },
   },
   theme: {
     defaultTheme: 'dark',
