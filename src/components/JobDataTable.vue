@@ -15,7 +15,13 @@
       v-if="currentClient.Jobs.length > 0"
     >
       <template v-slot:[`item.Name`]="{ item, value }">
-        <v-list-item class="mx-0 px-0">
+        <!--
+          lines="two": Vuetify 2 sized a list item from its v-list-item-content, so a
+          title + subtitle got the taller two-line box automatically. Vuetify 4 deleted
+          that wrapper and needs telling, so the job name and its path were packed into
+          a single-line box. py-2 is the extra breathing room on top of that.
+        -->
+        <v-list-item lines="two" class="mx-0 px-0 py-2">
           <v-list-item-title class="text-wrap">{{ value }}</v-list-item-title>
           <v-list-item-subtitle class="text-wrap">{{ item.Path }}</v-list-item-subtitle>
         </v-list-item>

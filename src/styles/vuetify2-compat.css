@@ -28,6 +28,31 @@
 }
 
 /*
+ * Disabled buttons. Vuetify 2 neutralised them; Vuetify 4 keeps their colour, so a
+ * disabled button renders at full saturation and reads as enabled — the Submit button on
+ * /settings sat there in solid blue with white-on-blue text, and the data-table's delete
+ * button glowed red while it was unclickable.
+ *
+ *                      Vuetify 2                 Vuetify 4
+ *   background         rgba(255,255,255,.12)     the button's own colour
+ *   text               rgba(255,255,255,.3)      the button's own on-colour
+ *
+ * The theme is dark-only, so these are the literal Vuetify 2 dark values.
+ */
+.v-btn--disabled.v-btn--variant-elevated,
+.v-btn--disabled.v-btn--variant-flat,
+.v-btn--disabled.v-btn--variant-tonal {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v-btn--disabled.v-btn--variant-outlined,
+.v-btn--disabled.v-btn--variant-text,
+.v-btn--disabled.v-btn--variant-plain {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/*
  * The striped progress bar. Both versions paint the same 135deg white-on-transparent
  * gradient, but Vuetify 4 breaks it in two ways:
  *

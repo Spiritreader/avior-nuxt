@@ -49,7 +49,13 @@
       <v-card-title>Client List</v-card-title>
       <v-list>
         <v-divider></v-divider>
-        <v-list-item v-for="(user, i) in users" :key="i">
+        <!--
+          lines="two": Vuetify 2 sized a list item from its v-list-item-content, so a
+          title + subtitle got the taller box automatically. Vuetify 4 deleted that
+          wrapper and needs telling, so these rows came out at 48px against the
+          reference's 62px and the name ran into its addresses.
+        -->
+        <v-list-item v-for="(user, i) in users" :key="i" lines="two">
           <v-list-item-title v-text="user.Name"></v-list-item-title>
           <v-list-item-subtitle v-text="user.Addresses.join(', ')"></v-list-item-subtitle>
           <template #append>
