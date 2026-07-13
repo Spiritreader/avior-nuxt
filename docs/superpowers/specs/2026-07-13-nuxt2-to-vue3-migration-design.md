@@ -7,7 +7,7 @@ Status: approved design, pending implementation plan
 
 Avior is an internal admin dashboard for controlling Avior encoding daemons. It currently runs on Nuxt 2.17 with Vue 2 and Vuetify 2, served in SSR mode, with an Express + Mongoose API mounted inside Nuxt as `serverMiddleware`.
 
-This project migrates it to a Vue 3 single-page application built by Vite, styled with Vuetify 3, with the Express API extracted into a standalone server that also serves the built SPA. Nuxt is removed entirely. The package manager moves from npm to pnpm. Component scripts end up as `<script setup lang="ts">`.
+This project migrates it to a Vue 3 single-page application built by Vite, styled with Vuetify 4, with the Express API extracted into a standalone server that also serves the built SPA. Nuxt is removed entirely. The package manager moves from npm to pnpm. Component scripts end up as `<script setup lang="ts">`.
 
 The application's runtime behaviour is preserved. This is a framework migration, not a redesign or a re-architecture.
 
@@ -50,20 +50,30 @@ MongoDB is the only thing that must remain server-side, since the connection str
 
 The browser continues to call the encoding daemons at their absolute addresses. It already does this today on client-side navigation, so CORS and LAN reachability are already proven; the SPA merely makes it the only path rather than one of two. No proxy is introduced. The existing model is preserved.
 
-### UI: Vuetify 3, ported component by component
+### UI: Vuetify 4, ported component by component
 
-Vuetify 2 does not run on Vue 3, so this is forced. The port reproduces the current layout rather than redesigning it, so that any visual difference is a bug rather than an intention.
+Vuetify 2 does not run on Vue 3, so this is forced. The target is Vuetify 4 (currently 4.1.4), the newest release. Vuetify 4 is still a Vue 3 library — the major version bump is not about Vue 4 — and its peer dependency is `vue: ^3.5.0`, which this project satisfies.
 
-The theme is not ported wholesale. The app adopts Vuetify 3's built-in dark theme and overrides only two colors to stay recognizable:
+Vuetify 4 uses Material Design 3, where Vuetify 2 used Material Design 2. This means the app will not look pixel-identical when the migration is done, and that is accepted rather than regretted. Typography moves to the MD3 scale, elevation drops from 25 levels to 6, the default breakpoints shrink, `VContainer` max-widths shrink, buttons lose their uppercase default, and the `v-row`/`v-col` grid is rebuilt on CSS `gap` instead of negative margins.
+
+What "preserve the layout" means here, precisely: the same components appear in the same places, in the same hierarchy, with the same interactions and the same data. Font sizes, shadow depths, button label casing, and exact margins may differ. Nobody fights the framework to restore Material Design 2, and Vuetify's revert snippets are deliberately not used.
+
+This has one consequence worth stating, because verification depends on it. Since there is no test suite, the check on each ported page is a side-by-side comparison against the old app — and that comparison can no longer be "do these look the same". It is "are the same elements present, in the same arrangement, doing the same things". A clean browser console becomes the sharper signal, since Vuetify warns loudly about removed props.
+
+The theme is not ported wholesale. The app adopts Vuetify 4's built-in dark theme and overrides only two colors to stay recognizable:
 
 - `primary: #9E9E9E` (was `colors.grey.base`)
 - `secondary: #FF8F00` (was `colors.amber.darken3`)
 
-The remaining custom theme entries (accent, info, warning, error, success) are dropped in favour of Vuetify 3 defaults. `assets/variables.scss` contains only comments and no actual variables, so `customVariables` has always been a no-op; the file is deleted and no SASS override plumbing is needed in the Vite config.
+The remaining custom theme entries (accent, info, warning, error, success) are dropped in favour of Vuetify 4 defaults. `defaultTheme: 'dark'` must be set explicitly: Vuetify 4 changed the default to follow system preference, which would otherwise render the app light.
 
-### Routing: file-based, via unplugin-vue-router
+`assets/variables.scss` contains only comments and no actual variables, so `customVariables` has always been a no-op; the file is deleted and no SASS override plumbing is needed in the Vite config.
+
+### Routing: file-based, via unplugin-vue-router, on vue-router 4
 
 The `pages/` convention is kept and routes continue to be inferred from filenames, so no route path changes. The directory itself relocates to `src/pages/` along with the rest of the application source; filenames are preserved, so `/jobs`, `/config`, `/globalconfig`, and `/settings` all resolve exactly as before. During stages 4-9 the old root-level `pages/` and the new `src/pages/` coexist, which is what allows both apps to run side by side for comparison.
+
+vue-router is pinned to 4.6.x rather than the newest 5.x. `unplugin-vue-router@0.19.2` (the newest) declares `vue-router: ^4.6.0` as its peer dependency, so choosing file-based routing forces vue-router 4. This is a constraint imposed by the tooling, not a preference; if a later unplugin-vue-router supports vue-router 5, that is a separate upgrade.
 
 ### HTTP: native fetch behind a typed wrapper
 
@@ -77,7 +87,7 @@ The end state is `<script setup lang="ts">` throughout. It is reached in two sep
 
 The two passes are close to disjoint in the file. The Vuetify migration is almost entirely a `<template>` change; the `<script setup>` and TypeScript migration is almost entirely a `<script>` change. Splitting them is therefore close to free rather than double work.
 
-Pass one (stages 4-9) ports each page's template to Vuetify 3 while leaving the script as JavaScript and Options API. Only what Vue 3 genuinely breaks is touched:
+Pass one (stages 4-9) ports each page's template to Vuetify 4 while leaving the script as JavaScript and Options API. Only what Vue 3 genuinely breaks is touched:
 
 - `$set` / `$delete` become plain assignment (Vue 3's reactivity is proxy-based)
 - `$http` becomes the fetch wrapper
@@ -120,7 +130,7 @@ The footer displays the deployed commit. Nuxt exposes it through `env: { commitS
 src/
   main.ts                 app bootstrap, Vuetify + router registration
   App.vue                 root, replaces layouts/default.vue
-  plugins/vuetify.ts      Vuetify 3 instance, dark theme + 2 color overrides
+  plugins/vuetify.ts      Vuetify 4 instance, dark theme + 2 color overrides
   router/                 unplugin-vue-router config
   api/http.ts             typed fetch wrapper
   composables/            useClientResolution(), useClients()
@@ -142,9 +152,9 @@ Each stage is independently checkpointed and leaves the app runnable.
 
 2. Extract the API. Split `api/api.js` into `server/app.js` (exports the configured Express app) and `server/index.js` (listens, and later serves `dist/`). Nuxt continues to consume the app as `serverMiddleware`, so nothing breaks, but the server can now also boot standalone. Move the Mongo URL from the committed `api/config.json` to an environment variable, defaulting to the current value so existing deployments are unaffected. Checkpoint: both the Nuxt-hosted and standalone paths serve `/api/clients`.
 
-3. Scaffold the Vue 3 app in `src/`, alongside the still-working Nuxt app. Vite, Vuetify 3, unplugin-vue-router, the fetch wrapper, and the dev proxy. Nothing is deleted. Checkpoint: the shell boots on its own port with an empty page body, and the Nuxt app still runs unchanged.
+3. Scaffold the Vue 3 app in `src/`, alongside the still-working Nuxt app. Vite, Vuetify 4, unplugin-vue-router, the fetch wrapper, and the dev proxy. Nothing is deleted. Checkpoint: the shell boots on its own port with an empty page body, and the Nuxt app still runs unchanged.
 
-4. Layout. `layouts/default.vue` becomes `App.vue` plus a layout component; `layouts/error.vue` becomes a router catch-all. Vuetify 3 removes the `app`, `fixed`, `clipped`, and `clipped-left` props and computes layout geometry itself, so the drawer, app bar, and footer are rebuilt rather than renamed. The `v-list-item-content` / `-action` teardown lands here in the nav item loop. Checkpoint: shell renders, navigation works, pages are empty.
+4. Layout. `layouts/default.vue` becomes `App.vue` plus a layout component; `layouts/error.vue` becomes a router catch-all. Vuetify 4 removes the `app`, `fixed`, `clipped`, and `clipped-left` props and computes layout geometry itself, so the drawer, app bar, and footer are rebuilt rather than renamed. The `v-list-item-content` / `-action` teardown lands here in the nav item loop. Checkpoint: shell renders, navigation works, pages are empty.
 
 5. `settings.vue`, plus `SimpleList.vue`. The smallest page, and the only one talking exclusively to `/api`, so it proves the browser to Express to Mongoose path end to end. Contains the only `this.$fetch()` call. `SimpleList` is shared with `config.vue` and is ported here first.
 
@@ -162,7 +172,7 @@ Each stage is independently checkpointed and leaves the app runnable.
 
 12. Cleanup. Replace ESLint 7 and the Nuxt eslint configs (`@nuxtjs/eslint-config`, `@nuxtjs/eslint-module`, `eslint-plugin-nuxt`, `babel-eslint`) with a Vue 3 + TypeScript setup. Replace `jsconfig.json` with `tsconfig.json`. Remove remaining dead dependencies. Update the README, which currently documents a Nuxt app.
 
-## Vuetify 3 breaking changes inventory
+## Vuetify breaking changes inventory (v2 to v4)
 
 Collected up front because they drive most of stages 4-9. Every item below is present in the current codebase.
 
@@ -172,7 +182,7 @@ Collected up front because they drive most of stages 4-9. Every item below is pr
 - `v-tabs-slider`: removed; slider is styled via props.
 - `v-subheader`: renamed `v-list-subheader`.
 - `v-layout` / `v-flex`: Vuetify 1-era grid, long removed. Become `v-row` / `v-col`.
-- `app`, `fixed`, `clipped`, `clipped-left` props on layout components: removed. Vuetify 3 computes layout automatically.
+- `app`, `fixed`, `clipped`, `clipped-left` props on layout components: removed. Vuetify 4 computes layout automatically.
 - `dark` prop on `v-app` and various components: removed in favour of theme configuration.
 - `v-data-table`: header schema changes from `text`/`value` to `title`/`key`; item slot names change accordingly.
 - `v-time-picker`: still in Vuetify labs; requires an explicit labs import.
@@ -187,7 +197,7 @@ Implementation runs through workflows with subagent-driven development, fanning 
 
 Parallelism is available within stages, not across them, because stages 4-9 all build on the layout from stage 4 and share the Vuetify conventions established there. The main fan-out opportunities:
 
-- Stage 7's ten `Modules/*Settings` components are mutually independent and can be ported concurrently, one subagent each, against a shared set of Vuetify 3 conventions agreed beforehand.
+- Stage 7's ten `Modules/*Settings` components are mutually independent and can be ported concurrently, one subagent each, against a shared set of Vuetify 4 conventions agreed beforehand.
 - Stages 5, 8, and 9 touch disjoint pages and components and can proceed in parallel once stage 4 lands, subject to the Vuetify conventions being settled.
 - Stage 11's TypeScript conversion is per-file and parallelizes broadly, after shared types and composables exist.
 

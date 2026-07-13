@@ -2,11 +2,11 @@
 
 > For agentic workers: REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-Goal: Migrate the Avior admin dashboard from Nuxt 2 / Vue 2 / Vuetify 2 (SSR) to a Vue 3 / Vite / Vuetify 3 single-page app served by a standalone Express server, on pnpm, with `<script setup lang="ts">` components.
+Goal: Migrate the Avior admin dashboard from Nuxt 2 / Vue 2 / Vuetify 2 (SSR) to a Vue 3 / Vite / Vuetify 4 single-page app served by a standalone Express server, on pnpm, with `<script setup lang="ts">` components.
 
 Architecture: The Express + Mongoose API is extracted out of Nuxt's `serverMiddleware` into a standalone server that also serves the built SPA, keeping the current single-container deployment. SSR is removed entirely, which eliminates the dual base-URL problem the project previously hit. The Vue 3 app is scaffolded alongside the still-working Nuxt app and pages are ported one at a time so each can be compared against its live predecessor; Nuxt is deleted only after every page has been seen working.
 
-Tech Stack: Vue 3, Vite, Vuetify 3, vue-router via unplugin-vue-router, native fetch, Express, Mongoose, pnpm, TypeScript.
+Tech Stack: Vue 3, Vite, Vuetify 4, vue-router via unplugin-vue-router, native fetch, Express, Mongoose, pnpm, TypeScript.
 
 Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.md`
 
@@ -17,7 +17,9 @@ Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.m
 - Behaviour is preserved. This is a framework migration, not a redesign. Any visual or functional difference from the current app is a bug unless this plan explicitly calls for it.
 - The browser calls the Avior encoding daemons directly at their absolute LAN addresses. Do not introduce a proxy for them. Only MongoDB stays behind Express.
 - App-origin API calls use relative paths (`/api/...`) in both dev and prod. No `baseURL` is configured anywhere. This is deliberate: a configured base URL is what broke before.
-- Theme: Vuetify 3 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries.
+- Vuetify 4 (currently 4.1.4), not Vuetify 3. Vuetify 4 is still a Vue 3 library — the major bump is not about Vue 4. It requires `vue: ^3.5.0`, which we have.
+- Vuetify 4 uses Material Design 3. Typography, elevation (25 levels down to 6), default breakpoints, `VContainer` max-widths, and button casing (no more uppercase default) all differ from Vuetify 2 by design. These visual differences are EXPECTED and are not migration bugs. Do not "fix" them back. What must match the old app is structure and behaviour: the same elements, the same hierarchy, the same interactions, the same data. Exact pixels, font sizes, and shadows will not match, and that is correct.
+- Theme: Vuetify 4 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries. Set `defaultTheme: 'dark'` explicitly: Vuetify 4 changed the default to follow system preference, which would otherwise give a light app.
 - Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
@@ -25,7 +27,7 @@ Design spec: `docs/superpowers/specs/2026-07-13-nuxt2-to-vue3-migration-design.m
 
 ## Ported-file conventions
 
-Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 3. Every one of them follows the same rules. Read this section before starting any of those tasks; the per-task notes list only which of these apply and any file-specific gotchas.
+Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 4. Every one of them follows the same rules. Read this section before starting any of those tasks; the per-task notes list only which of these apply and any file-specific gotchas.
 
 ### Template: Vuetify 2 to Vuetify 3
 
@@ -42,13 +44,32 @@ Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 3. Every o
 | `<v-tabs-slider>` | removed — no replacement tag; slider is styled via props on `v-tabs` |
 | `<v-subheader>` | `<v-list-subheader>` |
 | `<v-layout>` / `<v-flex>` | `<v-row>` / `<v-col>` |
-| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 3 computes layout geometry itself |
+| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 4 computes layout geometry itself |
 | `dark` prop on any component | removed — the theme handles it; simply delete the attribute |
 | `:mini-variant="x"` on `v-navigation-drawer` | `:rail="x"` |
 | `v-data-table` `headers: [{ text, value }]` | `headers: [{ title, key }]` |
 | `v-data-table` slot `#item.foo` | `#item.foo` still, but `foo` now matches the header `key` |
 | `v-data-table` `:items-per-page` etc. | unchanged, but check the component renders before assuming |
 | `<v-time-picker>` | still in Vuetify labs — needs an explicit labs import (see Task 3) |
+
+### Template: additional Vuetify 4 changes
+
+The table above covers what Vuetify 3 removed. Vuetify 4 changes more on top of it. These apply too:
+
+| Vuetify 3 | Vuetify 4 |
+|---|---|
+| `<v-row dense>` | `<v-row density="compact">` (or `gap="8"`) |
+| `<v-row align="center">` / `justify="..."` / `align-content="..."` | props removed — use the equivalent utility class on the row (`align-center`, `justify-center`, …), including the responsive variants (`align-sm`, `order-md`, …) |
+| `<v-col order="2">` / `align-self="..."` | props removed — use utility classes |
+| `v-select` / `v-combobox` / `v-autocomplete` slot `#item` | renamed `#internalItem`. `item` survives as an alias for `internalItem.raw`, so read the slot body before changing it |
+| `v-container fill-height` centering | no longer centers vertically — add `d-flex align-center flex-wrap` if the centering was load-bearing |
+| `elevation-8` and similar, up to 24 | elevation is now 0-5 only. Map anything above 5 down; a codemod exists |
+| `text-h1` … `text-caption` typography classes | renamed to the MD3 scale (`text-display-large`, `text-headline-small`, `text-body-medium`, …). A codemod exists |
+| `v-btn` uppercase by default | no longer uppercase. If a specific button's casing matters, set it explicitly |
+
+The grid is the one to be careful with: Vuetify 4 rebuilt `v-row`/`v-col` on CSS `gap` instead of negative margins. Read what a row is actually doing before converting it.
+
+The current codebase is Vuetify 2, so it does not use the MD3 typography or elevation class names anywhere — those rows matter only if a port introduces them. Do not introduce them.
 
 ### Template: Vue 3 core
 
@@ -73,8 +94,8 @@ There is no test suite. Verification means:
 1. `pnpm dev` (Vite, port 5173) and `pnpm dev:api` (Express, port 10009) both running.
 2. Open the ported page in the browser.
 3. Open the old Nuxt app (`pnpm dev:nuxt`, port 3000) at the same page, side by side.
-4. Confirm the layout matches and the page's interactions work.
-5. Check the browser console. Zero errors and zero Vue warnings. Vuetify emits loud warnings for removed props, so a clean console is a real signal here.
+4. Compare them, applying the right standard. What must match: every element is present, the hierarchy and grouping are the same, every interaction works, and the same data appears. What will NOT match, by design, because Vuetify 4 is Material Design 3: font sizes and weights, shadow depths, button label casing, exact spacing and breakpoints. Do not chase those. If you cannot tell whether a difference is intentional MD3 or a real regression, say so in your report rather than guessing — a wrong guess in either direction is worse than an open question.
+5. Check the browser console. Zero errors and zero Vue warnings. Vuetify warns loudly about removed props, so a clean console is a real signal here — this, rather than pixel comparison, is now the sharpest tool for catching a bad port.
 
 ---
 
@@ -442,11 +463,17 @@ Interfaces:
 These are added alongside the Nuxt dependencies. The two dependency trees coexist until Task 13. pnpm handles this without conflict because Vue 2 (`vue@2`, pulled in by `nuxt`) and Vue 3 (`vue@3`) are separate packages in the tree — but note that `pnpm dev:nuxt` and `pnpm dev` must not be assumed to share anything.
 
 ```bash
-pnpm add vue@^3 vue-router@^4 vuetify@^3 @mdi/font
-pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify unplugin-vue-router typescript vue-tsc @types/node
+pnpm add vue@^3.5 vue-router@^4.6 vuetify@^4.1 @mdi/font
+pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify@^2.1 unplugin-vue-router typescript vue-tsc @types/node
 ```
 
-Record the resolved versions from the pnpm output in the commit message. Expected majors: Vue 3.5+, Vuetify 3.7+, Vite 6+, vue-router 4.x.
+Two of these pins are deliberate and must not be "upgraded":
+
+`vuetify@^4.1` — Vuetify 4 is the current release (4.1.4) and is still a Vue 3 library; its peer dependency is `vue: ^3.5.0`. Do not install Vuetify 3.
+
+`vue-router@^4.6` — vue-router 5 exists, but `unplugin-vue-router@0.19.2` (the newest) declares `vue-router: ^4.6.0` as its peer. Since this project uses file-based routing, vue-router 4.6.x is required. Installing vue-router 5 will break routing. If a future unplugin-vue-router supports v5, that is a separate change, not this task.
+
+Record the resolved versions from the pnpm output in the commit message.
 
 - [ ] Step 2: Delete the dead files
 
@@ -733,9 +760,9 @@ Expected: Nuxt serves on port 3000, unchanged. Both apps now run simultaneously.
 
 ```bash
 git add -A
-git commit -m "feat: scaffold Vue 3 + Vite + Vuetify 3 app alongside Nuxt
+git commit -m "feat: scaffold Vue 3 + Vite + Vuetify 4 app alongside Nuxt
 
-Adds vite.config.ts, the Vuetify 3 instance (stock dark theme, primary
+Adds vite.config.ts, the Vuetify 4 instance (stock dark theme, primary
 #9E9E9E and secondary #FF8F00), file-based routing via unplugin-vue-router,
 and the native-fetch http wrapper replacing @nuxt/http.
 
@@ -758,7 +785,7 @@ Files:
 Interfaces:
 - Produces: the app shell — `v-app`, `v-navigation-drawer`, `v-app-bar`, `v-main` containing `<router-view />`, and `v-footer`. Every page from Task 5 onwards renders inside this.
 
-This is the highest-density Vuetify conversion in the project relative to its size. `layouts/default.vue` uses `app`, `fixed`, `clipped`, `clipped-left`, `mini-variant`, `v-list-item-content`, `v-list-item-action`, and a `dark` prop on `v-app` — nearly every removed API at once. Do not attempt a find-and-replace; read the Vuetify 3 docs for `v-navigation-drawer` and `v-app-bar` and rebuild the shell.
+This is the highest-density Vuetify conversion in the project relative to its size. `layouts/default.vue` uses `app`, `fixed`, `clipped`, `clipped-left`, `mini-variant`, `v-list-item-content`, `v-list-item-action`, and a `dark` prop on `v-app` — nearly every removed API at once. Do not attempt a find-and-replace; read the Vuetify 4 docs for `v-navigation-drawer` and `v-app-bar` and rebuild the shell.
 
 - [ ] Step 1: Read the source
 
@@ -776,7 +803,7 @@ Apply the conversion table. The specific changes required:
 - `<nuxt />` inside `v-main`'s `v-container` becomes `<router-view />`.
 - `process.env.commitSha` becomes `import.meta.env.VITE_COMMIT_SHA`.
 
-The `clipped` toggle deserves a decision rather than a mechanical port: Vuetify 3 computes layout automatically and has no `clipped` concept, so the button that toggles it has nothing to toggle. Keep the button and wire it to nothing, or remove it. Remove it — a button that does nothing is worse than an absent one. Note the removal in the commit message so the user can object.
+The `clipped` toggle deserves a decision rather than a mechanical port: Vuetify 4 computes layout automatically and has no `clipped` concept, so the button that toggles it has nothing to toggle. Keep the button and wire it to nothing, or remove it. Remove it — a button that does nothing is worse than an absent one. Note the removal in the commit message so the user can object.
 
 Keep the `<style>` block (scrollbar styling, `.max-container-width`, `.code-font`) verbatim. It is plain CSS and carries over unchanged.
 
@@ -794,18 +821,18 @@ Run `pnpm dev` and `pnpm dev:nuxt`. Open `http://localhost:5173` and `http://loc
 
 Expected: identical app bar, identical nav drawer with the same five items and icons, identical footer. The drawer toggle opens and closes it. The rail (mini-variant) toggle collapses it to icons. Clicking each nav item changes the URL to `/`, `/jobs`, `/config`, `/globalconfig`, `/settings` — the pages are empty (they do not exist yet) but the route must change and the catch-all must not fire. Navigating to `http://localhost:5173/nonexistent` shows the error page.
 
-The browser console must be free of Vuetify warnings. Vuetify 3 warns loudly about removed props, so any surviving `app`/`fixed`/`clipped` shows up here.
+The browser console must be free of Vuetify warnings. Vuetify 4 warns loudly about removed props, so any surviving `app`/`fixed`/`clipped` shows up here.
 
 - [ ] Step 6: Commit
 
 ```bash
 git add -A
-git commit -m "feat: port app layout to Vue 3 + Vuetify 3
+git commit -m "feat: port app layout to Vue 3 + Vuetify 4
 
 App.vue replaces layouts/default.vue; a [...path] catch-all route replaces
 layouts/error.vue.
 
-Vuetify 3 computes layout geometry itself, so the app/fixed/clipped/
+Vuetify 4 computes layout geometry itself, so the app/fixed/clipped/
 clipped-left props are gone. The app-bar button that toggled 'clipped' has
 been removed rather than left wired to nothing."
 ```
@@ -858,7 +885,7 @@ If the list renders but is empty on both, the database is empty rather than the 
 
 ```bash
 git add -A
-git commit -m "feat: port settings page and SimpleList to Vue 3 + Vuetify 3
+git commit -m "feat: port settings page and SimpleList to Vue 3 + Vuetify 4
 
 First page on the new stack. Proves the browser -> Express -> Mongoose path.
 Nuxt's fetch() hook becomes refresh() called from mounted(); $http becomes the
@@ -881,7 +908,7 @@ Interfaces:
 
 Treat this as a careful port, not a mechanical one. Read the whole file before changing anything. Preserve the existing behaviour exactly, including quirks; if something looks like a bug, note it in the commit message rather than fixing it silently — a behaviour change here is indistinguishable from a migration regression.
 
-Vuetify APIs in use that change: `v-list-item-content` (unwrap), `v-skeleton-loader`, `v-virtual-scroll`, `v-tooltip`, `v-btn-toggle`, and a `dark` prop. `v-skeleton-loader`, `v-virtual-scroll`, and `v-btn-toggle` all exist in Vuetify 3 but their props and slots differ — check each against the Vuetify 3 docs rather than assuming. `v-tooltip` in particular changed its activator API significantly: the Vuetify 2 `v-slot:activator="{ on, attrs }"` with `v-on="on" v-bind="attrs"` becomes `v-slot:activator="{ props }"` with `v-bind="props"`.
+Vuetify APIs in use that change: `v-list-item-content` (unwrap), `v-skeleton-loader`, `v-virtual-scroll`, `v-tooltip`, `v-btn-toggle`, and a `dark` prop. `v-skeleton-loader`, `v-virtual-scroll`, and `v-btn-toggle` all exist in Vuetify 4 but their props and slots differ — check each against the Vuetify 4 docs rather than assuming. `v-tooltip` in particular changed its activator API significantly: the Vuetify 2 `v-slot:activator="{ on, attrs }"` with `v-on="on" v-bind="attrs"` becomes `v-slot:activator="{ props }"` with `v-bind="props"`.
 
 - [ ] Step 1: Read the entire file
 
@@ -909,12 +936,12 @@ Revert the temporary index.vue change before committing.
 
 ```bash
 git add -A
-git commit -m "feat: port Client.vue to Vue 3 + Vuetify 3
+git commit -m "feat: port Client.vue to Vue 3 + Vuetify 4
 
 Largest and most carefully tuned component in the project (879 lines).
 Behaviour preserved exactly. v-tooltip's activator slot API changed
 (on/attrs -> props); v-skeleton-loader, v-virtual-scroll and v-btn-toggle
-props checked individually against Vuetify 3.
+props checked individually against Vuetify 4.
 
 Daemon log calls remain absolute URLs straight from the browser, not proxied."
 ```
@@ -959,7 +986,7 @@ Expected: the same client cards, in the same order, with the same live/offline s
 
 ```bash
 git add -A
-git commit -m "feat: port Overview page to Vue 3 + Vuetify 3
+git commit -m "feat: port Overview page to Vue 3 + Vuetify 4
 
 Nuxt's fetch() hook becomes refresh() from mounted(). Fixes a latent bug: the
 client registry was fetched from the relative path 'api/clients' rather than
@@ -1015,7 +1042,7 @@ One commit for all ten — they are a single logical unit and none is independen
 
 ```bash
 git add -A
-git commit -m "feat: port ten Modules/*Settings components to Vuetify 3
+git commit -m "feat: port ten Modules/*Settings components to Vuetify 4
 
 Mechanical conversion: v-list-item-icon to #prepend slots, dark prop removed
 (handled by theme). Scripts unchanged (Options API, JavaScript).
@@ -1051,7 +1078,7 @@ As with Task 8, these render inside `config.vue` and cannot be visually verified
 
 ```bash
 git add -A
-git commit -m "feat: port EncoderConfig, CacheConfig, Property and Module to Vuetify 3
+git commit -m "feat: port EncoderConfig, CacheConfig, Property and Module to Vuetify 4
 
 v-subheader becomes v-list-subheader in CacheConfig. Module.vue gains explicit
 imports for the Settings components it renders, replacing Nuxt auto-import."
@@ -1102,7 +1129,7 @@ Expected: the client selector populates; selecting a client loads its config; ev
 
 ```bash
 git add -A
-git commit -m "feat: port client config page to Vue 3 + Vuetify 3
+git commit -m "feat: port client config page to Vue 3 + Vuetify 4
 
 v-tabs-items/v-tab-item become v-window/v-window-item. Removes the last
 $set/$delete calls: Vue 3's proxy reactivity tracks plain property add and
@@ -1141,7 +1168,7 @@ Expected: the job table renders with the same columns, same sort behaviour, and 
 
 ```bash
 git add -A
-git commit -m "feat: port jobs page and JobDataTable to Vue 3 + Vuetify 3
+git commit -m "feat: port jobs page and JobDataTable to Vue 3 + Vuetify 4
 
 First v-data-table conversion: header schema moves from {text,value} to
 {title,key}. Job de-duplication behaviour verified against the old app."
@@ -1195,7 +1222,7 @@ Expected: identical tabs; the client list renders with the same layout (this is 
 
 ```bash
 git add -A
-git commit -m "feat: port global config page and TextDataTable to Vue 3 + Vuetify 3
+git commit -m "feat: port global config page and TextDataTable to Vue 3 + Vuetify 4
 
 Heaviest Vuetify conversion: v-layout/v-flex (Vuetify 1-era grid) become
 v-row/v-col; v-tabs-items becomes v-window; v-menu and v-overlay activator
@@ -1364,7 +1391,7 @@ The composable returns the resolved clients and the loading state. Replace `Prom
 
 - [ ] Step 3: Convert scripts file by file
 
-Each `.vue` file's `<script>` becomes `<script setup lang="ts">`. Templates are already Vuetify 3 correct and must not be touched. Options API constructs map as follows: `data()` becomes `ref()` / `reactive()`, `computed` becomes `computed()`, `methods` become plain functions, `props` become `defineProps<T>()`, `$emit` becomes `defineEmits<T>()`, `mounted()` becomes `onMounted()`.
+Each `.vue` file's `<script>` becomes `<script setup lang="ts">`. Templates are already Vuetify 4 correct and must not be touched. Options API constructs map as follows: `data()` becomes `ref()` / `reactive()`, `computed` becomes `computed()`, `methods` become plain functions, `props` become `defineProps<T>()`, `$emit` becomes `defineEmits<T>()`, `mounted()` becomes `onMounted()`.
 
 The four pages that duplicate address resolution drop their local copies and call `useClientResolution()` instead.
 
@@ -1427,7 +1454,7 @@ Expected: zero errors. Fix what it finds.
 
 - [ ] Step 3: Rewrite the README
 
-It currently documents a Nuxt app — the build commands, the directory structure, and the deployment description are all wrong now. Rewrite it to describe: the Vue 3 / Vite / Vuetify 3 / Express stack, the `pnpm dev` plus `pnpm dev:api` development flow (and the ports), the `MONGO_URL` environment variable, and the single-container Docker deployment.
+It currently documents a Nuxt app — the build commands, the directory structure, and the deployment description are all wrong now. Rewrite it to describe: the Vue 3 / Vite / Vuetify 4 / Express stack, the `pnpm dev` plus `pnpm dev:api` development flow (and the ports), the `MONGO_URL` environment variable, and the single-container Docker deployment.
 
 - [ ] Step 4: Commit
 

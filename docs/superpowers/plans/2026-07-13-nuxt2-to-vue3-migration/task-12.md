@@ -14,7 +14,9 @@ Read the constraints below before starting; they are not optional.
 - Behaviour is preserved. This is a framework migration, not a redesign. Any visual or functional difference from the current app is a bug unless this plan explicitly calls for it.
 - The browser calls the Avior encoding daemons directly at their absolute LAN addresses. Do not introduce a proxy for them. Only MongoDB stays behind Express.
 - App-origin API calls use relative paths (`/api/...`) in both dev and prod. No `baseURL` is configured anywhere. This is deliberate: a configured base URL is what broke before.
-- Theme: Vuetify 3 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries.
+- Vuetify 4 (currently 4.1.4), not Vuetify 3. Vuetify 4 is still a Vue 3 library — the major bump is not about Vue 4. It requires `vue: ^3.5.0`, which we have.
+- Vuetify 4 uses Material Design 3. Typography, elevation (25 levels down to 6), default breakpoints, `VContainer` max-widths, and button casing (no more uppercase default) all differ from Vuetify 2 by design. These visual differences are EXPECTED and are not migration bugs. Do not "fix" them back. What must match the old app is structure and behaviour: the same elements, the same hierarchy, the same interactions, the same data. Exact pixels, font sizes, and shadows will not match, and that is correct.
+- Theme: Vuetify 4 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries. Set `defaultTheme: 'dark'` explicitly: Vuetify 4 changed the default to follow system preference, which would otherwise give a light app.
 - Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
@@ -22,7 +24,7 @@ Read the constraints below before starting; they are not optional.
 
 ## Ported-file conventions
 
-Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 3. Every one of them follows the same rules. Read this section before starting any of those tasks; the per-task notes list only which of these apply and any file-specific gotchas.
+Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 4. Every one of them follows the same rules. Read this section before starting any of those tasks; the per-task notes list only which of these apply and any file-specific gotchas.
 
 ### Template: Vuetify 2 to Vuetify 3
 
@@ -39,13 +41,32 @@ Tasks 4 through 12 all port Vue 2 + Vuetify 2 SFCs to Vue 3 + Vuetify 3. Every o
 | `<v-tabs-slider>` | removed — no replacement tag; slider is styled via props on `v-tabs` |
 | `<v-subheader>` | `<v-list-subheader>` |
 | `<v-layout>` / `<v-flex>` | `<v-row>` / `<v-col>` |
-| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 3 computes layout geometry itself |
+| `app`, `fixed`, `clipped`, `clipped-left` props on `v-app-bar` / `v-navigation-drawer` / `v-footer` / `v-main` | all removed — Vuetify 4 computes layout geometry itself |
 | `dark` prop on any component | removed — the theme handles it; simply delete the attribute |
 | `:mini-variant="x"` on `v-navigation-drawer` | `:rail="x"` |
 | `v-data-table` `headers: [{ text, value }]` | `headers: [{ title, key }]` |
 | `v-data-table` slot `#item.foo` | `#item.foo` still, but `foo` now matches the header `key` |
 | `v-data-table` `:items-per-page` etc. | unchanged, but check the component renders before assuming |
 | `<v-time-picker>` | still in Vuetify labs — needs an explicit labs import (see Task 3) |
+
+### Template: additional Vuetify 4 changes
+
+The table above covers what Vuetify 3 removed. Vuetify 4 changes more on top of it. These apply too:
+
+| Vuetify 3 | Vuetify 4 |
+|---|---|
+| `<v-row dense>` | `<v-row density="compact">` (or `gap="8"`) |
+| `<v-row align="center">` / `justify="..."` / `align-content="..."` | props removed — use the equivalent utility class on the row (`align-center`, `justify-center`, …), including the responsive variants (`align-sm`, `order-md`, …) |
+| `<v-col order="2">` / `align-self="..."` | props removed — use utility classes |
+| `v-select` / `v-combobox` / `v-autocomplete` slot `#item` | renamed `#internalItem`. `item` survives as an alias for `internalItem.raw`, so read the slot body before changing it |
+| `v-container fill-height` centering | no longer centers vertically — add `d-flex align-center flex-wrap` if the centering was load-bearing |
+| `elevation-8` and similar, up to 24 | elevation is now 0-5 only. Map anything above 5 down; a codemod exists |
+| `text-h1` … `text-caption` typography classes | renamed to the MD3 scale (`text-display-large`, `text-headline-small`, `text-body-medium`, …). A codemod exists |
+| `v-btn` uppercase by default | no longer uppercase. If a specific button's casing matters, set it explicitly |
+
+The grid is the one to be careful with: Vuetify 4 rebuilt `v-row`/`v-col` on CSS `gap` instead of negative margins. Read what a row is actually doing before converting it.
+
+The current codebase is Vuetify 2, so it does not use the MD3 typography or elevation class names anywhere — those rows matter only if a port introduces them. Do not introduce them.
 
 ### Template: Vue 3 core
 
@@ -70,8 +91,8 @@ There is no test suite. Verification means:
 1. `pnpm dev` (Vite, port 5173) and `pnpm dev:api` (Express, port 10009) both running.
 2. Open the ported page in the browser.
 3. Open the old Nuxt app (`pnpm dev:nuxt`, port 3000) at the same page, side by side.
-4. Confirm the layout matches and the page's interactions work.
-5. Check the browser console. Zero errors and zero Vue warnings. Vuetify emits loud warnings for removed props, so a clean console is a real signal here.
+4. Compare them, applying the right standard. What must match: every element is present, the hierarchy and grouping are the same, every interaction works, and the same data appears. What will NOT match, by design, because Vuetify 4 is Material Design 3: font sizes and weights, shadow depths, button label casing, exact spacing and breakpoints. Do not chase those. If you cannot tell whether a difference is intentional MD3 or a real regression, say so in your report rather than guessing — a wrong guess in either direction is worse than an open question.
+5. Check the browser console. Zero errors and zero Vue warnings. Vuetify warns loudly about removed props, so a clean console is a real signal here — this, rather than pixel comparison, is now the sharpest tool for catching a bad port.
 
 ---
 
@@ -121,7 +142,7 @@ Expected: identical tabs; the client list renders with the same layout (this is 
 
 ```bash
 git add -A
-git commit -m "feat: port global config page and TextDataTable to Vue 3 + Vuetify 3
+git commit -m "feat: port global config page and TextDataTable to Vue 3 + Vuetify 4
 
 Heaviest Vuetify conversion: v-layout/v-flex (Vuetify 1-era grid) become
 v-row/v-col; v-tabs-items becomes v-window; v-menu and v-overlay activator

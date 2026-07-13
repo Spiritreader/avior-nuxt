@@ -14,7 +14,9 @@ Read the constraints below before starting; they are not optional.
 - Behaviour is preserved. This is a framework migration, not a redesign. Any visual or functional difference from the current app is a bug unless this plan explicitly calls for it.
 - The browser calls the Avior encoding daemons directly at their absolute LAN addresses. Do not introduce a proxy for them. Only MongoDB stays behind Express.
 - App-origin API calls use relative paths (`/api/...`) in both dev and prod. No `baseURL` is configured anywhere. This is deliberate: a configured base URL is what broke before.
-- Theme: Vuetify 3 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries.
+- Vuetify 4 (currently 4.1.4), not Vuetify 3. Vuetify 4 is still a Vue 3 library — the major bump is not about Vue 4. It requires `vue: ^3.5.0`, which we have.
+- Vuetify 4 uses Material Design 3. Typography, elevation (25 levels down to 6), default breakpoints, `VContainer` max-widths, and button casing (no more uppercase default) all differ from Vuetify 2 by design. These visual differences are EXPECTED and are not migration bugs. Do not "fix" them back. What must match the old app is structure and behaviour: the same elements, the same hierarchy, the same interactions, the same data. Exact pixels, font sizes, and shadows will not match, and that is correct.
+- Theme: Vuetify 4 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries. Set `defaultTheme: 'dark'` explicitly: Vuetify 4 changed the default to follow system preference, which would otherwise give a light app.
 - Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
@@ -51,7 +53,7 @@ The composable returns the resolved clients and the loading state. Replace `Prom
 
 - [ ] Step 3: Convert scripts file by file
 
-Each `.vue` file's `<script>` becomes `<script setup lang="ts">`. Templates are already Vuetify 3 correct and must not be touched. Options API constructs map as follows: `data()` becomes `ref()` / `reactive()`, `computed` becomes `computed()`, `methods` become plain functions, `props` become `defineProps<T>()`, `$emit` becomes `defineEmits<T>()`, `mounted()` becomes `onMounted()`.
+Each `.vue` file's `<script>` becomes `<script setup lang="ts">`. Templates are already Vuetify 4 correct and must not be touched. Options API constructs map as follows: `data()` becomes `ref()` / `reactive()`, `computed` becomes `computed()`, `methods` become plain functions, `props` become `defineProps<T>()`, `$emit` becomes `defineEmits<T>()`, `mounted()` becomes `onMounted()`.
 
 The four pages that duplicate address resolution drop their local copies and call `useClientResolution()` instead.
 

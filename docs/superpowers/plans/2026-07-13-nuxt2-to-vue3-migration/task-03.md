@@ -14,7 +14,9 @@ Read the constraints below before starting; they are not optional.
 - Behaviour is preserved. This is a framework migration, not a redesign. Any visual or functional difference from the current app is a bug unless this plan explicitly calls for it.
 - The browser calls the Avior encoding daemons directly at their absolute LAN addresses. Do not introduce a proxy for them. Only MongoDB stays behind Express.
 - App-origin API calls use relative paths (`/api/...`) in both dev and prod. No `baseURL` is configured anywhere. This is deliberate: a configured base URL is what broke before.
-- Theme: Vuetify 3 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries.
+- Vuetify 4 (currently 4.1.4), not Vuetify 3. Vuetify 4 is still a Vue 3 library — the major bump is not about Vue 4. It requires `vue: ^3.5.0`, which we have.
+- Vuetify 4 uses Material Design 3. Typography, elevation (25 levels down to 6), default breakpoints, `VContainer` max-widths, and button casing (no more uppercase default) all differ from Vuetify 2 by design. These visual differences are EXPECTED and are not migration bugs. Do not "fix" them back. What must match the old app is structure and behaviour: the same elements, the same hierarchy, the same interactions, the same data. Exact pixels, font sizes, and shadows will not match, and that is correct.
+- Theme: Vuetify 4 stock dark theme, with exactly two color overrides — `primary: #9E9E9E`, `secondary: #FF8F00`. Do not port the old accent/info/warning/error/success entries. Set `defaultTheme: 'dark'` explicitly: Vuetify 4 changed the default to follow system preference, which would otherwise give a light app.
 - Our own components are imported explicitly. Vuetify's components are auto-imported by `vite-plugin-vuetify`. Do not add `unplugin-vue-components` for our components.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
@@ -50,11 +52,17 @@ Interfaces:
 These are added alongside the Nuxt dependencies. The two dependency trees coexist until Task 13. pnpm handles this without conflict because Vue 2 (`vue@2`, pulled in by `nuxt`) and Vue 3 (`vue@3`) are separate packages in the tree — but note that `pnpm dev:nuxt` and `pnpm dev` must not be assumed to share anything.
 
 ```bash
-pnpm add vue@^3 vue-router@^4 vuetify@^3 @mdi/font
-pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify unplugin-vue-router typescript vue-tsc @types/node
+pnpm add vue@^3.5 vue-router@^4.6 vuetify@^4.1 @mdi/font
+pnpm add -D vite @vitejs/plugin-vue vite-plugin-vuetify@^2.1 unplugin-vue-router typescript vue-tsc @types/node
 ```
 
-Record the resolved versions from the pnpm output in the commit message. Expected majors: Vue 3.5+, Vuetify 3.7+, Vite 6+, vue-router 4.x.
+Two of these pins are deliberate and must not be "upgraded":
+
+`vuetify@^4.1` — Vuetify 4 is the current release (4.1.4) and is still a Vue 3 library; its peer dependency is `vue: ^3.5.0`. Do not install Vuetify 3.
+
+`vue-router@^4.6` — vue-router 5 exists, but `unplugin-vue-router@0.19.2` (the newest) declares `vue-router: ^4.6.0` as its peer. Since this project uses file-based routing, vue-router 4.6.x is required. Installing vue-router 5 will break routing. If a future unplugin-vue-router supports v5, that is a separate change, not this task.
+
+Record the resolved versions from the pnpm output in the commit message.
 
 - [ ] Step 2: Delete the dead files
 
@@ -341,9 +349,9 @@ Expected: Nuxt serves on port 3000, unchanged. Both apps now run simultaneously.
 
 ```bash
 git add -A
-git commit -m "feat: scaffold Vue 3 + Vite + Vuetify 3 app alongside Nuxt
+git commit -m "feat: scaffold Vue 3 + Vite + Vuetify 4 app alongside Nuxt
 
-Adds vite.config.ts, the Vuetify 3 instance (stock dark theme, primary
+Adds vite.config.ts, the Vuetify 4 instance (stock dark theme, primary
 #9E9E9E and secondary #FF8F00), file-based routing via unplugin-vue-router,
 and the native-fetch http wrapper replacing @nuxt/http.
 
