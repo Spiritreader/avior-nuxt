@@ -32,13 +32,28 @@ export default createVuetify({
   // underlined-input design (that was Vuetify 2's default, and every field here was
   // written against it). Setting it once here is the idiomatic Vuetify 4 way; an
   // explicit variant="outlined" or "solo" on an individual field still wins.
+  //
+  // hideDetails: 'auto' — Vuetify 4 permanently reserves ~26px under every input for
+  // a validation message, whether or not one can appear, which left a dead gap under
+  // fields and sliders. 'auto' collapses it and expands only when a rule actually
+  // fails, so the fields that do have :rules (client name, priority) still report.
+  //
+  // The slider was re-specced by MD3 and came out much heavier than Vuetify 2's:
+  //
+  //               Vuetify 2   Vuetify 4
+  //   track           2px        4px
+  //   thumb          12px       20px
+  //   overall        32px       58px
+  //
+  // trackSize/thumbSize/density are v4's own props for this, so no CSS override.
   defaults: {
-    VTextField: { variant: 'underlined' },
-    VTextarea: { variant: 'underlined' },
-    VSelect: { variant: 'underlined' },
-    VCombobox: { variant: 'underlined' },
-    VAutocomplete: { variant: 'underlined' },
-    VFileInput: { variant: 'underlined' },
+    VTextField: { variant: 'underlined', hideDetails: 'auto' },
+    VTextarea: { variant: 'underlined', hideDetails: 'auto' },
+    VSelect: { variant: 'underlined', hideDetails: 'auto' },
+    VCombobox: { variant: 'underlined', hideDetails: 'auto' },
+    VAutocomplete: { variant: 'underlined', hideDetails: 'auto' },
+    VFileInput: { variant: 'underlined', hideDetails: 'auto' },
+    VSlider: { trackSize: 2, thumbSize: 12, density: 'compact', hideDetails: 'auto' },
   },
   theme: {
     defaultTheme: 'dark',

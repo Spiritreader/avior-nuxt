@@ -138,8 +138,14 @@
               contentName="Resolution"
             ></Property>
             <v-container class="d-flex justify-center">
-              <!-- v-btn has no `fab` prop in Vuetify 4; the boolean `icon` prop gives the round FAB shape. -->
-              <v-btn variant="text" icon color="red-darken-3" @click="addResolution()">
+              <!--
+                The original was `fab`: a filled, elevated, 56px round button. Vuetify 4
+                has no `fab` prop — `icon` gives the round shape and the default
+                `elevated` variant gives the fill and shadow, so this must NOT be
+                variant="text" (that is for flat icon buttons and left it looking like a
+                bare glyph). size="large" is v4's 56px, matching v2's fab.
+              -->
+              <v-btn icon size="large" color="red-darken-3" @click="addResolution()">
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </v-container>
@@ -147,7 +153,13 @@
 
           <!--modules-->
           <!--first column-->
-          <v-window-item :eager="true" :key="configHeaders[3]" :value="configHeaders[3]" class="mt-2">
+          <!--
+            bg-background (#121212) rather than the card's own surface (#212121): the
+            module cards are #242424, so on the default surface they were within a few
+            values of their backdrop and read as one flat slab. The theme's background
+            token is the darker step that gives them an edge.
+          -->
+          <v-window-item :eager="true" :key="configHeaders[3]" :value="configHeaders[3]" class="mt-2 bg-background">
             <div class="d-flex flex-wrap">
               <div class="module-col">
                 <Module :name="'AudioModule'" :module="config.Modules.AudioModule">
@@ -287,7 +299,14 @@
           <v-btn @click="configImportConfirm = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err" class="mt-6"
             >Import</v-btn
           >
-          <v-btn @click="configExportDialog = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err" class="mt-6"
+          <!--
+            ml-1: the original never declared a gap here — it got one from the
+            whitespace text node between the two buttons, which renders as a 4px space
+            between inline-flex elements. Vue 3's compiler condenses whitespace-only
+            nodes between elements away, so the buttons ended up touching. Declared
+            explicitly rather than depending on an HTML space again.
+          -->
+          <v-btn @click="configExportDialog = true" color="gray-darken-3" v-if="clientIsSelected && !loading && !err" class="mt-6 ml-1"
             >Export</v-btn
           >
         </div>

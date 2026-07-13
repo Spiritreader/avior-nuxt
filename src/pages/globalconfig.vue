@@ -130,7 +130,7 @@
             <v-btn variant="outlined" @click="importDialog = true; importType = 'name_exclude';"
               color="orange-lighten-2" class="ml-4 mt-3">Import</v-btn>
             <v-btn variant="outlined" @click="exportType = 'name_exclude'; exportConfig();"
-              color="orange-lighten-2" class="mt-3">Export</v-btn>
+              color="orange-lighten-2" class="mt-3 ml-1">Export</v-btn>
             <TextDataTable @newdata="modifyFields($event, 'name_exclude')" v-model="nameExcludes"></TextDataTable>
           </v-card>
         </v-window-item>
@@ -138,7 +138,7 @@
           <v-btn variant="outlined" @click="importDialog = true; importType = 'sub_exclude';"
             color="orange-lighten-2" class="ml-4 mt-3">Import</v-btn>
           <v-btn variant="outlined" @click="exportType = 'sub_exclude'; exportConfig();"
-            color="orange-lighten-2" class="mt-3">Export</v-btn>
+            color="orange-lighten-2" class="mt-3 ml-1">Export</v-btn>
           <v-card flat>
             <TextDataTable @newdata="modifyFields($event, 'sub_exclude')" v-model="subExcludes"></TextDataTable>
           </v-card>
@@ -149,7 +149,7 @@
             <v-btn variant="outlined" @click="importDialog = true; importType = 'log_include';"
               color="orange-lighten-2" class="ml-4 mt-3">Import</v-btn>
             <v-btn variant="outlined" @click="exportType = 'log_include'; exportConfig();"
-              color="orange-lighten-2" class="mt-3">Export</v-btn>
+              color="orange-lighten-2" class="mt-3 ml-1">Export</v-btn>
             <TextDataTable @newdata="modifyFields($event, 'log_include')" v-model="logIncludes"></TextDataTable>
           </v-card>
         </v-window-item>
@@ -158,7 +158,7 @@
             <v-btn variant="outlined" @click="importDialog = true; importType = 'log_exclude';"
               color="orange-lighten-2" class="ml-4 mt-3">Import</v-btn>
             <v-btn variant="outlined" @click="exportType = 'log_exclude'; exportConfig();"
-              color="orange-lighten-2" class="mt-3">Export</v-btn>
+              color="orange-lighten-2" class="mt-3 ml-1">Export</v-btn>
             <TextDataTable @newdata="modifyFields($event, 'log_exclude')" v-model="logExcludes"></TextDataTable>
           </v-card>
         </v-window-item>
