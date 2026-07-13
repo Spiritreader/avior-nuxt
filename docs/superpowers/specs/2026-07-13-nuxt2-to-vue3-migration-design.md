@@ -30,7 +30,7 @@ Data flow has two distinct paths, and the distinction matters:
 
 Every page fetches through Nuxt 2's `fetch()` hook using `$http` from `@nuxt/http`. Four pages (`index`, `config`, `jobs`, `globalconfig`) contain near-identical copies of the same logic: read the client registry, then race each client's candidate addresses against `/alive` to discover which one is reachable. This is the only significant duplication in the codebase.
 
-Deployment is a single Docker image built by both a Jenkinsfile and a GitHub Actions workflow, pushed to `spiritreader/avior-nuxt`.
+Deployment is a single Docker image built by a GitHub Actions workflow and pushed to `spiritreader/avior-nuxt`. A `Jenkinsfile` also exists but is legacy and out of scope for this migration.
 
 ## Decisions
 

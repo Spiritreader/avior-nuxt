@@ -21,6 +21,7 @@ Read the constraints below before starting; they are not optional.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
 - Ports during coexistence: Nuxt dev on 3000, Vite dev on 5173, Express standalone on 10009. These must not collide.
+- `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
 
 ---
 
@@ -118,7 +119,7 @@ EXPOSE 10009
 CMD ["node", "server/index.js"]
 ```
 
-`VITE_COMMIT_SHA` is set in the build stage because Vite inlines `import.meta.env` values at build time — setting it at runtime would have no effect. The existing `COMMIT` build argument, and both CI pipelines that pass it, are unchanged.
+`VITE_COMMIT_SHA` is set in the build stage because Vite inlines `import.meta.env` values at build time — setting it at runtime would have no effect. The existing `COMMIT` build argument, and the GitHub Actions workflow that passes it, are unchanged.
 
 - [ ] Step 8: Verify the container end to end
 

@@ -1,3 +1,6 @@
+# Nuxt 2's webpack build needs a flat node_modules. This is the setting that
+# takes effect: pnpm 11 does NOT read shamefully-hoist from .npmrc, so the copy
+# there is inert. Both are removed at cutover, when Nuxt is dropped.
 shamefullyHoist: true
 allowBuilds:
   core-js: true

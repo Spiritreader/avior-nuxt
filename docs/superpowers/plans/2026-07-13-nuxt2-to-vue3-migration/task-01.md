@@ -21,6 +21,7 @@ Read the constraints below before starting; they are not optional.
 - There is no test suite, by the user's explicit choice. Every task's verification step is a manual observation against the running app. Never claim a task works without having actually run the stated command and seen the stated result.
 - Every task ends with the app in a runnable state and a commit.
 - Ports during coexistence: Nuxt dev on 3000, Vite dev on 5173, Express standalone on 10009. These must not collide.
+- `Jenkinsfile` is legacy and out of scope. Do not modify it. CI that matters is `.github/workflows/main.yml`, which only calls `docker build`.
 
 ---
 
@@ -30,11 +31,11 @@ Stage 1 of the spec. Nothing about Vue changes. The app must still build and run
 
 Files:
 - Create: `.npmrc`
+- Create: `pnpm-workspace.yaml`
 - Create: `pnpm-lock.yaml` (generated)
 - Delete: `package-lock.json`
 - Modify: `package.json` (add `packageManager` field)
 - Modify: `Dockerfile`
-- Modify: `Jenkinsfile`
 - Modify: `.github/workflows/main.yml`
 
 Interfaces:
@@ -145,9 +146,11 @@ docker build -t avior-pnpm-check .
 
 Expected: build succeeds through the `pnpm build` layer. If Docker is unavailable in this environment, say so explicitly rather than assuming it passed, and flag it for the user to run.
 
-- [ ] Step 9: Confirm the CI pipelines need no changes
+- [ ] Step 9: Confirm CI needs no changes
 
-Read `Jenkinsfile` and `.github/workflows/main.yml`. Both delegate entirely to `docker build`, and neither invokes npm directly. Confirm this by reading them. If that holds, they require no edit and this step is a no-op — record that finding in the commit message rather than making a cosmetic change.
+Read `.github/workflows/main.yml`. It delegates entirely to `docker/build-push-action` and never invokes npm, so it requires no edit. Confirm by reading it, then record that finding in the commit message rather than making a cosmetic change.
+
+`Jenkinsfile` is legacy and out of scope for this migration. Do not modify it and do not spend time on it.
 
 - [ ] Step 10: Commit
 
