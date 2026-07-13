@@ -50,7 +50,7 @@
           <div v-if="isOnline()">
             <v-tooltip location="bottom" v-if="!client.Paused">
               <template v-slot:activator="{ props }">
-                <v-btn
+                <v-btn variant="text"
                   class="mb-2"
                   :loading="pauseMachine"
                   :disabled="pauseMachine"
@@ -66,7 +66,7 @@
               <span>Pause</span>
             </v-tooltip>
 
-            <v-btn
+            <v-btn variant="text"
               v-else
               class="mb-2"
               :loading="resumeMachine"
@@ -86,7 +86,7 @@
             <!-- Begin Shutdown Dialog -->
             <v-dialog v-if="isOnline()" v-model="shutdownConfirm" max-width="500">
               <template v-slot:activator="{ props }">
-                <v-btn class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" size="large" icon color="red" v-bind="props">
+                <v-btn variant="text" class="mb-2" :loading="shutdownMachine" :disabled="shutdownMachine" size="large" icon color="red" v-bind="props">
                   <v-tooltip location="bottom">
                     <template v-slot:activator="{ props: tooltipProps }">
                       <v-icon v-bind="tooltipProps">mdi-power</v-icon>
@@ -208,7 +208,7 @@
       <v-card-actions>
         <v-tooltip location="top" v-if="activeProcessInfoLength >= 5">
           <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props" @click="showProcessInfo = !showProcessInfo">
+            <v-btn variant="text" icon v-bind="props" @click="showProcessInfo = !showProcessInfo">
               <v-icon>mdi-format-list-bulleted</v-icon>
             </v-btn>
           </template>
@@ -217,7 +217,7 @@
 
         <v-tooltip location="top" v-if="isOnline()">
           <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props" @click="toggleEncoderLog">
+            <v-btn variant="text" icon v-bind="props" @click="toggleEncoderLog">
               <v-icon>mdi-console</v-icon>
             </v-btn>
           </template>
@@ -232,7 +232,7 @@
         <v-btn-toggle v-if="isOnline()" v-model="toggle_exclusive" class="ml-auto" density="compact">
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props" @click="getMainLog()">
+              <v-btn variant="text" icon v-bind="props" @click="getMainLog()">
                 <v-icon>mdi-text-box-outline</v-icon>
               </v-btn>
             </template>
@@ -241,7 +241,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props" @click="getErrorLog()">
+              <v-btn variant="text" icon v-bind="props" @click="getErrorLog()">
                 <v-icon>mdi-text-box-remove-outline</v-icon>
               </v-btn>
             </template>
@@ -250,7 +250,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props" @click="getProcessedLog()">
+              <v-btn variant="text" icon v-bind="props" @click="getProcessedLog()">
                 <v-icon>mdi-text-box-plus-outline</v-icon>
               </v-btn>
             </template>
@@ -259,7 +259,7 @@
 
           <v-tooltip location="top">
             <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props" @click="getSkippedLog()">
+              <v-btn variant="text" icon v-bind="props" @click="getSkippedLog()">
                 <v-icon>mdi-text-box-minus-outline</v-icon>
               </v-btn>
             </template>

@@ -108,11 +108,11 @@
                       </v-col>
                     </v-row>
                     <v-row justify="center">
-                      <v-btn :loading="clientLoader" class="ml-2" color="indigo-lighten-2" icon
+                      <v-btn variant="text" :loading="clientLoader" class="ml-2" color="indigo-lighten-2" icon
                         @click="editClient(client)">
                         <v-icon size="30">mdi-content-save</v-icon>
                       </v-btn>
-                      <v-btn :loading="clientLoader" class="ml-2" color="red-lighten-2" icon
+                      <v-btn variant="text" :loading="clientLoader" class="ml-2" color="red-lighten-2" icon
                         @click="client.Selected = true">
                         <v-icon size="30">mdi-delete</v-icon>
                       </v-btn>

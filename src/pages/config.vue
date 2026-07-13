@@ -126,7 +126,7 @@
             ></Property>
             <v-container class="d-flex justify-center">
               <!-- v-btn has no `fab` prop in Vuetify 4; the boolean `icon` prop gives the round FAB shape. -->
-              <v-btn icon color="red-darken-3" @click="addResolution()">
+              <v-btn variant="text" icon color="red-darken-3" @click="addResolution()">
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </v-container>

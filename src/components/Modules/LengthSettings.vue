@@ -1,7 +1,7 @@
 <template>
   <div>
     Length Difference %
-    <v-btn icon color="primary" @click="expand = !expand">
+    <v-btn variant="text" icon color="primary" @click="expand = !expand">
       <v-icon>mdi-help-circle-outline</v-icon>
     </v-btn>
     <v-expand-transition>

@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex">
     <div v-if="allowNew" class="d-flex align-center justify-center">
-      <v-btn @click="editTag()" icon class="ml-2">
+      <v-btn variant="text" @click="editTag()" icon class="ml-2">
         <v-icon v-if="disabledTag">mdi-circle-edit-outline</v-icon>
         <v-icon color="green" v-else>mdi-checkbox-marked-circle-outline</v-icon>
       </v-btn>
@@ -30,7 +30,7 @@
       </v-row>
     </v-container>
     <div v-if="allowNew" class="d-flex align-center justify-center pr-2">
-      <v-btn icon color="red" @click="remove()">
+      <v-btn variant="text" icon color="red" @click="remove()">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </div>

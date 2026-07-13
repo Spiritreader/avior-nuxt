@@ -2,7 +2,7 @@
   <div>
     <div>
       File Size Difference %
-      <v-btn icon color="primary" @click="expand = !expand">
+      <v-btn variant="text" icon color="primary" @click="expand = !expand">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
       <v-expand-transition>
@@ -40,7 +40,7 @@
     </div>
     <div>
       Fraction %
-      <v-btn icon color="primary" @click="expand2 = !expand2">
+      <v-btn variant="text" icon color="primary" @click="expand2 = !expand2">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
       <v-expand-transition>
@@ -80,7 +80,7 @@
           hide-details
           variant="outlined"
         ></v-text-field>
-        <v-btn icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
+        <v-btn variant="text" icon class="mt-3 mb-2" style="width: 60px" color="primary" @click="expand3 = !expand3">
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
       </div>

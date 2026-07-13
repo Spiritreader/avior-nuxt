@@ -19,11 +19,11 @@
         ></v-text-field>
       </v-col>
       <v-col>
-        <v-btn @click="editAll()" cols="4" md="4" lg="7" xl="7" icon class="mt-3">
+        <v-btn variant="text" @click="editAll()" cols="4" md="4" lg="7" xl="7" icon class="mt-3">
           <v-icon v-if="disabledTag">mdi-circle-edit-outline</v-icon>
           <v-icon color="green" v-else>mdi-checkbox-marked-circle-outline</v-icon>
         </v-btn>
-        <v-btn v-if="allowNew" :disabled="isNew()" icon class="mt-3" @click="deleteConfirm = true">
+        <v-btn variant="text" v-if="allowNew" :disabled="isNew()" icon class="mt-3" @click="deleteConfirm = true">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </v-col>
@@ -96,7 +96,7 @@ If you don't specify a profile, only the post arguments will be used."
     </div>
     <v-dialog v-if="deleteConfirm" v-model="deleteConfirm" max-width="500">
       <template v-slot:activator="{ props }">
-        <v-btn class="mb-2" size="large" icon color="red" v-bind="props">
+        <v-btn variant="text" class="mb-2" size="large" icon color="red" v-bind="props">
           <v-icon>mdi-delete</v-icon>
         </v-btn>
       </template>

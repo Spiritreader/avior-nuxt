@@ -1,7 +1,7 @@
 <template>
   <div>
     Mode
-    <v-btn icon class="ma-2" color="primary" @click="expand = !expand">
+    <v-btn variant="text" icon class="ma-2" color="primary" @click="expand = !expand">
       <v-icon>mdi-help-circle-outline</v-icon>
     </v-btn>
     <v-expand-transition>
