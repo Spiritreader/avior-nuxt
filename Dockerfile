@@ -42,6 +42,10 @@ FROM node:24-alpine AS runtime
 # in the UI) and Komodo also tags each image with the commit hash.
 LABEL org.opencontainers.image.source=https://github.com/Spiritreader/avior-nuxt
 LABEL org.opencontainers.image.description="Avior frontend — Vite + Vue 3 + Vuetify 4 SPA with an Express API"
+# Unraid's Docker page resolves [IP] to the host IP and [PORT:10009] to whatever
+# host port container port 10009 is mapped to, so the WebUI link works regardless
+# of the actual published port.
+LABEL net.unraid.docker.webui="http://[IP]:[PORT:10009]/"
 
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.12.0 --activate
