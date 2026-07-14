@@ -1,23 +1,47 @@
 FROM node:24-alpine AS build
 
-# Vite inlines import.meta.env at build time, so the commit SHA has to be
-# present in the build stage — setting it at runtime would have no effect.
-ARG COMMIT=""
-ENV VITE_COMMIT_SHA=${COMMIT}
-
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.12.0 --activate
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
+# `COPY . .` pulls in .git (not excluded by .dockerignore) so the commit SHA can
+# be resolved at build time with no build-arg and no git binary. Keep .git out of
+# .dockerignore for this to work.
 COPY . .
-RUN pnpm build
+
+# Vite inlines import.meta.env at build time, so VITE_COMMIT_SHA must be set for
+# `pnpm build`, not at runtime. Resolve the short SHA from .git metadata:
+#   HEAD holds either a raw SHA (detached checkout, e.g. Komodo) or "ref: <path>";
+#   for a ref, read .git/<path>, falling back to packed-refs.
+# An explicit COMMIT build-arg still wins if a builder chooses to pass one.
+ARG COMMIT=""
+RUN GIT_HEAD="$(cat .git/HEAD 2>/dev/null || true)"; \
+    if [ -n "$COMMIT" ]; then \
+      HASH="$COMMIT"; \
+    elif echo "$GIT_HEAD" | grep -q '^ref: '; then \
+      REF="$(echo "$GIT_HEAD" | sed 's/^ref: //')"; \
+      if [ -f ".git/$REF" ]; then \
+        HASH="$(cat ".git/$REF")"; \
+      elif [ -f ".git/packed-refs" ]; then \
+        HASH="$(grep " $REF\$" .git/packed-refs | head -1 | cut -d' ' -f1)"; \
+      fi; \
+    else \
+      HASH="$GIT_HEAD"; \
+    fi; \
+    export VITE_COMMIT_SHA="$(echo "${HASH:-unknown}" | cut -c1-7)"; \
+    echo "Building SPA with commit: $VITE_COMMIT_SHA"; \
+    pnpm build
 
 FROM node:24-alpine AS runtime
 
-ARG COMMIT=""
-LABEL commit=${COMMIT}
+# org.opencontainers.image.source links the package to its repo so GHCR files it
+# under the right project (and inherits the repo's visibility/README). This is a
+# static value; the actual commit is baked into the SPA (VITE_COMMIT_SHA, shown
+# in the UI) and Komodo also tags each image with the commit hash.
+LABEL org.opencontainers.image.source=https://github.com/Spiritreader/avior-nuxt
+LABEL org.opencontainers.image.description="Avior frontend — Vite + Vue 3 + Vuetify 4 SPA with an Express API"
 
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.12.0 --activate

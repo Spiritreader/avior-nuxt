@@ -1,0 +1,14 @@
+services:
+  avior-nuxt:
+    image: ghcr.io/spiritreader/avior-nuxt:${TAG:-latest}
+    ports:
+      - "${PORT:-10010}:10009"
+    environment:
+      MONGO_URL: ${MONGO_URL:-mongodb://MongoDB:27017/Avior}
+    restart: unless-stopped
+    networks:
+      - local
+
+networks:
+  local:
+    external: true
