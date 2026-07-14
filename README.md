@@ -115,9 +115,9 @@ TypeScript), `server/**/*.js` (CommonJS Node), and `scripts/*.mjs` (Node ESM).
 
 ## Docker
 
-This project is also available on dockerhub. Pass your database URL as an
+This project is available on ghcr.io. Pass your database URL as an
 environment variable:
 
 ```docker
-docker run --publish=10009:10009 --env MONGO_URL=mongodb://your-url/Avior spiritreader/avior-nuxt
+docker run --publish=10009:10009 --env MONGO_URL=mongodb://your-url/Avior ghcr.io/spiritreader/avior-nuxt
 ```
