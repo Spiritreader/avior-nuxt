@@ -1,4 +1,4 @@
-# Avior frontend
+# Avior Frontend
 
 Frontend for displaying data polled from the avior-go project.
 
