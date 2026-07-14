@@ -1,6 +1,7 @@
 services:
   avior-nuxt:
     image: ghcr.io/spiritreader/avior-nuxt:${TAG:-latest}
+    container_name: avior-nuxt
     ports:
       - "${PORT:-10010}:10009"
     environment:
