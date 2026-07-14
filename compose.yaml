@@ -10,7 +10,7 @@ services:
     networks:
       - local
     labels:
-      - "net.unraid.docker.icon=https://raw.githubusercontent.com/spiritreader/avior-nuxt/master/static/dryicons_love_file_icon_6200.png"
+      - "net.unraid.docker.icon=https://raw.githubusercontent.com/Spiritreader/avior-nuxt/2208c03bc591082d4a491c9f91c98f82b88fcf40/public/dryicons_love_file_icon_6200.png"
       - "net.unraid.docker.webui=http://[IP]:[PORT:10009]/"
 
 networks:
