@@ -1,0 +1,44 @@
+/*
+ * Vuetify 2 shipped a global CSS reset that zeroed every element's default margins
+ * and padding, then re-added a bottom margin to paragraphs. Vuetify 4 REMOVED that
+ * reset — it is the first breaking change in their upgrade guide — so block elements
+ * now carry the browser's UA defaults, which this app was never written for.
+ *
+ * Concretely, a <p> went from `margin: 0 0 16px` to `margin: 14px 0` (1em at the
+ * inherited font-size), so every stacked paragraph gained ~14px of space above it.
+ * Measured against the reference app before restoring this:
+ *
+ *                       Vuetify 2      Vuetify 4
+ *   p margin-top           0px           14px
+ *   p margin-bottom       16px           14px
+ *
+ * This goes in Vuetify's own `vuetify-core.reset` sublayer — the slot its removed reset
+ * used to occupy, and where its upgrade guide puts the revert. That ordering matters: a
+ * bare top-level `@layer reset` would be a DIFFERENT layer, ordered after all of
+ * Vuetify's, and would therefore beat utility classes like `ma-0` instead of losing to
+ * them. In this sublayer every Vuetify component style and utility still wins — exactly
+ * the precedence Vuetify 2 had.
+ */
+@layer vuetify-core.reset {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  ul,
+  ol,
+  dl,
+  dd,
+  blockquote,
+  figure,
+  pre {
+    margin: 0;
+    padding: 0;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+}

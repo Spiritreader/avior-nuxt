@@ -1,0 +1,81 @@
+# http://localhost:3300/settings
+
+title: Avior - powered by Walzen Group
+
+body text length: 624
+
+table rows: 0
+
+## headings (1)
+  - Settings
+
+## nav items (5)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+
+## tabs (0)
+  (none)
+
+## buttons (9)
+  - <icon>
+  - <icon>
+  - <icon>
+  - SUBMIT
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+  - <icon>
+
+## links (7)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+  - Icon -> https://dryicons.com/icon/love-file-icon-6200
+  - dev -> https://github.com/spiritreader/avior-nuxt/commit/dev
+
+## inputs (2)
+  - input[text] Client Name
+  - input[text] Add Address
+
+## table columns (0)
+  (none)
+
+## list items (11)
+  - Overview
+  - Job Manager
+  - Client Configuration
+  - Global Configuration
+  - Frontend Settings
+  - Add Address
+  - Phoenix http://192.168.178.60:10000, http://10.10.10.85:10000, http://172.31.0.85:10000
+  - VAVA http://10.11.194.2:10000, http://192.168.178.51:10000
+  - VDR-U http://192.168.178.61:10000, http://vdr-u.wan.walzen.org:10000, http://10.11.194.61:10000
+  - VDR-U-1 http://192.168.178.61:10001, http://vdr-u.wan.walzen.org:10001, http://10.11.194.61:10001
+  - VDR-U-2 http://192.168.178.61:10002, http://vdr-u.wan.walzen.org:10002, http://10.11.194.61:10002
+
+## vuetify components rendered (19)
+  - v-app-bar
+  - v-application
+  - v-btn
+  - v-card
+  - v-counter
+  - v-divider
+  - v-footer
+  - v-form
+  - v-icon
+  - v-input
+  - v-label
+  - v-list
+  - v-list-item
+  - v-main
+  - v-messages
+  - v-navigation-drawer
+  - v-sheet
+  - v-text-field
+  - v-toolbar

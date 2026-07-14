@@ -1,0 +1,97 @@
+# http://localhost:3300/globalconfig
+
+title: Avior - powered by Walzen Group
+
+body text length: 220
+
+table rows: 0
+
+## headings (0)
+  (none)
+
+## nav items (5)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+
+## tabs (5)
+  - CLIENTS
+  - NAME EXCLUDE
+  - SUB EXCLUDE
+  - LOG INCLUDE
+  - LOG EXCLUDE
+
+## buttons (11)
+  - <icon>
+  - <icon>
+  - <icon>
+  - NEW
+  - VDR-U
+  - VDR-U-1
+  - PHOENIX
+  - VAVA
+  - VDR-U-2
+  - MMDG
+  - VDR
+
+## links (12)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+  - CLIENTS -> #tab-1
+  - NAME EXCLUDE -> #tab-2
+  - SUB EXCLUDE -> #tab-3
+  - LOG INCLUDE -> #tab-4
+  - LOG EXCLUDE -> #tab-5
+  - Icon -> https://dryicons.com/icon/love-file-icon-6200
+  - dev -> https://github.com/spiritreader/avior-nuxt/commit/dev
+
+## inputs (0)
+  (none)
+
+## table columns (0)
+  (none)
+
+## list items (12)
+  - Overview
+  - Job Manager
+  - Client Configuration
+  - Global Configuration
+  - Frontend Settings
+  - VDR-U
+  - VDR-U-1
+  - PHOENIX
+  - VAVA
+  - VDR-U-2
+  - MMDG
+  - VDR
+
+## vuetify components rendered (24)
+  - v-app-bar
+  - v-application
+  - v-btn
+  - v-card
+  - v-footer
+  - v-icon
+  - v-item-group
+  - v-list
+  - v-list-group
+  - v-list-item
+  - v-main
+  - v-navigation-drawer
+  - v-overlay
+  - v-sheet
+  - v-slide-group
+  - v-tab
+  - v-tabs
+  - v-tabs-bar
+  - v-tabs-items
+  - v-tabs-slider
+  - v-tabs-slider-wrapper
+  - v-toolbar
+  - v-window
+  - v-window-item

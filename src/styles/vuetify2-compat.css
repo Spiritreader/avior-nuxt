@@ -1,0 +1,73 @@
+/*
+ * Vuetify 4 is Material Design 3, and MD3 re-specced several component defaults this
+ * app's look depends on. These are not cosmetic preferences — they are the Vuetify 2
+ * values, measured off the reference app and restored so the migration does not
+ * silently restyle the UI.
+ *
+ * These rules are deliberately UNLAYERED. Vuetify sets button typography inside its own
+ * cascade layers, and layer order beats specificity — so a rule inside `vuetify-overrides`
+ * still lost, even at higher specificity. Unlayered styles outrank every layered one.
+ */
+
+/*
+ * MD3 removed the uppercase default on buttons and tabs and re-specced their text.
+ * Measured, Vuetify 2 vs Vuetify 4:
+ *
+ *                    Vuetify 2   Vuetify 4
+ *   text-transform   uppercase   none
+ *   letter-spacing   1.25px      0.11px
+ *   font-weight      500         400
+ *   font-size        14px        16px
+ */
+.v-btn,
+.v-tab {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+/*
+ * Disabled buttons. Vuetify 2 neutralised them; Vuetify 4 keeps their colour, so a
+ * disabled button renders at full saturation and reads as enabled — the Submit button on
+ * /settings sat there in solid blue with white-on-blue text, and the data-table's delete
+ * button glowed red while it was unclickable.
+ *
+ *                      Vuetify 2                 Vuetify 4
+ *   background         rgba(255,255,255,.12)     the button's own colour
+ *   text               rgba(255,255,255,.3)      the button's own on-colour
+ *
+ * The theme is dark-only, so these are the literal Vuetify 2 dark values.
+ */
+.v-btn--disabled.v-btn--variant-elevated,
+.v-btn--disabled.v-btn--variant-flat,
+.v-btn--disabled.v-btn--variant-tonal {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.v-btn--disabled.v-btn--variant-outlined,
+.v-btn--disabled.v-btn--variant-text,
+.v-btn--disabled.v-btn--variant-plain {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/*
+ * The striped progress bar. Both versions paint the same 135deg white-on-transparent
+ * gradient, but Vuetify 4 breaks it in two ways:
+ *
+ *                       Vuetify 2      Vuetify 4
+ *   background-size     40px 40px      8px          (v4 scales it to the bar's height)
+ *   background-repeat   repeat         no-repeat    (so only ONE tile ever paints)
+ *
+ * The bar is 8px tall, so v4 drew a single 8px tile at the left edge and nothing else.
+ *
+ * The third piece is in the markup, not here: the stripes are white at 25% alpha, and
+ * Vuetify 2's VProgressLinear defaulted to color="primary" while Vuetify 4 has no default
+ * and falls back to currentColor — white. White stripes on a white bar are invisible, so
+ * Client.vue now passes color="primary" explicitly.
+ */
+.v-progress-linear--striped .v-progress-linear__determinate {
+  background-size: 40px 40px;
+  background-repeat: repeat;
+}

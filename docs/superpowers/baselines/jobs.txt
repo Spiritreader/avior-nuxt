@@ -1,0 +1,81 @@
+# http://localhost:3300/jobs
+
+title: Avior - powered by Walzen Group
+
+body text length: 293
+
+table rows: 0
+
+## headings (0)
+  (none)
+
+## nav items (5)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+
+## tabs (0)
+  (none)
+
+## buttons (13)
+  - <icon>
+  - <icon>
+  - <icon>
+  - NEW
+  - REASSIGN
+  - DELETE
+  - VDR-U 32 assigned
+  - VDR-U-1 32 assigned
+  - PHOENIX 0 assigned
+  - VAVA 0 assigned
+  - VDR-U-2 0 assigned
+  - MMDG 0 assigned
+  - VDR 0 assigned
+
+## links (7)
+  - Overview -> /
+  - Job Manager -> /jobs
+  - Client Configuration -> /config
+  - Global Configuration -> /globalconfig
+  - Frontend Settings -> /settings
+  - Icon -> https://dryicons.com/icon/love-file-icon-6200
+  - dev -> https://github.com/spiritreader/avior-nuxt/commit/dev
+
+## inputs (0)
+  (none)
+
+## table columns (0)
+  (none)
+
+## list items (13)
+  - Overview
+  - Job Manager
+  - Client Configuration
+  - Global Configuration
+  - Frontend Settings
+  - NEW REASSIGN DELETE
+  - VDR-U 32 assigned
+  - VDR-U-1 32 assigned
+  - PHOENIX 0 assigned
+  - VAVA 0 assigned
+  - VDR-U-2 0 assigned
+  - MMDG 0 assigned
+  - VDR 0 assigned
+
+## vuetify components rendered (14)
+  - v-app-bar
+  - v-application
+  - v-btn
+  - v-card
+  - v-footer
+  - v-icon
+  - v-list
+  - v-list-group
+  - v-list-item
+  - v-main
+  - v-navigation-drawer
+  - v-sheet
+  - v-system-bar
+  - v-toolbar
