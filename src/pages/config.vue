@@ -237,13 +237,6 @@
                     :name="'ResolutionModule'"
                   ></ResolutionSettings>
                 </Module>
-                <Module :name="'SizeApproxModule'" :module="config.Modules.SizeApproxModule">
-                  <SizeApproxSettings
-                    @newdata="handleModuleSettings($event)"
-                    :settings="config.Modules.SizeApproxModule.Settings"
-                    :name="'SizeApproxModule'"
-                  ></SizeApproxSettings>
-                </Module>
                 <Module :name="'DuplicateLengthCheckModule'" :module="config.Modules.DuplicateLengthCheckModule">
                   <DuplicateLengthCheckSettings
                     @newdata="handleModuleSettings($event)"
@@ -407,7 +400,6 @@ import LengthSettings from "@/components/Modules/LengthSettings.vue";
 import LogMatchSettings from "@/components/Modules/LogMatchSettings.vue";
 import MaxSizeSettings from "@/components/Modules/MaxSizeSettings.vue";
 import ResolutionSettings from "@/components/Modules/ResolutionSettings.vue";
-import SizeApproxSettings from "@/components/Modules/SizeApproxSettings.vue";
 
 import { computed, onMounted, ref } from "vue";
 import { useClientResolution } from "@/composables/useClientResolution";

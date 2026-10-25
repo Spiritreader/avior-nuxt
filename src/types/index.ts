@@ -224,12 +224,6 @@ export interface LengthSettings { Threshold: number }
 export interface LogMatchSettings { Mode: string }
 export interface MaxSizeSettings { MaxSize: number }
 export interface ResolutionSettings { MinResolution: number }
-export interface SizeApproxSettings {
-  Difference: number
-  Fraction: number
-  SampleCount: number
-}
-
 export interface Modules {
   AgeModule: ModuleConfig<AgeSettings>
   AudioModule: ModuleConfig<AudioSettings>
@@ -241,7 +235,6 @@ export interface Modules {
   LogMatchModule: ModuleConfig<LogMatchSettings>
   MaxSizeModule: ModuleConfig<MaxSizeSettings>
   ResolutionModule: ModuleConfig<ResolutionSettings>
-  SizeApproxModule: ModuleConfig<SizeApproxSettings>
 }
 
 /** Name of a module, used to index Config.Modules from the settings components' emits. */
