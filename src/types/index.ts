@@ -268,8 +268,22 @@ export interface Config {
 
 /* --------------------------------------------------------------------- fields */
 
-/** The four field lists globalconfig.vue manages. */
-export type FieldType = 'name_exclude' | 'sub_exclude' | 'log_exclude' | 'log_include'
+/** The field lists globalconfig.vue manages. */
+export type FieldType =
+  | 'name_exclude'
+  | 'sub_exclude'
+  | 'log_exclude'
+  | 'log_include'
+  | 'duplicate_strip_patterns'
+  | 'lower_quality_action'
+  | 'higher_quality_action'
+
+/**
+ * The two quality switches hold a single value (not a list):
+ *   lower_quality_action  discard | keep
+ *   higher_quality_action replace | keep
+ */
+export type QualityActionField = 'lower_quality_action' | 'higher_quality_action'
 
 /** GET <address>/fields/<FieldType>/ */
 export interface Field {

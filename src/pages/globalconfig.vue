@@ -13,6 +13,8 @@
         <v-tab href="#tab-3" value="tab-3"> <v-icon class="mr-1">mdi-alphabetical-off</v-icon>Sub Exclude </v-tab>
         <v-tab href="#tab-4" value="tab-4"> <v-icon class="mr-1">mdi-playlist-check</v-icon>Log Include </v-tab>
         <v-tab href="#tab-5" value="tab-5"> <v-icon class="mr-1">mdi-playlist-remove</v-icon>Log Exclude </v-tab>
+        <v-tab href="#tab-6" value="tab-6"> <v-icon class="mr-1">mdi-regex</v-icon>Strip Patterns </v-tab>
+        <v-tab href="#tab-7" value="tab-7"> <v-icon class="mr-1">mdi-swap-vertical-bold</v-icon>Quality </v-tab>
       </v-tabs>
 
       <v-window v-model="tab">
@@ -188,6 +190,45 @@
             <TextDataTable @newdata="modifyFields($event, 'log_exclude')" v-model="logExcludes"></TextDataTable>
           </v-card>
         </v-window-item>
+
+        <!-- Case-insensitive regexes stripped from the file name before the
+             duplicate comparison key is built (framing prefixes, module suffixes). -->
+        <v-window-item value="tab-6">
+          <v-card flat>
+            <v-btn variant="outlined" @click="importDialog = true; importType = 'duplicate_strip_patterns';"
+              color="orange-lighten-2" class="ml-4 mt-3">Import</v-btn>
+            <v-btn variant="outlined" @click="exportType = 'duplicate_strip_patterns'; exportConfig();"
+              color="orange-lighten-2" class="mt-3 ml-1">Export</v-btn>
+            <v-card-text class="pb-0 text-body-2">
+              Case-insensitive regular expressions (RE2 syntax, no lookaround). Everything they match is
+              removed from the file name before duplicates are compared. The file name itself is not changed.
+            </v-card-text>
+            <TextDataTable @newdata="modifyFields($event, 'duplicate_strip_patterns')"
+              v-model="stripPatterns"></TextDataTable>
+          </v-card>
+        </v-window-item>
+
+        <!-- What happens when resolution or audio of a duplicate differs. -->
+        <v-window-item value="tab-7">
+          <v-card flat>
+            <v-card-text>
+              Applies only to the resolution and audio modules. A client restart is required for changes
+              to take effect.
+            </v-card-text>
+            <v-container class="px-4">
+              <v-select :model-value="lowerQualityValue" :items="lowerQualityItems" item-title="title"
+                item-value="value" variant="outlined" density="comfortable" class="mb-4"
+                label="Existing file is better (lower resolution / audio)"
+                hint="discard: park the new recording in exists/ — keep: encode it as 'Name (720p, STEREO)'"
+                persistent-hint @update:model-value="setQualityAction('lower_quality_action', $event)"></v-select>
+              <v-select :model-value="higherQualityValue" :items="higherQualityItems" item-title="title"
+                item-value="value" variant="outlined" density="comfortable"
+                label="New recording is better (higher resolution / audio)"
+                hint="replace: move the existing file to .obsolete — keep: encode the new one with a suffix"
+                persistent-hint @update:model-value="setQualityAction('higher_quality_action', $event)"></v-select>
+            </v-container>
+          </v-card>
+        </v-window-item>
       </v-window>
     </v-card>
 
@@ -239,7 +280,7 @@ import { computed, onMounted, ref } from "vue";
 import { get, post, put, del } from "@/api/http";
 import TextDataTable from "@/components/TextDataTable.vue";
 import { useClientResolution } from "@/composables/useClientResolution";
-import type { DaemonClient, Field, FieldMutation, FieldType, Job } from "@/types";
+import type { DaemonClient, Field, FieldMutation, FieldType, Job, QualityActionField } from "@/types";
 
 const { resolveAnyAddress } = useClientResolution();
 
@@ -270,6 +311,9 @@ const subExcludes = ref<Field[]>([]);
 const scheduleModified = ref(false);
 const logExcludes = ref<Field[]>([]);
 const logIncludes = ref<Field[]>([]);
+const stripPatterns = ref<Field[]>([]);
+const lowerQualityFields = ref<Field[]>([]);
+const higherQualityFields = ref<Field[]>([]);
 const url = ref("");
 const err = ref<unknown>(null);
 const clientAdd = ref(false);
@@ -282,6 +326,44 @@ const nameExcludesValues = computed(() => nameExcludes.value.map((f) => f.Value)
 const subExcludesValues = computed(() => subExcludes.value.map((f) => f.Value));
 const logExcludesValues = computed(() => logExcludes.value.map((f) => f.Value));
 const logIncludesValues = computed(() => logIncludes.value.map((f) => f.Value));
+const stripPatternValues = computed(() => stripPatterns.value.map((f) => f.Value));
+
+/**
+ * The quality switches hold a single document each. Their defaults mirror the
+ * daemon's own defaults, so an empty collection reads as the previous behaviour.
+ */
+const lowerQualityValue = computed(() => lowerQualityFields.value[0]?.Value ?? "discard");
+const higherQualityValue = computed(() => higherQualityFields.value[0]?.Value ?? "replace");
+
+const lowerQualityItems = [
+  { title: "discard - park new recording in exists/", value: "discard" },
+  { title: "keep - encode new recording with quality suffix", value: "keep" },
+];
+const higherQualityItems = [
+  { title: "replace - move existing file to .obsolete", value: "replace" },
+  { title: "keep - encode new recording with quality suffix", value: "keep" },
+];
+
+/**
+ * Writes a single-value switch: update the existing document, or create it when
+ * the collection is still empty (the daemon defaults then no longer apply).
+ */
+async function setQualityAction(type: QualityActionField, value: string) {
+  if (!value) {
+    return;
+  }
+  const current = type === "lower_quality_action" ? lowerQualityFields.value : higherQualityFields.value;
+  try {
+    if (current.length > 0) {
+      await put(`${url.value}/fields/${type}/`, [{ ID: current[0].ID, Value: value }]);
+    } else {
+      await post(`${url.value}/fields/${type}/`, [{ Value: value }]);
+    }
+    await reloadData(type);
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 // Nuxt's async fetch() hook; Vue 3 has no equivalent, so it runs from mounted().
 async function refresh() {
@@ -337,6 +419,9 @@ function exportConfig() {
       break;
     case "log_include":
       exportContent.value = logIncludesValues.value.join("\n");
+      break;
+    case "duplicate_strip_patterns":
+      exportContent.value = stripPatternValues.value.join("\n");
       break;
   }
 }
@@ -409,6 +494,9 @@ async function getFields() {
     subExcludes.value = await fetchField("sub_exclude");
     logExcludes.value = await fetchField("log_exclude");
     logIncludes.value = await fetchField("log_include");
+    stripPatterns.value = await fetchField("duplicate_strip_patterns");
+    lowerQualityFields.value = await fetchField("lower_quality_action");
+    higherQualityFields.value = await fetchField("higher_quality_action");
   } catch (e) {
     console.error(e);
   }
@@ -442,6 +530,27 @@ async function reloadData(type: FieldType) {
     case "log_include":
       try {
         logIncludes.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "duplicate_strip_patterns":
+      try {
+        stripPatterns.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "lower_quality_action":
+      try {
+        lowerQualityFields.value = await fetchField(type);
+      } catch (e) {
+        console.error(e);
+      }
+      break;
+    case "higher_quality_action":
+      try {
+        higherQualityFields.value = await fetchField(type);
       } catch (e) {
         console.error(e);
       }
