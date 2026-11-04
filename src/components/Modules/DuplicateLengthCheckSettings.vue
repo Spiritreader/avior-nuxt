@@ -29,12 +29,53 @@
         <v-icon>mdi-percent</v-icon>
       </template>
     </v-slider>
+
+    <v-divider class="my-4"></v-divider>
+    <div class="text-subtitle-2 mb-1">Shortfall tolerance by planned runtime</div>
+    <p class="text-body-2 mb-2">
+      A recording may run up to <em>minutes</em> short of its planned runtime when the film is
+      shorter than <em>below minutes</em>. Sender EPG durations include commercial breaks, so this
+      replaces the comparison against the existing file. A row without <em>below minutes</em> is the
+      catch-all for longer films.
+    </p>
+    <v-row v-for="(step, idx) in tolerances" :key="idx" dense align="center" class="mx-0">
+      <v-col cols="5" class="py-1">
+        <v-text-field
+          v-model.number="step.below_minutes"
+          label="below minutes"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hide-details
+          placeholder="catch-all"
+          clearable
+        ></v-text-field>
+      </v-col>
+      <v-col cols="5" class="py-1">
+        <v-text-field
+          v-model.number="step.minutes"
+          label="minutes"
+          type="number"
+          variant="outlined"
+          density="compact"
+          hide-details
+        ></v-text-field>
+      </v-col>
+      <v-col cols="2" class="py-1">
+        <v-btn icon variant="text" color="red-lighten-2" @click="removeStep(idx)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-btn variant="outlined" color="orange-lighten-2" class="mt-2" @click="addStep">
+      <v-icon class="mr-2">mdi-plus</v-icon>Add step
+    </v-btn>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import type { DuplicateLengthCheckSettings as DuplicateLengthCheckSettingsType, ModuleName, ModuleSettingsUpdate } from "@/types";
+import type { DuplicateLengthCheckSettings as DuplicateLengthCheckSettingsType, ModuleName, ModuleSettingsUpdate, ToleranceStep } from "@/types";
 
 /**
  * The template interpolates `settingsInternal.threshold` (lower-case t), which
@@ -66,6 +107,37 @@ watch(threshold, () => {
     Settings: settingsInternal.value,
   });
 });
+
+/** Editable rows; below_minutes stays undefined for the catch-all row. */
+const tolerances = ref<ToleranceStep[]>(
+  (props.settings.Tolerances ?? []).map((step) => ({
+    below_minutes: step.below_minutes,
+    minutes: step.minutes,
+  })),
+);
+
+function emitTolerances() {
+  settingsInternal.value.Tolerances = tolerances.value.map((step) => ({
+    below_minutes: step.below_minutes ? Number(step.below_minutes) : undefined,
+    minutes: Number(step.minutes) || 0,
+  }));
+  emit("newdata", {
+    Name: props.name,
+    Settings: settingsInternal.value,
+  });
+}
+
+function addStep() {
+  tolerances.value.push({ minutes: 0 });
+  emitTolerances();
+}
+
+function removeStep(idx: number) {
+  tolerances.value.splice(idx, 1);
+  emitTolerances();
+}
+
+watch(tolerances, emitTolerances, { deep: true });
 </script>
 
 <style>

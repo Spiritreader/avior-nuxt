@@ -217,7 +217,21 @@ export interface ModuleConfig<S = unknown> {
 
 export interface AgeSettings { MaxAge: number }
 export interface AudioSettings { Accuracy: string }
-export interface DuplicateLengthCheckSettings { Threshold: number }
+/**
+ * Allowed shortfall (in minutes) for recordings below a planned runtime. A step
+ * without below_minutes is the catch-all for longer films. Sender EPG durations
+ * include commercial breaks, so the existing file's runtime is not a reference.
+ */
+export interface ToleranceStep {
+  below_minutes?: number
+  minutes: number
+}
+
+export interface DuplicateLengthCheckSettings {
+  /** Legacy percent comparison against the existing file (no EPG data only). */
+  Threshold: number
+  Tolerances?: ToleranceStep[]
+}
 export interface ErrorReplaceSettings { Threshold: number }
 export interface ErrorSkipSettings { Threshold: number }
 export interface LengthSettings { Threshold: number }
