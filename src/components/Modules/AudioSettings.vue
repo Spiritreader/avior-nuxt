@@ -7,27 +7,33 @@
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div>
-          <p class="px-4 pt-4 mb-0 pb-0">
-            Determines how lenient or strict the encoder should be with the audio format detection.
+          <p class="px-4 pt-4 mb-2 pb-0">
+            Determines how strict the comparison is when the audio format of a duplicate differs.
+            This only affects the decision, not how the format is detected.
+          </p>
+          <p class="px-4 mb-2 pb-0">
+            Detection checks, in order: an unambiguous tuner log tag, the audio format timeline of the
+            recorder log (the format that applies for the largest part of the recording), and finally
+            ffprobe over the first 60 seconds when the logs leave it uncertain.
           </p>
           <v-list>
             <v-list-item>
               <template #prepend>
                 <v-icon class="pr-0 mr-1">mdi-circle-small</v-icon>
               </template>
-              low will detect audio if tuner log includes a reference
+              low &mdash; any detected multichannel, even an uncertain one, beats any stereo
             </v-list-item>
             <v-list-item>
               <template #prepend>
                 <v-icon class="pr-0 mr-1">mdi-circle-small</v-icon>
               </template>
-              med will detect audio if tuner log includes a reference and the metadata log has a tag
+              med &mdash; likely or certain multichannel beats likely or certain stereo; uncertain values decide nothing
             </v-list-item>
             <v-list-item>
               <template #prepend>
                 <v-icon class="pr-0 mr-1">mdi-circle-small</v-icon>
               </template>
-              high will detect audio if tuner log exclusively lists it
+              high &mdash; only a certain multichannel beats a certain stereo
             </v-list-item>
           </v-list>
         </div>
