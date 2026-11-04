@@ -215,7 +215,6 @@ export interface ModuleConfig<S = unknown> {
   Settings: S
 }
 
-export interface AgeSettings { MaxAge: number }
 export interface AudioSettings { Accuracy: string }
 /**
  * Allowed shortfall (in minutes) for recordings below a planned runtime. A step
@@ -239,7 +238,6 @@ export interface LogMatchSettings { Mode: string }
 export interface MaxSizeSettings { MaxSize: number }
 export interface ResolutionSettings { MinResolution: number }
 export interface Modules {
-  AgeModule: ModuleConfig<AgeSettings>
   AudioModule: ModuleConfig<AudioSettings>
   DuplicateLengthCheckModule: ModuleConfig<DuplicateLengthCheckSettings>
   ErrorReplaceModule: ModuleConfig<ErrorReplaceSettings>

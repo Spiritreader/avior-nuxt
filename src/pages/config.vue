@@ -184,13 +184,6 @@
                     :name="'AudioModule'"
                   ></AudioSettings>
                 </Module>
-                <Module :name="'AgeModule'" :module="config.Modules.AgeModule">
-                  <AgeSettings
-                    @newdata="handleModuleSettings($event)"
-                    :settings="config.Modules.AgeModule.Settings"
-                    :name="'AgeModule'"
-                  ></AgeSettings>
-                </Module>
                 <Module :name="'LegacyModule'" :module="config.Modules.LegacyModule"></Module>
                 <Module :name="'LengthModule'" :module="config.Modules.LengthModule">
                   <LengthSettings
@@ -391,7 +384,6 @@ import EncoderConfig from "@/components/EncoderConfig.vue";
 import Property from "@/components/Property.vue";
 import SimpleList from "@/components/SimpleList.vue";
 import Module from "@/components/Modules/Module.vue";
-import AgeSettings from "@/components/Modules/AgeSettings.vue";
 import AudioSettings from "@/components/Modules/AudioSettings.vue";
 import DuplicateLengthCheckSettings from "@/components/Modules/DuplicateLengthCheckSettings.vue";
 import ErrorReplaceSettings from "@/components/Modules/ErrorReplaceSettings.vue";
