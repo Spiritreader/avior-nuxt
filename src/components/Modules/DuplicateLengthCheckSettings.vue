@@ -1,43 +1,26 @@
 <template>
   <div>
-    Length Difference %
+    Shortfall tolerance by planned runtime
     <v-btn variant="text" icon color="primary" @click="expand = !expand">
       <v-icon>mdi-help-circle-outline</v-icon>
     </v-btn>
     <v-expand-transition>
       <v-card v-show="expand" class="mx-1 mb-2">
         <div class="px-4 pt-4 mb-0 pb-1">
-          <p>This setting configures how much the duplicate file and the replacement file are allowed to differ in length</p>
+          <p>
+            The new recording is judged against its own planned runtime (EPG), not against the runtime
+            of the existing file: sender EPG durations include commercial breaks and old recordings may
+            have overrun, so a shorter but complete recording must still be allowed to replace them.
+          </p>
           <p class="pb-0 mb-1">
-            Setting the threshold to a value greater than 0 allows the new file to be {{ settingsInternal.threshold }}% shorter
+            Each row allows a shortfall in <em>minutes</em> when the planned runtime is shorter than
+            <em>below minutes</em>. A row without <em>below minutes</em> is the catch-all for longer
+            films. Without a planned runtime the module skips instead of guessing.
           </p>
         </div>
       </v-card>
     </v-expand-transition>
-    <v-slider color="red-darken-3" v-model="threshold" class="align-center" :max="max" :min="min" hide-details>
-      <template v-slot:append>
-        <v-text-field
-          v-model="threshold"
-          class="mt-0 pt-0"
-          hide-details
-          single-line
-          type="number"
-          style="width: 60px"
-        ></v-text-field>
-      </template>
-      <template v-slot:thumb-label>
-        <v-icon>mdi-percent</v-icon>
-      </template>
-    </v-slider>
 
-    <v-divider class="my-4"></v-divider>
-    <div class="text-subtitle-2 mb-1">Shortfall tolerance by planned runtime</div>
-    <p class="text-body-2 mb-2">
-      A recording may run up to <em>minutes</em> short of its planned runtime when the film is
-      shorter than <em>below minutes</em>. Sender EPG durations include commercial breaks, so this
-      replaces the comparison against the existing file. A row without <em>below minutes</em> is the
-      catch-all for longer films.
-    </p>
     <v-row v-for="(step, idx) in tolerances" :key="idx" dense align="center" class="mx-0">
       <v-col cols="5" class="py-1">
         <v-text-field
@@ -77,13 +60,6 @@
 import { ref, watch } from "vue";
 import type { DuplicateLengthCheckSettings as DuplicateLengthCheckSettingsType, ModuleName, ModuleSettingsUpdate, ToleranceStep } from "@/types";
 
-/**
- * The template interpolates `settingsInternal.threshold` (lower-case t), which
- * the daemon never sends -- it renders empty. Kept as-is; the optional member
- * only exists so the template still type-checks.
- */
-type DuplicateLengthCheckInternal = DuplicateLengthCheckSettingsType & { threshold?: number };
-
 const props = defineProps<{
   settings: DuplicateLengthCheckSettingsType;
   name: ModuleName;
@@ -93,20 +69,9 @@ const emit = defineEmits<{
   newdata: [update: ModuleSettingsUpdate];
 }>();
 
-const min = ref(0);
-const max = ref(20);
 const expand = ref(false);
-const threshold = ref(props.settings.Threshold);
 // Same object reference as the prop, deliberately not a copy.
-const settingsInternal = ref<DuplicateLengthCheckInternal>(props.settings);
-
-watch(threshold, () => {
-  settingsInternal.value.Threshold = threshold.value;
-  emit("newdata", {
-    Name: props.name,
-    Settings: settingsInternal.value,
-  });
-});
+const settingsInternal = ref<DuplicateLengthCheckSettingsType>(props.settings);
 
 /** Editable rows; below_minutes stays undefined for the catch-all row. */
 const tolerances = ref<ToleranceStep[]>(
@@ -139,12 +104,3 @@ function removeStep(idx: number) {
 
 watch(tolerances, emitTolerances, { deep: true });
 </script>
-
-<style>
-.priority-tb {
-  max-width: 120px;
-}
-.maxout {
-  width: 100%;
-}
-</style>

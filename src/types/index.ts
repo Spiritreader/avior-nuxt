@@ -227,8 +227,6 @@ export interface ToleranceStep {
 }
 
 export interface DuplicateLengthCheckSettings {
-  /** Legacy percent comparison against the existing file (no EPG data only). */
-  Threshold: number
   Tolerances?: ToleranceStep[]
 }
 export interface ErrorReplaceSettings { Threshold: number }
