@@ -231,7 +231,10 @@ export interface DuplicateLengthCheckSettings {
 }
 export interface ErrorReplaceSettings { Threshold: number }
 export interface ErrorSkipSettings { Threshold: number }
-export interface LengthSettings { Threshold: number }
+/** Same tolerance table as the duplicate length check. */
+export interface LengthSettings {
+  Tolerances?: ToleranceStep[]
+}
 export interface LogMatchSettings { Mode: string }
 export interface MaxSizeSettings { MaxSize: number }
 export interface ResolutionSettings { MinResolution: number }
