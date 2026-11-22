@@ -283,6 +283,7 @@ export type FieldType =
   | 'duplicate_strip_patterns'
   | 'lower_quality_action'
   | 'higher_quality_action'
+  | 'description_similarity_threshold'
 
 /**
  * The two quality switches hold a single value (not a list):
