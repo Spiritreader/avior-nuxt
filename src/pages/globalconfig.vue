@@ -217,16 +217,18 @@
               to take effect.
             </v-card-text>
             <v-container class="px-4">
-              <v-select :model-value="lowerQualityValue" :items="lowerQualityItems" item-title="title"
+              <v-select v-model="lowerQualityDraft" :items="lowerQualityItems" item-title="title"
                 item-value="value" variant="outlined" density="comfortable" class="mb-4"
                 label="Existing file is better (lower resolution / audio)"
                 hint="discard: park the new recording in exists/ — keep: encode it as 'Name (720p, STEREO)'"
-                persistent-hint @update:model-value="setQualityAction('lower_quality_action', $event)"></v-select>
-              <v-select :model-value="higherQualityValue" :items="higherQualityItems" item-title="title"
+                persistent-hint></v-select>
+              <v-select v-model="higherQualityDraft" :items="higherQualityItems" item-title="title"
                 item-value="value" variant="outlined" density="comfortable"
                 label="New recording is better (higher resolution / audio)"
                 hint="replace: move the existing file to .obsolete — keep: encode the new one with a suffix"
-                persistent-hint @update:model-value="setQualityAction('higher_quality_action', $event)"></v-select>
+                persistent-hint></v-select>
+              <v-btn color="indigo-lighten-2" variant="outlined" :loading="qualityLoader"
+                @click="saveQualityActions">Save</v-btn>
             </v-container>
           </v-card>
         </v-window-item>
@@ -328,6 +330,9 @@ const stripPatterns = ref<Field[]>([]);
 const lowerQualityFields = ref<Field[]>([]);
 const higherQualityFields = ref<Field[]>([]);
 const similarityFields = ref<Field[]>([]);
+const lowerQualityDraft = ref("discard");
+const higherQualityDraft = ref("replace");
+const qualityLoader = ref(false);
 const similarityThreshold = ref(0.7);
 const similarityLoader = ref(false);
 const url = ref("");
@@ -399,6 +404,16 @@ async function setQualityAction(type: QualityActionField, value: string) {
     await reloadData(type);
   } catch (e) {
     console.error(e);
+  }
+}
+
+async function saveQualityActions() {
+  qualityLoader.value = true;
+  try {
+    await setQualityAction("lower_quality_action", lowerQualityDraft.value);
+    await setQualityAction("higher_quality_action", higherQualityDraft.value);
+  } finally {
+    qualityLoader.value = false;
   }
 }
 
@@ -540,6 +555,8 @@ async function getFields() {
     }
     lowerQualityFields.value = await fetchField("lower_quality_action");
     higherQualityFields.value = await fetchField("higher_quality_action");
+    lowerQualityDraft.value = lowerQualityFields.value[0]?.Value ?? "discard";
+    higherQualityDraft.value = higherQualityFields.value[0]?.Value ?? "replace";
   } catch (e) {
     console.error(e);
   }
