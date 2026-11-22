@@ -14,7 +14,8 @@
         <v-tab href="#tab-4" value="tab-4"> <v-icon class="mr-1">mdi-playlist-check</v-icon>Log Include </v-tab>
         <v-tab href="#tab-5" value="tab-5"> <v-icon class="mr-1">mdi-playlist-remove</v-icon>Log Exclude </v-tab>
         <v-tab href="#tab-6" value="tab-6"> <v-icon class="mr-1">mdi-regex</v-icon>Strip Patterns </v-tab>
-        <v-tab href="#tab-7" value="tab-7"> <v-icon class="mr-1">mdi-swap-vertical-bold</v-icon>Quality </v-tab>
+        <v-tab href="#tab-7" value="tab-7"> <v-icon class="mr-1">mdi-swap-vertical-bold</v-icon> Quality </v-tab>
+        <v-tab href="#tab-8" value="tab-8"><v-icon class="mr-1">mdi-chart-bell-curve-cumulative</v-icon> Similarity </v-tab>
       </v-tabs>
 
       <v-window v-model="tab">
@@ -229,6 +230,18 @@
             </v-container>
           </v-card>
         </v-window-item>
+        <v-window-item value="tab-8">
+          <v-card flat>
+            <v-container class="px-4">
+              <v-text-field v-model.number="similarityThreshold" type="number" min="0" max="1" step="0.01"
+                variant="outlined" label="Description similarity threshold"
+                hint="Descriptions scoring at least this value are treated as the same"
+                persistent-hint></v-text-field>
+              <v-btn color="indigo-lighten-2" variant="outlined" :loading="similarityLoader"
+                @click="saveSimilarityThreshold">Save</v-btn>
+            </v-container>
+          </v-card>
+        </v-window-item>
       </v-window>
     </v-card>
 
@@ -314,6 +327,9 @@ const logIncludes = ref<Field[]>([]);
 const stripPatterns = ref<Field[]>([]);
 const lowerQualityFields = ref<Field[]>([]);
 const higherQualityFields = ref<Field[]>([]);
+const similarityFields = ref<Field[]>([]);
+const similarityThreshold = ref(0.7);
+const similarityLoader = ref(false);
 const url = ref("");
 const err = ref<unknown>(null);
 const clientAdd = ref(false);
@@ -343,6 +359,27 @@ const higherQualityItems = [
   { title: "replace - move existing file to .obsolete", value: "replace" },
   { title: "keep - encode new recording with quality suffix", value: "keep" },
 ];
+async function saveSimilarityThreshold() {
+  if (!Number.isFinite(similarityThreshold.value) || similarityThreshold.value < 0 || similarityThreshold.value > 1) {
+    return;
+  }
+  similarityLoader.value = true;
+  try {
+    const value = String(similarityThreshold.value);
+    if (similarityFields.value.length > 0) {
+      await put(`${url.value}/fields/description_similarity_threshold/`, [
+        { ID: similarityFields.value[0].ID, Value: value },
+      ]);
+    } else {
+      await post(`${url.value}/fields/description_similarity_threshold/`, [{ Value: value }]);
+    }
+    similarityFields.value = await fetchField("description_similarity_threshold");
+  } catch (e) {
+    console.error(e);
+  } finally {
+    similarityLoader.value = false;
+  }
+}
 
 /**
  * Writes a single-value switch: update the existing document, or create it when
@@ -494,7 +531,13 @@ async function getFields() {
     subExcludes.value = await fetchField("sub_exclude");
     logExcludes.value = await fetchField("log_exclude");
     logIncludes.value = await fetchField("log_include");
-    stripPatterns.value = await fetchField("duplicate_strip_patterns");
+    similarityFields.value = await fetchField("description_similarity_threshold");
+    if (similarityFields.value.length > 0) {
+      const parsed = Number(similarityFields.value[0].Value);
+      if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 1) {
+        similarityThreshold.value = parsed;
+      }
+    }
     lowerQualityFields.value = await fetchField("lower_quality_action");
     higherQualityFields.value = await fetchField("higher_quality_action");
   } catch (e) {
